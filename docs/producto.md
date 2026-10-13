@@ -103,6 +103,13 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
    - Si las cajas sugeridas de una marca no llegan a su pedido mínimo, el cotizador lo avisa **en ese momento**, sin esperar al carrito ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.") y ofrece subir al mínimo o cambiar de producto.
 5. Los parámetros (tragos por persona en la primera hora, tragos por hora siguiente, ml por trago) **los configura el admin**. Los valores iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
+### Ideas para la fase 6 (por definir con Mathias antes de construir)
+- Parámetros según el **tipo de evento** (boda, corporativo, etc.), no uno solo para todos.
+- Calcular con **recetas**: qué trago se sirve y cuántos ml de cada bebida lleva.
+- Que el cotizador **recomiende automáticamente productos de Surtiba** según el evento.
+- Guardar cada cotización para medir cuántas terminan en pedido.
+- Las tablas del cotizador (`config_cotizador`, `cotizaciones`) se crean en la fase 6, no en la 1.
+
 ### Cotización en PDF
 - Se genera desde el carrito: logo, fecha, código (COT-0001), productos por marca, cajas, precio por caja y totales.
 - **Cada cotización se guarda** en una tabla simple (comprador, fecha, ítems y total) para medir cuántas terminan en pedido.
@@ -122,7 +129,7 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
 
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
 - ¿Los precios incluyen IGV?
-- % de comisión definitivo (el experimento mostró que 12% es alto)
+- % de comisión definitivo (el experimento mostró que 12% es alto). Los datos demo usan 5 %.
 - Costo de envío: ¿quién lo paga y cuánto? Por ahora, campo en 0.
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
 - Zonas y horarios de entrega

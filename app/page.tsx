@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { EstadoConexion, EstadoConexionCargando } from "@/components/EstadoConexion";
 import { Logo } from "@/components/Logo";
 
 export default function Home() {
@@ -22,13 +20,6 @@ export default function Home() {
           Armas tu pedido con productos de varias marcas. Surtiba recoge en cada
           una y te entrega todo junto.
         </p>
-
-        {/* Fase 0: prueba de conexión. Suspense deja cargar la página mientras llega el dato. */}
-        <div className="mt-12 max-w-md">
-          <Suspense fallback={<EstadoConexionCargando />}>
-            <EstadoConexion />
-          </Suspense>
-        </div>
       </main>
     </>
   );

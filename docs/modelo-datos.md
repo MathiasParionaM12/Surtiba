@@ -107,6 +107,7 @@ PK compuesta (comprador_id, producto_id).
 | id | uuid PK | |
 | pedido_id | uuid FK → pedidos | |
 | marca_id | uuid FK → marcas | |
+| codigo | text | **copia** del código del pedido (`SUR-0001`): la marca no puede leer `pedidos` pero necesita el código |
 | estado | text | `pendiente` · `listo_recojo` · `recogido` · `entregado` · `rechazado` · `cancelado` |
 | fecha_recojo | date | la pone el admin; la marca la ve |
 | total_centimos | integer | |
@@ -130,8 +131,8 @@ Restricción: un solo subpedido por (pedido_id, marca_id).
 | precio_caja_centimos | integer | **copia** del precio aplicado según la escala |
 | subtotal_centimos | integer | cajas × precio |
 
-### config_cotizador
-Una sola fila que edita el admin. Los valores iniciales son supuestos por validar.
+### config_cotizador (se diseña y crea en la fase 6)
+Borrador. En la fase 6 se rediseña (parámetros por tipo de evento, recetas, ml) y se agrega la tabla `cotizaciones`. Ver "Ideas para la fase 6" en `producto.md`.
 | Columna | Tipo | Nota |
 |---|---|---|
 | tragos_primera_hora | numeric | por invitado |
@@ -151,6 +152,8 @@ PEDIDO (lo ve el comprador; lo mueve el admin)
 recibido ─► en_preparacion ─► en_camino ─► entregado
     └──────────► cancelado
 ```
+- El pedido pasa a `en_preparacion` automáticamente cuando al menos un subpedido está `listo_recojo`.
+- Un subpedido `rechazado` cuenta igual que `cancelado`: no suma al total, no bloquea `en_camino` y su stock vuelve.
 - El pedido pasa a `en_camino` solo si todos sus subpedidos no cancelados están `recogido`.
 - Al pasar el pedido a `entregado`, sus subpedidos pasan a `entregado` y se calcula la comisión.
 
@@ -167,9 +170,20 @@ recibido ─► en_preparacion ─► en_camino ─► entregado
 | pedidos | no | los suyos | **no** | todo |
 | subpedidos e items | no | los de sus pedidos | solo los de su marca | todo |
 | favoritos | no | los suyos | no | no hace falta |
-| config_cotizador | no | leer | no | editar |
+| config_cotizador (fase 6) | no | leer | no | editar |
 
 La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los datos del evento). Todo lo que necesita está en su subpedido.
+
+### Cómo está implementado (fase 1, ver `supabase/sql/`)
+- **Vistas públicas** (las usa el visitante; también sirven al comprador):
+  - `catalogo_publico`: productos activos de marcas activas con el precio del primer tramo. Sin stock ni escala completa.
+  - `marcas_publicas`: id, nombre comercial y pedido mínimo de las marcas activas. Sin contacto ni dirección.
+  - Son de solo lectura. Supabase las marca como "Security Definer View": es intencional.
+- **Funciones de ayuda** en el esquema `privado` (no se exponen en la API): `mi_rol()`, `es_admin()`, `mi_marca_id()`, `marca_activa()`.
+- **Perfil automático**: al crear un usuario, un trigger le crea un perfil con rol `comprador`. Los roles `marca` y `admin` solo se asignan desde el servidor.
+- Cada usuario puede editar solo `nombre`, `empresa`, `tipo_negocio`, `whatsapp` y `ruc` de su perfil; nunca su `rol` ni su `marca_id`.
+- Sin insert directo en `pedidos`, `subpedidos` ni `items`: se crearán con funciones del servidor (fases 3–5).
+- Los productos no se borran; se desactivan (`activo = false`).
 
 ## Lógica en el servidor
 **Crear un pedido** es una sola transacción (función de PostgreSQL o ruta del servidor):
