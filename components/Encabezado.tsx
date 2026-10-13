@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/Logo";
 import { MenuSesion } from "@/components/MenuSesion";
+import { NavMovil, NavPrincipal, NavPrincipalCargando } from "@/components/Navegacion";
 
-// Barra superior de todas las páginas. La parte de la sesión lee cookies,
-// por eso va dentro de <Suspense>: el resto del encabezado carga al instante.
+// Barra superior de todas las páginas. Lo que depende de la sesión lee cookies,
+// por eso va dentro de <Suspense>: el logo carga al instante.
 export function Encabezado() {
   return (
     <header className="sticky top-0 z-10 border-b border-linea bg-papel/95 backdrop-blur">
@@ -13,14 +14,17 @@ export function Encabezado() {
           <Link href="/" aria-label="Surtiba, inicio" className="shrink-0">
             <Logo className="text-2xl sm:text-[28px]" />
           </Link>
-          <Link href="/catalogo" className="hidden text-sm font-medium hover:text-verde sm:inline">
-            Catálogo
-          </Link>
+          <Suspense fallback={<NavPrincipalCargando />}>
+            <NavPrincipal />
+          </Suspense>
         </div>
         <Suspense fallback={<div className="h-10 w-44" aria-hidden="true" />}>
           <MenuSesion />
         </Suspense>
       </div>
+      <Suspense fallback={null}>
+        <NavMovil />
+      </Suspense>
     </header>
   );
 }

@@ -3,8 +3,9 @@ import { salir } from "@/lib/acciones-auth";
 import { botonPrimario, botonSecundario } from "@/lib/estilos";
 import { NOMBRE_ROL } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
+import { createClient } from "@/lib/supabase/server";
 
-// Lado derecho del encabezado: botones para entrar, o quién ingresó, su panel y "Salir".
+// Lado derecho del encabezado: botones para entrar, o el carrito, quién ingresó y "Salir".
 export async function MenuSesion() {
   const usuario = await obtenerUsuario();
 
@@ -21,21 +22,26 @@ export async function MenuSesion() {
     );
   }
 
-  const panel = usuario.rol === "marca" ? "/marca" : usuario.rol === "admin" ? "/admin" : null;
+  // Productos en el carrito (RLS: solo los del comprador)
+  let enCarrito = 0;
+  if (usuario.rol === "comprador") {
+    const supabase = await createClient();
+    const { count } = await supabase.from("carrito").select("*", { count: "exact", head: true });
+    enCarrito = count ?? 0;
+  }
 
   return (
-    <div className="flex min-w-0 items-center gap-3">
-      {panel && (
-        <Link href={panel} className="hidden text-sm font-medium text-verde hover:text-tinta sm:inline">
-          Mi panel
-        </Link>
-      )}
-      <div className="min-w-0 text-right leading-tight">
-        <p className="max-w-36 truncate text-sm font-medium sm:max-w-56">
-          {usuario.empresa ?? usuario.nombre ?? usuario.email}
-        </p>
+    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="hidden min-w-0 text-right leading-tight md:block">
+        <p className="max-w-48 truncate text-sm font-medium">{usuario.empresa ?? usuario.nombre ?? usuario.email}</p>
         <p className="font-mono text-[11px] tracking-[0.1em] text-gris uppercase">{NOMBRE_ROL[usuario.rol]}</p>
       </div>
+      {usuario.rol === "comprador" && (
+        <Link href="/carrito" className={`${botonPrimario} h-10 px-3 sm:px-4`}>
+          Carrito
+          <span className="rounded-sm bg-blanco/15 px-1.5 font-mono text-xs tabular-nums">{enCarrito}</span>
+        </Link>
+      )}
       <form action={salir}>
         <button type="submit" className={`${botonSecundario} h-10 px-3 sm:px-4`}>
           Salir

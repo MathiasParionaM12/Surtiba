@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { TarjetaProducto, type ProductoTarjeta } from "@/components/TarjetaProducto";
-import { CATEGORIAS, esUuid } from "@/lib/catalogo";
+import { aTarjeta, CATEGORIAS, esUuid } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +9,7 @@ export type Filtros = { categoria?: string; marca?: string };
 
 export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros> }) {
   const [usuario, filtros] = await Promise.all([obtenerUsuario(), searchParams]);
-  if (usuario) return <CatalogoConSesion filtros={filtros} />;
+  if (usuario) return <CatalogoConSesion filtros={filtros} esComprador={usuario.rol === "comprador"} />;
   return <CatalogoPublico />;
 }
 
@@ -52,7 +52,7 @@ async function CatalogoPublico() {
 // ── Con sesión: filtros, stock y precios por volumen ──
 // RLS decide qué productos llegan: comprador = activos de marcas activas;
 // marca = los suyos; admin = todos (también los inactivos, que se marcan).
-async function CatalogoConSesion({ filtros }: { filtros: Filtros }) {
+async function CatalogoConSesion({ filtros, esComprador }: { filtros: Filtros; esComprador: boolean }) {
   const supabase = await createClient();
 
   let consulta = supabase
@@ -64,29 +64,17 @@ async function CatalogoConSesion({ filtros }: { filtros: Filtros }) {
   if (filtros.categoria && CATEGORIAS[filtros.categoria]) consulta = consulta.eq("categoria", filtros.categoria);
   if (esUuid(filtros.marca)) consulta = consulta.eq("marca_id", filtros.marca);
 
-  const [{ data }, { data: marcas }] = await Promise.all([
+  const [{ data }, { data: marcas }, { data: favoritos }] = await Promise.all([
     consulta,
     supabase.from("marcas").select("id, nombre_comercial").order("nombre_comercial"),
+    // RLS: cada comprador recibe solo sus favoritos (la marca y el admin, ninguno)
+    supabase.from("favoritos").select("producto_id"),
   ]);
+  const misFavoritos = new Set((favoritos ?? []).map((f) => f.producto_id));
 
-  const productos: ProductoTarjeta[] = (data ?? [])
-    .filter((p) => p.escalas_precio.some((e) => e.desde_cajas === 1))
-    .map((p) => {
-      const precios = p.escalas_precio.map((e) => e.precio_caja_centimos);
-      return {
-        id: p.id,
-        nombre: p.nombre,
-        marca: p.marcas?.nombre_comercial ?? "",
-        categoria: p.categoria,
-        ml: p.ml,
-        grado: p.grado,
-        unidades: p.unidades_por_caja,
-        precioCaja: p.escalas_precio.find((e) => e.desde_cajas === 1)!.precio_caja_centimos,
-        precioMinimo: Math.min(...precios),
-        stock: p.stock_cajas,
-        inactivo: !p.activo || !p.marcas?.activa,
-      };
-    });
+  const productos = (data ?? [])
+    .map((p) => aTarjeta(p, esComprador ? misFavoritos.has(p.id) : undefined))
+    .filter((p): p is ProductoTarjeta => p !== null);
 
   const hayFiltros = !!(filtros.categoria || filtros.marca);
 

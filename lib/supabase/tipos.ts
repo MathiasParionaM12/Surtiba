@@ -9,6 +9,15 @@ export type Database = {
   };
   public: {
     Tables: {
+      carrito: {
+        Row: { agregado_en: string; cajas: number; comprador_id: string; producto_id: string };
+        Insert: { agregado_en?: string; cajas: number; comprador_id: string; producto_id: string };
+        Update: { agregado_en?: string; cajas?: number; comprador_id?: string; producto_id?: string };
+        Relationships: [
+          { foreignKeyName: "carrito_comprador_id_fkey"; columns: ["comprador_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "carrito_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "productos"; referencedColumns: ["id"] },
+        ];
+      };
       escalas_precio: {
         Row: { desde_cajas: number; hasta_cajas: number | null; id: string; precio_caja_centimos: number; producto_id: string };
         Insert: { desde_cajas: number; hasta_cajas?: number | null; id?: string; precio_caja_centimos: number; producto_id: string };
@@ -141,6 +150,15 @@ export type Database = {
       };
     };
     Views: {
+      carrito_detalle: {
+        Row: {
+          activo: boolean | null; cajas: number | null; categoria: string | null; comprador_id: string | null; marca: string | null;
+          marca_activa: boolean | null; marca_id: string | null; ml: number | null; nombre: string | null; pedido_minimo_cajas: number | null;
+          precio_caja_centimos: number | null; producto_id: string | null; stock_cajas: number | null; subtotal_centimos: number | null;
+          unidades_por_caja: number | null;
+        };
+        Relationships: [];
+      };
       catalogo_publico: {
         Row: {
           categoria: string | null; foto_url: string | null; grado: number | null; id: string | null; marca: string | null;
@@ -151,7 +169,20 @@ export type Database = {
         ];
       };
     };
-    Functions: { [_ in never]: never };
+    Functions: {
+      crear_pedido: {
+        Args: {
+          p_fecha_entrega: string;
+          p_direccion: string;
+          p_nota?: string;
+          p_evento_nombre?: string;
+          p_evento_tipo?: string;
+          p_evento_fecha?: string;
+          p_invitados?: number;
+        };
+        Returns: { pedido_id: string; codigo: string }[];
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { EsqueletoPagina } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Panel Surtiba · Surtiba" };
 export default function PaginaAdmin() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
-      <Suspense fallback={<p className="text-gris">Cargando el panel…</p>}>
+      <Suspense fallback={<EsqueletoPagina />}>
         <PanelAdmin />
       </Suspense>
     </main>

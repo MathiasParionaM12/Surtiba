@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { EsqueletoDetalle } from "@/components/Esqueleto";
+import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
 import { CATEGORIAS, esUuid, ordenarTramos, textoTramo } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { FormAgregar } from "./FormAgregar";
 
 export const metadata: Metadata = { title: "Producto · Surtiba" };
 
@@ -17,7 +20,7 @@ export default function PaginaProducto({ params }: PageProps<"/catalogo/[id]">) 
       <Link href="/catalogo" className="text-sm font-medium text-verde hover:text-tinta">
         ← Volver al catálogo
       </Link>
-      <Suspense fallback={<p className="mt-10 text-gris">Cargando producto…</p>}>
+      <Suspense fallback={<EsqueletoDetalle />}>
         <Detalle params={params} />
       </Suspense>
     </main>
@@ -75,6 +78,15 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   if (!p || !p.marcas) notFound();
 
   const tramos = ordenarTramos(p.escalas_precio);
+  const esComprador = usuario.rol === "comprador";
+
+  // Solo para compradores: ¿está en favoritos? ¿cuántas cajas tiene ya en el carrito?
+  const [{ data: favorito }, { data: enCarrito }] = esComprador
+    ? await Promise.all([
+        supabase.from("favoritos").select("producto_id").eq("producto_id", id).maybeSingle(),
+        supabase.from("carrito").select("cajas").eq("producto_id", id).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
 
   return (
     <Ficha
@@ -95,6 +107,14 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           {p.marcas.activa ? "Producto inactivo" : "Marca inactiva"}: los compradores no lo ven en el catálogo.
         </p>
       )}
+      {esComprador && (
+        <div className="mb-8 flex items-start gap-2">
+          <div className="flex-1">
+            <FormAgregar productoId={id} agotado={p.stock_cajas === 0} enCarrito={enCarrito?.cajas ?? 0} />
+          </div>
+          <BotonFavorito productoId={id} activo={!!favorito} className="pt-1" />
+        </div>
+      )}
       <h2 className={sello}>Precio por caja según cantidad</h2>
       <table className="mt-3 w-full overflow-hidden rounded-md border border-linea bg-blanco text-sm">
         <tbody>
@@ -112,9 +132,6 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
         sumando cualquiera de sus productos.
       </p>
-      {usuario.rol === "comprador" && (
-        <p className="mt-6 text-sm text-gris">El carrito para pedir llega en la siguiente etapa del prototipo.</p>
-      )}
     </Ficha>
   );
 }

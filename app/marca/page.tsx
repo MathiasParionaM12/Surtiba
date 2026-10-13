@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: "Panel de marca · Surtiba" };
 export default function PaginaMarca() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
-      <Suspense fallback={<p className="text-gris">Cargando tu panel…</p>}>
+      <Suspense fallback={<EsqueletoPagina />}>
         <PanelMarca />
       </Suspense>
     </main>

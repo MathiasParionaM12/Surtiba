@@ -86,6 +86,16 @@ Sin sesión, solo se puede leer el **precio "desde"** mediante una vista o funci
 | creado_en | timestamptz | |
 PK compuesta (comprador_id, producto_id).
 
+### carrito (fase 3)
+Se guarda en la cuenta del comprador (lo ve en cualquier dispositivo).
+| Columna | Tipo | Nota |
+|---|---|---|
+| comprador_id | uuid FK → perfiles | |
+| producto_id | uuid FK → productos | |
+| cajas | integer | 1 a 999 |
+| agregado_en | timestamptz | |
+PK compuesta (comprador_id, producto_id). La vista `carrito_detalle` le agrega el precio del tramo que corresponde a las cajas (calculado en la base de datos).
+
 ### pedidos
 | Columna | Tipo | Nota |
 |---|---|---|
@@ -191,7 +201,7 @@ La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los d
 - Los productos no se borran; se desactivan (`activo = false`).
 
 ## Lógica en el servidor
-**Crear un pedido** es una sola transacción (función de PostgreSQL o ruta del servidor):
+**Crear un pedido** es una sola transacción. Implementado en la función `crear_pedido` (`supabase/sql/08_carrito_y_pedidos.sql`): el navegador solo manda los datos de entrega; los productos y cajas salen del `carrito` guardado. La entrega se puede pedir desde mañana (hora de Lima).
 1. Se recibe solo `[{producto_id, cajas}]` y los datos de entrega.
 2. Se bloquean las filas de esos productos (`SELECT … FOR UPDATE`) y se revisa el stock.
 3. Se calculan los precios según la escala, se agrupa por marca y se valida el pedido mínimo.

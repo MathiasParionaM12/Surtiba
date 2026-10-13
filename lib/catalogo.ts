@@ -28,3 +28,54 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function esUuid(valor: string | undefined): valor is string {
   return !!valor && UUID.test(valor);
 }
+
+// Datos que necesita una tarjeta del catálogo
+export type ProductoTarjeta = {
+  id: string;
+  nombre: string;
+  marca: string;
+  categoria: string;
+  ml: number;
+  grado: number;
+  unidades: number;
+  precioCaja: number; // precio del primer tramo, en céntimos
+  // Solo con sesión:
+  precioMinimo?: number;
+  stock?: number;
+  inactivo?: boolean; // solo lo ve el admin: el producto o su marca está desactivado
+  favorito?: boolean; // solo compradores: muestra el corazón
+};
+
+type FilaProducto = {
+  id: string;
+  nombre: string;
+  categoria: string;
+  ml: number;
+  grado: number;
+  unidades_por_caja: number;
+  stock_cajas: number;
+  activo: boolean;
+  marcas: { nombre_comercial: string; activa: boolean } | null;
+  escalas_precio: { desde_cajas: number; precio_caja_centimos: number }[];
+};
+
+// Convierte una fila de "productos" (con su marca y escala) en datos de tarjeta.
+// Devuelve null si el producto no tiene precio para 1 caja.
+export function aTarjeta(p: FilaProducto, favorito?: boolean): ProductoTarjeta | null {
+  const primero = p.escalas_precio.find((e) => e.desde_cajas === 1);
+  if (!primero) return null;
+  return {
+    id: p.id,
+    nombre: p.nombre,
+    marca: p.marcas?.nombre_comercial ?? "",
+    categoria: p.categoria,
+    ml: p.ml,
+    grado: p.grado,
+    unidades: p.unidades_por_caja,
+    precioCaja: primero.precio_caja_centimos,
+    precioMinimo: Math.min(...p.escalas_precio.map((e) => e.precio_caja_centimos)),
+    stock: p.stock_cajas,
+    inactivo: !p.activo || !p.marcas?.activa,
+    favorito,
+  };
+}
