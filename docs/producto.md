@@ -100,6 +100,7 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
    - botellas = tragos × ml por trago ÷ ml de la botella
    - cajas = botellas ÷ unidades por caja, **redondeado hacia arriba**
 4. Muestra el resultado con el precio de la escala, y un botón "Agregar al carrito".
+   - Si las cajas sugeridas de una marca no llegan a su pedido mínimo, el cotizador lo avisa **en ese momento**, sin esperar al carrito ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.") y ofrece subir al mínimo o cambiar de producto.
 5. Los parámetros (tragos por persona en la primera hora, tragos por hora siguiente, ml por trago) **los configura el admin**. Los valores iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
 ### Cotización en PDF
