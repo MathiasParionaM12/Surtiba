@@ -1,26 +1,24 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Colores de la marca (docs/marca.md). Se usan como bg-papel, text-tinta, border-linea, etc. */
+@theme {
+  --color-papel: #f5f3ee;
+  --color-blanco: #ffffff;
+  --color-tinta: #121212;
+  --color-gris: #5c5a55;
+  --color-linea: #dcd8cf;
+  --color-verde: #14432f;
+  --color-resaltador: #e8ff00; /* máximo un uso por pantalla y nunca en botones */
+  --color-rojo: #8a2b2b; /* solo en etiquetas de rechazado / cancelado */
 }
 
+/* Fuentes: Geist para texto y Geist Mono para números (las carga app/layout.tsx) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-papel);
+  color: var(--color-tinta);
 }
