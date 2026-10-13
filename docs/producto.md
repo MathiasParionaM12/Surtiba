@@ -12,7 +12,7 @@
 | Pantalla | Qué tiene |
 |---|---|
 | Inicio | Qué es Surtiba y botones de "Crear cuenta" e "Ingresar" |
-| Catálogo | Productos con foto, nombre, marca, ml, grado, unidades por caja y **solo el precio "desde"** (el del primer tramo). Mensaje: "Ingresa para ver precios por volumen y pedir" |
+| Catálogo | Productos con foto, nombre, marca, ml, grado, unidades por caja y **solo el precio "desde"** (el del primer tramo), mostrado como "S/ 300 por caja" y debajo "Precios por volumen al ingresar" |
 
 ### Comprador
 Cualquiera puede registrarse y pedir. No requiere aprobación.
@@ -53,8 +53,10 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
 
 ### Visibilidad de precios
 - Sin sesión: solo el precio "desde" (el precio por caja del primer tramo).
+- En estos documentos, "precio desde" = precio del primer tramo. **En pantalla nunca se usa la palabra "desde"**: se muestra "S/ 300 por caja" y debajo "Precios por volumen al ingresar".
 - Con sesión de comprador: la escala completa.
 - Esto se controla en la base de datos (una vista o función que solo devuelve el primer tramo), no solo ocultándolo en pantalla.
+- RLS filtra filas, no columnas. Para ocultar columnas (stock al visitante, contactos y dirección de las marcas) se usan **vistas**.
 
 ### Escala de precios
 - Cada producto tiene uno o más tramos: `desde_cajas`, `hasta_cajas` (vacío = sin tope) y `precio_caja`.
@@ -76,7 +78,12 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
 
 ### Subpedidos
 - Cada pedido se divide en un **subpedido por marca**, y cada uno tiene su propio estado.
-- Si una marca no puede atender, el admin cancela ese subpedido, el total del pedido se recalcula y el comprador lo ve en su pedido. Surtiba le avisa al comprador por fuera de la app.
+- Un subpedido puede quedar sin atender de dos formas:
+  - **Rechazado**: la marca pulsa "No puedo atenderla" y escribe el motivo.
+  - **Cancelado**: el admin lo cancela por otros motivos.
+- Un subpedido **rechazado cuenta igual que uno cancelado**: no suma al total del pedido, no bloquea el paso a "en camino" y su stock vuelve.
+- En ambos casos el total del pedido se recalcula y el comprador lo ve en su pedido. Surtiba le avisa al comprador por fuera de la app.
+- El pedido pasa a **"en preparación" automáticamente** cuando al menos una marca marca su subpedido como "listo para recojo".
 
 ### Comisión
 - Cada marca tiene su % de comisión, que configura el admin.
@@ -97,6 +104,7 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
 
 ### Cotización en PDF
 - Se genera desde el carrito: logo, fecha, código (COT-0001), productos por marca, cajas, precio por caja y totales.
+- **Cada cotización se guarda** en una tabla simple (comprador, fecha, ítems y total) para medir cuántas terminan en pedido.
 - Pie: "Precios válidos sujetos a stock al momento de pedir." No promete fechas de entrega.
 
 ### Avisos
