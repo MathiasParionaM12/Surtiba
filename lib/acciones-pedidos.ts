@@ -3,7 +3,7 @@
 // Acciones del comprador: carrito, pedido, repetir pedido y favoritos.
 // El navegador solo manda producto_id y cajas. Los precios los pone la base de datos.
 
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
@@ -11,6 +11,12 @@ import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
 const MAX_CAJAS = 999;
+
+// Después de cambiar datos: descarta las copias guardadas en el navegador (incluido el
+// contador del carrito en el encabezado) para que todas las pantallas muestren lo nuevo.
+function actualizarPantallas() {
+  revalidatePath("/", "layout");
+}
 
 // Solo un comprador con sesión puede usar estas acciones
 async function comprador() {
@@ -54,7 +60,7 @@ export async function agregarAlCarrito(_estado: EstadoForm, form: FormData): Pro
     .upsert({ comprador_id: usuario.id, producto_id: productoId, cajas: total });
   if (error) return { error: "No pudimos agregarlo al carrito. Intenta de nuevo." };
 
-  refresh();
+  actualizarPantallas();
   return { mensaje: `Listo: tienes ${total} ${total === 1 ? "caja" : "cajas"} de ${producto.nombre} en tu carrito.` };
 }
 
@@ -70,7 +76,7 @@ export async function cambiarCajas(form: FormData) {
   } else {
     await supabase.from("carrito").update({ cajas: Math.min(cajas, MAX_CAJAS) }).eq("producto_id", productoId);
   }
-  refresh();
+  actualizarPantallas();
 }
 
 export async function quitarDelCarrito(form: FormData) {
@@ -79,7 +85,7 @@ export async function quitarDelCarrito(form: FormData) {
   if (!esUuid(productoId)) return;
   const supabase = await createClient();
   await supabase.from("carrito").delete().eq("producto_id", productoId);
-  refresh();
+  actualizarPantallas();
 }
 
 export async function confirmarPedido(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
@@ -120,6 +126,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     return { error: mensaje, valores };
   }
 
+  actualizarPantallas();
   redirect(`/pedidos/${data[0].pedido_id}?nuevo=1`);
 }
 
@@ -147,6 +154,7 @@ export async function repetirPedido(form: FormData) {
     if (!error) agregados++;
   }
 
+  actualizarPantallas();
   redirect(`/carrito?repetido=${agregados}&omitidos=${items.length - agregados}`);
 }
 
@@ -162,5 +170,5 @@ export async function alternarFavorito(form: FormData) {
   } else {
     await supabase.from("favoritos").insert({ comprador_id: usuario.id, producto_id: productoId });
   }
-  refresh();
+  actualizarPantallas();
 }

@@ -3,6 +3,7 @@
 // Acciones del servidor para registrarse, ingresar y salir.
 // Corren en el servidor: el navegador solo envía el formulario.
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { PAISES, PREFIJO_PERU } from "@/lib/paises";
 import { rutaInicio, type Rol } from "@/lib/roles";
@@ -57,6 +58,7 @@ export async function ingresar(_estado: EstadoForm, form: FormData): Promise<Est
 
   // Cada rol empieza en su pantalla: comprador -> catálogo, marca -> su panel, admin -> panel Surtiba
   const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", data.user.id).single();
+  revalidatePath("/", "layout"); // el encabezado cambia: ahora hay sesión
   redirect(rutaInicio((perfil?.rol ?? "comprador") as Rol));
 }
 
@@ -105,11 +107,13 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
     return { mensaje: "Te enviamos un correo para confirmar tu cuenta. Ábrelo y luego ingresa.", valores };
   }
 
+  revalidatePath("/", "layout");
   redirect(rutaInicio("comprador"));
 }
 
 export async function salir() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  revalidatePath("/", "layout");
   redirect("/");
 }

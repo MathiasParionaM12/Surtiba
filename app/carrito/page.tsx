@@ -164,7 +164,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
                         </form>
                       </div>
 
-                      <p className="w-24 text-right font-mono font-medium tabular-nums">
+                      <p className="w-28 text-right font-mono font-medium whitespace-nowrap tabular-nums">
                         {l.subtotal_centimos !== null ? soles(l.subtotal_centimos) : "—"}
                       </p>
                     </div>
