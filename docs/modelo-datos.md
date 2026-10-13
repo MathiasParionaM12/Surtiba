@@ -32,19 +32,25 @@ Extiende `auth.users` de Supabase (mismo `id`).
 | marca_id | uuid FK → marcas | solo si rol = marca (una cuenta por marca) |
 | creado_en | timestamptz | |
 
-### marcas
+### marcas (datos públicos: los ve cualquiera si la marca está activa)
 | Columna | Tipo | Nota |
 |---|---|---|
 | id | uuid PK | |
 | nombre_comercial | text | |
-| razon_social | text | |
-| ruc | text | 11 dígitos |
-| contacto_nombre / contacto_whatsapp / contacto_correo | text | solo lo ve el admin |
-| direccion_recojo | text | dónde recoge Surtiba |
 | pedido_minimo_cajas | integer | ≥ 1 |
-| comision_pct | numeric(5,2) | ej. 8.00 |
 | activa | boolean | si es false, sus productos no se ven |
 | creado_en | timestamptz | |
+
+### marcas_privado (solo la propia marca y el admin)
+Separada de `marcas` para no usar vistas que se salten RLS.
+| Columna | Tipo | Nota |
+|---|---|---|
+| marca_id | uuid PK, FK → marcas | |
+| razon_social | text | |
+| ruc | text | 11 dígitos |
+| contacto_nombre / contacto_whatsapp / contacto_correo | text | |
+| direccion_recojo | text | dónde recoge Surtiba |
+| comision_pct | numeric(5,2) | ej. 5.00. Se copia al subpedido al crearlo |
 
 ### productos
 | Columna | Tipo | Nota |
@@ -161,8 +167,8 @@ recibido ─► en_preparacion ─► en_camino ─► entregado
 
 | Dato | visitante | comprador | marca | admin |
 |---|---|---|---|---|
-| marcas (nombre comercial) | sí, las activas | sí, las activas | la suya | todo |
-| contacto y dirección de marcas | no | no | la suya | todo |
+| marcas (nombre comercial, pedido mínimo) | sí, las activas | sí, las activas | las activas y la suya | todo |
+| marcas_privado (contacto, dirección, RUC, comisión) | no | no | la suya | todo |
 | productos | activos | activos | los suyos (editar) | todo |
 | escalas_precio | solo precio "desde" | todas las activas | las suyas (editar) | todo |
 | stock | no | disponible | el suyo (editar) | todo |
@@ -175,10 +181,9 @@ recibido ─► en_preparacion ─► en_camino ─► entregado
 La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los datos del evento). Todo lo que necesita está en su subpedido.
 
 ### Cómo está implementado (fase 1, ver `supabase/sql/`)
-- **Vistas públicas** (las usa el visitante; también sirven al comprador):
-  - `catalogo_publico`: productos activos de marcas activas con el precio del primer tramo. Sin stock ni escala completa.
-  - `marcas_publicas`: id, nombre comercial y pedido mínimo de las marcas activas. Sin contacto ni dirección.
-  - Son de solo lectura. Supabase las marca como "Security Definer View": es intencional.
+- **Todo pasa por RLS.** No hay vistas que se salten RLS (se quitaron en `07_sin_vistas_definer.sql`).
+- **Visitante (rol `anon`)**: lee `productos` solo en columnas públicas (sin `stock_cajas` ni `registro_sanitario`: si las pide, recibe "permission denied"), solo el primer tramo de `escalas_precio` y las `marcas` activas. No puede escribir en ninguna tabla.
+- **Vista `catalogo_publico`** (`security_invoker = true`): productos activos de marcas activas con el precio del primer tramo. Respeta el RLS de quien la consulta.
 - **Funciones de ayuda** en el esquema `privado` (no se exponen en la API): `mi_rol()`, `es_admin()`, `mi_marca_id()`, `marca_activa()`.
 - **Perfil automático**: al crear un usuario, un trigger le crea un perfil con rol `comprador`. Los roles `marca` y `admin` solo se asignan desde el servidor.
 - Cada usuario puede editar solo `nombre`, `empresa`, `tipo_negocio`, `whatsapp` y `ruc` de su perfil; nunca su `rol` ni su `marca_id`.
