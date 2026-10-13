@@ -1,7 +1,6 @@
 import { cache } from "react";
+import type { Rol } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
-
-export type Rol = "comprador" | "marca" | "admin";
 
 export type Usuario = {
   id: string;
@@ -10,12 +9,6 @@ export type Usuario = {
   nombre: string | null;
   empresa: string | null;
   marcaId: string | null;
-};
-
-export const NOMBRE_ROL: Record<Rol, string> = {
-  comprador: "Comprador",
-  marca: "Marca",
-  admin: "Admin Surtiba",
 };
 
 // Usuario con sesión y su perfil, o null si nadie ingresó.

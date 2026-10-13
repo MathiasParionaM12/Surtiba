@@ -5,10 +5,10 @@
 insert into public.marcas
   (nombre_comercial, razon_social, ruc, contacto_nombre, contacto_whatsapp, contacto_correo, direccion_recojo, pedido_minimo_cajas, comision_pct, activa)
 values
-  ('Marca Demo Pisco',    'Marca Demo Pisco S.A.C.',    '20000000001', 'Contacto Demo Pisco',    '900000001', 'pisco.contacto@example.com',    'Av. Demo 101, Lima (ficticia)',     5, 5.00, true),
-  ('Marca Demo Ron',      'Marca Demo Ron S.A.C.',      '20000000002', 'Contacto Demo Ron',      '900000002', 'ron.contacto@example.com',      'Jr. Ficticio 202, Lima (ficticia)', 3, 5.00, true),
-  ('Marca Demo Cócteles', 'Marca Demo Cócteles S.A.C.', '20000000003', 'Contacto Demo Cócteles', '900000003', 'cocteles.contacto@example.com', 'Calle Prueba 303, Lima (ficticia)', 4, 5.00, true),
-  ('Marca Demo Inactiva', 'Marca Demo Inactiva S.A.C.', '20000000004', 'Contacto Demo Inactiva', '900000004', 'inactiva.contacto@example.com', 'Psje. Demo 404, Lima (ficticia)',   2, 5.00, false);
+  ('Marca Demo Pisco',    'Marca Demo Pisco S.A.C.',    '20000000001', 'Contacto Demo Pisco',    '+51900000001', 'pisco.contacto@example.com',    'Av. Demo 101, Lima (ficticia)',     5, 5.00, true),
+  ('Marca Demo Ron',      'Marca Demo Ron S.A.C.',      '20000000002', 'Contacto Demo Ron',      '+51900000002', 'ron.contacto@example.com',      'Jr. Ficticio 202, Lima (ficticia)', 3, 5.00, true),
+  ('Marca Demo Cócteles', 'Marca Demo Cócteles S.A.C.', '20000000003', 'Contacto Demo Cócteles', '+51900000003', 'cocteles.contacto@example.com', 'Calle Prueba 303, Lima (ficticia)', 4, 5.00, true),
+  ('Marca Demo Inactiva', 'Marca Demo Inactiva S.A.C.', '20000000004', 'Contacto Demo Inactiva', '+51900000004', 'inactiva.contacto@example.com', 'Psje. Demo 404, Lima (ficticia)',   2, 5.00, false);
 
 -- Cada producto con sus tramos: [desde, hasta (null = sin tope), precio en céntimos]
 with datos (marca, nombre, categoria, ml, grado, unidades, registro, stock, activo, tramos) as (

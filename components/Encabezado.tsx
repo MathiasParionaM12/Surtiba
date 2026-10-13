@@ -7,11 +7,16 @@ import { MenuSesion } from "@/components/MenuSesion";
 // por eso va dentro de <Suspense>: el resto del encabezado carga al instante.
 export function Encabezado() {
   return (
-    <header className="sticky top-0 z-10 border-b border-linea bg-papel">
+    <header className="sticky top-0 z-10 border-b border-linea bg-papel/95 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8">
-        <Link href="/" aria-label="Surtiba, inicio" className="shrink-0">
-          <Logo className="text-2xl sm:text-[28px]" />
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/" aria-label="Surtiba, inicio" className="shrink-0">
+            <Logo className="text-2xl sm:text-[28px]" />
+          </Link>
+          <Link href="/catalogo" className="hidden text-sm font-medium hover:text-verde sm:inline">
+            Catálogo
+          </Link>
+        </div>
         <Suspense fallback={<div className="h-10 w-44" aria-hidden="true" />}>
           <MenuSesion />
         </Suspense>

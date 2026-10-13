@@ -4,6 +4,8 @@
 // Corren en el servidor: el navegador solo envía el formulario.
 
 import { redirect } from "next/navigation";
+import { PAISES, PREFIJO_PERU } from "@/lib/paises";
+import { rutaInicio, type Rol } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export type EstadoForm = {
@@ -50,33 +52,44 @@ export async function ingresar(_estado: EstadoForm, form: FormData): Promise<Est
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: mensajeDeError(error.code), valores };
 
-  redirect("/");
+  // Cada rol empieza en su pantalla: comprador -> catálogo, marca -> su panel, admin -> panel Surtiba
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", data.user.id).single();
+  redirect(rutaInicio((perfil?.rol ?? "comprador") as Rol));
 }
 
 export async function registrarse(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
   const email = leer(form, "email").toLowerCase();
   const password = String(form.get("password") ?? "");
+  const password2 = String(form.get("password2") ?? "");
   const nombre = leer(form, "nombre");
   const empresa = leer(form, "empresa");
   const tipoNegocio = leer(form, "tipo_negocio");
-  // WhatsApp: se aceptan espacios y el prefijo +51; se guardan solo los 9 dígitos
-  const whatsapp = leer(form, "whatsapp").replace(/\s/g, "").replace(/^\+?51(?=9\d{8}$)/, "");
+  const prefijo = leer(form, "prefijo") || PREFIJO_PERU;
+  const numero = leer(form, "whatsapp").replace(/[\s-]/g, "");
   const ruc = leer(form, "ruc").replace(/\s/g, "");
-  const valores = { email, nombre, empresa, tipo_negocio: tipoNegocio, whatsapp, ruc };
+  const valores = { email, nombre, empresa, tipo_negocio: tipoNegocio, prefijo, whatsapp: numero, ruc };
 
   if (!nombre || !empresa) return { error: "Completa tu nombre y el nombre de tu empresa.", valores };
   if (!TIPOS_NEGOCIO.includes(tipoNegocio)) return { error: "Elige el tipo de negocio.", valores };
-  if (!/^9\d{8}$/.test(whatsapp)) {
-    return { error: "Escribe un WhatsApp de 9 dígitos que empiece con 9. Ejemplo: 987654321.", valores };
+  if (!PAISES.some((p) => p.prefijo === prefijo)) return { error: "Elige el país de tu WhatsApp.", valores };
+  if (prefijo === PREFIJO_PERU && !/^9\d{8}$/.test(numero)) {
+    return { error: "Escribe un celular peruano de 9 dígitos que empiece con 9. Ejemplo: 987654321.", valores };
+  }
+  if (prefijo !== PREFIJO_PERU && !/^\d{6,14}$/.test(numero)) {
+    return { error: "Escribe tu número de WhatsApp solo con dígitos, sin el prefijo del país.", valores };
   }
   if (ruc && !/^\d{11}$/.test(ruc)) {
     return { error: "El RUC tiene 11 dígitos. Si no lo tienes a la mano, déjalo vacío.", valores };
   }
   if (!email) return { error: "Escribe tu correo.", valores };
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres.", valores };
+  if (password !== password2) return { error: "Las contraseñas no coinciden. Escríbelas de nuevo.", valores };
+
+  // Se guarda en formato internacional: +51987654321
+  const whatsapp = `${prefijo}${numero}`;
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -92,7 +105,7 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
     return { mensaje: "Te enviamos un correo para confirmar tu cuenta. Ábrelo y luego ingresa.", valores };
   }
 
-  redirect("/");
+  redirect(rutaInicio("comprador"));
 }
 
 export async function salir() {

@@ -33,12 +33,12 @@ from auth.users u join usuarios_demo d on d.correo = u.email
 where u.id = p.id and d.papel = 'admin';
 
 update public.perfiles p
-set nombre = 'Comprador Demo 1', empresa = 'Catering Demo', tipo_negocio = 'catering', whatsapp = '900000011'
+set nombre = 'Comprador Demo 1', empresa = 'Catering Demo', tipo_negocio = 'catering', whatsapp = '+51900000011'
 from auth.users u join usuarios_demo d on d.correo = u.email
 where u.id = p.id and d.papel = 'catering';
 
 update public.perfiles p
-set nombre = 'Comprador Demo 2', empresa = 'Bar Demo', tipo_negocio = 'bar_restaurante', whatsapp = '900000012'
+set nombre = 'Comprador Demo 2', empresa = 'Bar Demo', tipo_negocio = 'bar_restaurante', whatsapp = '+51900000012'
 from auth.users u join usuarios_demo d on d.correo = u.email
 where u.id = p.id and d.papel = 'bar';
 
