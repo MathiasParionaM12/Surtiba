@@ -14,6 +14,7 @@ export type ProductoTarjeta = {
   // Solo para compradores con sesión:
   precioMinimo?: number;
   stock?: number;
+  inactivo?: boolean; // solo lo ve el admin: el producto o su marca está desactivado
 };
 
 export function TarjetaProducto({ p }: { p: ProductoTarjeta }) {
@@ -27,6 +28,11 @@ export function TarjetaProducto({ p }: { p: ProductoTarjeta }) {
     >
       <FotoProducto categoria={p.categoria} ml={p.ml} />
       <div className="flex flex-1 flex-col p-4">
+        {p.inactivo && (
+          <p className="mb-2 self-start rounded-sm border border-linea px-2 py-0.5 font-mono text-[11px] tracking-[0.08em] text-gris uppercase">
+            Inactivo · no lo ven los compradores
+          </p>
+        )}
         <p className="text-xs text-gris">{p.marca}</p>
         <h3 className="mt-1 font-medium group-hover:text-verde">{p.nombre}</h3>
         <p className="mt-1 font-mono text-xs text-gris">

@@ -9,12 +9,12 @@ export type Filtros = { categoria?: string; marca?: string };
 
 export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros> }) {
   const [usuario, filtros] = await Promise.all([obtenerUsuario(), searchParams]);
-  if (usuario?.rol === "comprador") return <CatalogoComprador filtros={filtros} />;
-  return <CatalogoPublico conSesion={!!usuario} />;
+  if (usuario) return <CatalogoConSesion filtros={filtros} />;
+  return <CatalogoPublico />;
 }
 
-// ── Visitante (y marca/admin): solo el precio del primer tramo, sin stock ──
-async function CatalogoPublico({ conSesion }: { conSesion: boolean }) {
+// ── Visitante: solo el precio del primer tramo, sin stock ──
+async function CatalogoPublico() {
   const supabase = await createClient();
   const { data } = await supabase.from("catalogo_publico").select("*").order("nombre");
 
@@ -31,34 +31,34 @@ async function CatalogoPublico({ conSesion }: { conSesion: boolean }) {
 
   return (
     <>
-      {!conSesion && (
-        <div className="mt-6 flex flex-col gap-4 rounded-md border border-linea bg-blanco p-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm">
-            Ingresa para ver <strong className="font-medium">precios por volumen y stock</strong>, y para pedir.
-          </p>
-          <div className="flex gap-2">
-            <Link href="/ingresar" className={`${botonSecundario} h-10`}>
-              Ingresar
-            </Link>
-            <Link href="/registro" className={`${botonPrimario} h-10`}>
-              Crear cuenta
-            </Link>
-          </div>
+      <div className="mt-6 flex flex-col gap-4 rounded-md border border-linea bg-blanco p-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm">
+          Ingresa para ver <strong className="font-medium">precios por volumen y stock</strong>, y para pedir.
+        </p>
+        <div className="flex gap-2">
+          <Link href="/ingresar" className={`${botonSecundario} h-10`}>
+            Ingresar
+          </Link>
+          <Link href="/registro" className={`${botonPrimario} h-10`}>
+            Crear cuenta
+          </Link>
         </div>
-      )}
+      </div>
       <Rejilla productos={productos} />
     </>
   );
 }
 
-// ── Comprador: filtros, stock y escala de precios ──
-async function CatalogoComprador({ filtros }: { filtros: Filtros }) {
+// ── Con sesión: filtros, stock y precios por volumen ──
+// RLS decide qué productos llegan: comprador = activos de marcas activas;
+// marca = los suyos; admin = todos (también los inactivos, que se marcan).
+async function CatalogoConSesion({ filtros }: { filtros: Filtros }) {
   const supabase = await createClient();
 
   let consulta = supabase
     .from("productos")
     .select(
-      "id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, marcas(nombre_comercial), escalas_precio(desde_cajas, precio_caja_centimos)",
+      "id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos)",
     )
     .order("nombre");
   if (filtros.categoria && CATEGORIAS[filtros.categoria]) consulta = consulta.eq("categoria", filtros.categoria);
@@ -84,6 +84,7 @@ async function CatalogoComprador({ filtros }: { filtros: Filtros }) {
         precioCaja: p.escalas_precio.find((e) => e.desde_cajas === 1)!.precio_caja_centimos,
         precioMinimo: Math.min(...precios),
         stock: p.stock_cajas,
+        inactivo: !p.activo || !p.marcas?.activa,
       };
     });
 

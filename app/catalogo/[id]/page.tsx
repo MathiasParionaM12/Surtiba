@@ -29,8 +29,8 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   if (!esUuid(id)) notFound();
   const supabase = await createClient();
 
-  // Visitante, marca o admin: datos públicos y precio del primer tramo
-  if (usuario?.rol !== "comprador") {
+  // Visitante: datos públicos y precio del primer tramo
+  if (!usuario) {
     const { data: p } = await supabase.from("catalogo_publico").select("*").eq("id", id).maybeSingle();
     if (!p) notFound();
     return (
@@ -48,28 +48,27 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         <p className="font-mono text-2xl font-medium">
           {soles(p.precio_caja_centimos!)} <span className="font-sans text-base font-normal text-gris">por caja</span>
         </p>
-        {!usuario && (
-          <div className="mt-6 rounded-md border border-linea bg-blanco p-5">
-            <p className="text-sm">Ingresa para ver los precios por volumen, el stock disponible y para pedir.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/ingresar" className={`${botonSecundario} h-10`}>
-                Ingresar
-              </Link>
-              <Link href="/registro" className={`${botonPrimario} h-10`}>
-                Crear cuenta
-              </Link>
-            </div>
+        <div className="mt-6 rounded-md border border-linea bg-blanco p-5">
+          <p className="text-sm">Ingresa para ver los precios por volumen, el stock disponible y para pedir.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/ingresar" className={`${botonSecundario} h-10`}>
+              Ingresar
+            </Link>
+            <Link href="/registro" className={`${botonPrimario} h-10`}>
+              Crear cuenta
+            </Link>
           </div>
-        )}
+        </div>
       </Ficha>
     );
   }
 
-  // Comprador: escala completa, stock, pedido mínimo y registro sanitario
+  // Con sesión: escala completa, stock, pedido mínimo y registro sanitario.
+  // RLS decide si puede verlo (comprador: activos; marca: los suyos; admin: todos).
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, marcas(nombre_comercial, pedido_minimo_cajas), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, activo, marcas(nombre_comercial, pedido_minimo_cajas, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -91,6 +90,11 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         ["Stock disponible", p.stock_cajas === 0 ? "Agotado" : `${p.stock_cajas} cajas`],
       ]}
     >
+      {(!p.activo || !p.marcas.activa) && (
+        <p className="mb-6 border-l-2 border-linea pl-3 text-sm text-gris">
+          {p.marcas.activa ? "Producto inactivo" : "Marca inactiva"}: los compradores no lo ven en el catálogo.
+        </p>
+      )}
       <h2 className={sello}>Precio por caja según cantidad</h2>
       <table className="mt-3 w-full overflow-hidden rounded-md border border-linea bg-blanco text-sm">
         <tbody>
@@ -108,7 +112,9 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
         sumando cualquiera de sus productos.
       </p>
-      <p className="mt-6 text-sm text-gris">El carrito para pedir llega en la siguiente etapa del prototipo.</p>
+      {usuario.rol === "comprador" && (
+        <p className="mt-6 text-sm text-gris">El carrito para pedir llega en la siguiente etapa del prototipo.</p>
+      )}
     </Ficha>
   );
 }
