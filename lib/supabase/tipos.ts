@@ -177,6 +177,7 @@ export type Database = {
     };
     Functions: {
       marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
+      agregar_reemplazo: { Args: { p_pedido: string; p_producto: string; p_cajas: number }; Returns: string };
       rechazar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
       guardar_producto: {
         Args: {

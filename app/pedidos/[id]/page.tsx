@@ -69,21 +69,31 @@ async function DetallePedido({
   const { data: candidatos } = categorias.length
     ? await supabase
         .from("productos")
-        .select("id, nombre, categoria, marca_id, stock_cajas, marcas(nombre_comercial), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)")
+        .select("id, nombre, categoria, marca_id, stock_cajas, marcas(nombre_comercial, pedido_minimo_cajas), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)")
         .in("categoria", categorias)
         .gt("stock_cajas", 0)
         .order("nombre")
     : { data: [] };
 
+  // Si el pedido sigue abierto, el reemplazo entra AL MISMO pedido; si no, va al carrito.
+  const abierto = p.estado === "recibido" || p.estado === "en_preparacion";
+  const estadoDeMarca = new Map(p.subpedidos.map((s) => [s.marca_id, s.estado]));
+
   const parecidos = (item: (typeof noAtendidos)[number]) =>
     (candidatos ?? [])
       .filter((c) => c.categoria === item.productos?.categoria && c.marca_id !== item.marcaId)
-      .slice(0, 3)
       .map((c) => {
-        const cajas = Math.min(item.cajas, c.stock_cajas);
+        const estadoMarca = estadoDeMarca.get(c.marca_id);
+        // Marca nueva en el pedido: debe llegar a su mínimo. Si ya está pendiente en el pedido, no hace falta.
+        const minimo = abierto && !estadoMarca ? (c.marcas?.pedido_minimo_cajas ?? 1) : 1;
+        const cajas = Math.min(Math.max(item.cajas, minimo), c.stock_cajas);
         const tramo = c.escalas_precio.find((e) => cajas >= e.desde_cajas && (e.hasta_cajas === null || cajas <= e.hasta_cajas));
-        return { ...c, cajas, precio: tramo?.precio_caja_centimos ?? null };
-      });
+        // En un pedido abierto solo sirven marcas que no están o que siguen pendientes, y con stock para su mínimo
+        const sirve = !abierto || ((!estadoMarca || estadoMarca === "pendiente") && cajas >= minimo);
+        return { ...c, cajas, minimo, sirve, precio: tramo?.precio_caja_centimos ?? null };
+      })
+      .filter((c) => c.sirve)
+      .slice(0, 3);
 
   const pasoActual = PASOS.findIndex((s) => s.estado === p.estado);
   const cancelado = p.estado === "cancelado";
@@ -185,11 +195,15 @@ async function DetallePedido({
                                   {o.stock_cajas} disp.
                                 </span>
                               </Link>
-                              <AgregarRapido productoId={o.id} cajas={o.cajas} />
+                              <AgregarRapido productoId={o.id} cajas={o.cajas} pedidoId={abierto ? id : undefined} />
                             </li>
                           ))}
                         </ul>
-                        <p className="mt-2 text-xs text-gris">Se agregan a tu carrito para un pedido nuevo.</p>
+                        <p className="mt-2 text-xs text-gris">
+                          {abierto
+                            ? "Se agregan a este mismo pedido. Si es una marca nueva, la cantidad parte de su pedido mínimo."
+                            : "Este pedido ya no se puede cambiar: se agregan a tu carrito para un pedido nuevo."}
+                        </p>
                       </div>
                     );
                   })}

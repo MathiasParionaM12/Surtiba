@@ -195,3 +195,27 @@ export async function alternarFavorito(form: FormData) {
   }
   actualizarPantallas();
 }
+
+// Agrega un reemplazo AL MISMO pedido cuando una marca no pudo atender su parte.
+// La función agregar_reemplazo hace todo en una transacción (stock, escala, mínimo y totales).
+export async function agregarReemplazo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await comprador();
+  const pedidoId = String(form.get("pedido_id") ?? "");
+  const productoId = String(form.get("producto_id") ?? "");
+  const cajas = leerCajas(form);
+  if (!esUuid(pedidoId) || !esUuid(productoId)) return { error: "No encontramos ese producto o pedido." };
+  if (!(cajas >= 1 && cajas <= MAX_CAJAS)) return { error: `Elige entre 1 y ${MAX_CAJAS} cajas.` };
+
+  const supabase = await createClient();
+  const { data: codigo, error } = await supabase.rpc("agregar_reemplazo", {
+    p_pedido: pedidoId,
+    p_producto: productoId,
+    p_cajas: cajas,
+  });
+  if (error) {
+    return { error: error.code === "P0001" ? error.message : "No pudimos agregarlo a tu pedido. Intenta de nuevo." };
+  }
+
+  actualizarPantallas();
+  return { mensaje: `Agregado a tu pedido ${codigo}.` };
+}
