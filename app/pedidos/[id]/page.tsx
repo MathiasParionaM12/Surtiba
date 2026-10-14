@@ -53,7 +53,7 @@ async function DetallePedido({
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, subpedidos(id, estado, total_cajas, total_centimos, marcas(nombre_comercial), items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, subpedidos(id, estado, total_cajas, total_centimos, marcas(nombre_comercial), items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre)))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -147,7 +147,22 @@ async function DetallePedido({
           <div className="rounded-md border border-linea bg-blanco p-5 text-sm">
             <h2 className={sello}>Entrega</h2>
             <p className="mt-3 font-mono">{fecha(p.fecha_entrega_deseada)}</p>
-            <p className="mt-1">{p.direccion_entrega}</p>
+            <p className="mt-3">
+              {p.direccion_entrega}
+              {p.direccion_detalle && `, ${p.direccion_detalle}`}
+            </p>
+            {p.distrito && (
+              <p>
+                {p.distrito}
+                {p.codigo_postal && <span className="font-mono"> · {p.codigo_postal}</span>}
+              </p>
+            )}
+            {p.referencia && <p className="text-gris">Ref.: {p.referencia}</p>}
+            {p.recibe_nombre && (
+              <p className="mt-3">
+                Recibe: {p.recibe_nombre} · <span className="font-mono">{p.recibe_telefono}</span>
+              </p>
+            )}
             {p.nota && <p className="mt-2 text-gris">Nota: {p.nota}</p>}
             {(p.evento_nombre || p.evento_tipo || p.evento_fecha || p.invitados) && (
               <div className="mt-4 border-t border-linea pt-3 text-gris">

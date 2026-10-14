@@ -73,18 +73,24 @@ export type Database = {
       pedidos: {
         Row: {
           codigo: string; comprador_id: string; creado_en: string; direccion_entrega: string; entregado_en: string | null;
+          direccion_detalle: string | null; distrito: string | null; codigo_postal: string | null; referencia: string | null;
+          recibe_nombre: string | null; recibe_telefono: string | null;
           envio_centimos: number; estado: string; evento_fecha: string | null; evento_nombre: string | null; evento_tipo: string | null;
           fecha_entrega_deseada: string; id: string; invitados: number | null; nota: string | null; pagado_en: string | null;
           pago_estado: string; pago_metodo: string | null; subtotal_centimos: number; total_centimos: number;
         };
         Insert: {
           codigo?: string; comprador_id: string; creado_en?: string; direccion_entrega: string; entregado_en?: string | null;
+          direccion_detalle?: string | null; distrito?: string | null; codigo_postal?: string | null; referencia?: string | null;
+          recibe_nombre?: string | null; recibe_telefono?: string | null;
           envio_centimos?: number; estado?: string; evento_fecha?: string | null; evento_nombre?: string | null; evento_tipo?: string | null;
           fecha_entrega_deseada: string; id?: string; invitados?: number | null; nota?: string | null; pagado_en?: string | null;
           pago_estado?: string; pago_metodo?: string | null; subtotal_centimos?: number; total_centimos?: number;
         };
         Update: {
           codigo?: string; comprador_id?: string; creado_en?: string; direccion_entrega?: string; entregado_en?: string | null;
+          direccion_detalle?: string | null; distrito?: string | null; codigo_postal?: string | null; referencia?: string | null;
+          recibe_nombre?: string | null; recibe_telefono?: string | null;
           envio_centimos?: number; estado?: string; evento_fecha?: string | null; evento_nombre?: string | null; evento_tipo?: string | null;
           fecha_entrega_deseada?: string; id?: string; invitados?: number | null; nota?: string | null; pagado_en?: string | null;
           pago_estado?: string; pago_metodo?: string | null; subtotal_centimos?: number; total_centimos?: number;
@@ -174,6 +180,12 @@ export type Database = {
         Args: {
           p_fecha_entrega: string;
           p_direccion: string;
+          p_distrito: string;
+          p_recibe_nombre: string;
+          p_recibe_telefono: string;
+          p_direccion_detalle?: string;
+          p_codigo_postal?: string;
+          p_referencia?: string;
           p_nota?: string;
           p_evento_nombre?: string;
           p_evento_tipo?: string;

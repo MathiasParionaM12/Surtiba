@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
+import { DISTRITOS } from "@/lib/distritos";
+import { PREFIJO_PERU, telefonoValido } from "@/lib/paises";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -92,8 +94,15 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   await comprador();
   const leer = (campo: string) => String(form.get(campo) ?? "").trim();
   const valores = {
-    fecha_entrega: leer("fecha_entrega"),
+    recibe_nombre: leer("recibe_nombre"),
+    prefijo: leer("prefijo") || PREFIJO_PERU,
+    telefono: leer("telefono").replace(/[\s-]/g, ""),
     direccion: leer("direccion"),
+    direccion_detalle: leer("direccion_detalle"),
+    distrito: leer("distrito"),
+    codigo_postal: leer("codigo_postal"),
+    referencia: leer("referencia"),
+    fecha_entrega: leer("fecha_entrega"),
     nota: leer("nota"),
     evento_nombre: leer("evento_nombre"),
     evento_tipo: leer("evento_tipo"),
@@ -101,8 +110,16 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     invitados: leer("invitados"),
   };
 
+  if (!valores.recibe_nombre) return { error: "Escribe el nombre de quien recibe el pedido.", valores };
+  if (!telefonoValido(valores.prefijo, valores.telefono)) {
+    return { error: "Escribe un celular válido para quien recibe. En Perú: 9 dígitos que empiezan con 9.", valores };
+  }
+  if (!valores.direccion) return { error: "Escribe la calle y el número de la dirección.", valores };
+  if (!DISTRITOS.includes(valores.distrito)) return { error: "Elige el distrito de entrega.", valores };
+  if (valores.codigo_postal && !/^\d{5}$/.test(valores.codigo_postal)) {
+    return { error: "El código postal tiene 5 dígitos. Si no lo sabes, déjalo vacío.", valores };
+  }
   if (!valores.fecha_entrega) return { error: "Elige la fecha de entrega.", valores };
-  if (!valores.direccion) return { error: "Escribe la dirección de entrega.", valores };
   const invitados = valores.invitados ? Number(valores.invitados) : undefined;
   if (invitados !== undefined && !(Number.isInteger(invitados) && invitados > 0)) {
     return { error: "El número de invitados debe ser un número entero mayor que 0.", valores };
@@ -113,6 +130,12 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   const { data, error } = await supabase.rpc("crear_pedido", {
     p_fecha_entrega: valores.fecha_entrega,
     p_direccion: valores.direccion,
+    p_distrito: valores.distrito,
+    p_recibe_nombre: valores.recibe_nombre,
+    p_recibe_telefono: `${valores.prefijo}${valores.telefono}`,
+    p_direccion_detalle: valores.direccion_detalle || undefined,
+    p_codigo_postal: valores.codigo_postal || undefined,
+    p_referencia: valores.referencia || undefined,
     p_nota: valores.nota || undefined,
     p_evento_nombre: valores.evento_nombre || undefined,
     p_evento_tipo: valores.evento_tipo || undefined,

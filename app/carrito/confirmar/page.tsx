@@ -5,10 +5,11 @@ import { Suspense } from "react";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
 import { mananaEnLima, soles } from "@/lib/formato";
+import { separarTelefono } from "@/lib/paises";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { FormConfirmar } from "./FormConfirmar";
+import { FormConfirmar, type Iniciales } from "./FormConfirmar";
 
 export const metadata: Metadata = { title: "Confirmar pedido · Surtiba" };
 
@@ -33,9 +34,34 @@ async function Confirmar() {
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
 
   const supabase = await createClient();
-  const { data } = await supabase.from("carrito_detalle").select("marca, cajas, subtotal_centimos").order("marca");
+  const [{ data }, { data: perfil }, { data: ultimo }] = await Promise.all([
+    supabase.from("carrito_detalle").select("marca, cajas, subtotal_centimos").order("marca"),
+    supabase.from("perfiles").select("nombre, whatsapp").eq("id", usuario.id).single(),
+    // Último pedido del comprador (RLS: solo los suyos), para autocompletar la dirección
+    supabase
+      .from("pedidos")
+      .select("recibe_nombre, recibe_telefono, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia")
+      .not("distrito", "is", null)
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
   const lineas = data ?? [];
   if (lineas.length === 0) redirect("/carrito");
+
+  // Autocompletar: quién recibe sale del último pedido o del perfil; la dirección, del último pedido
+  const telefono = separarTelefono(ultimo?.recibe_telefono ?? perfil?.whatsapp);
+  const iniciales: Iniciales = {
+    recibe_nombre: ultimo?.recibe_nombre ?? perfil?.nombre ?? "",
+    prefijo: telefono.prefijo,
+    telefono: telefono.numero,
+    direccion: ultimo?.direccion_entrega ?? "",
+    direccion_detalle: ultimo?.direccion_detalle ?? "",
+    distrito: ultimo?.distrito ?? "",
+    codigo_postal: ultimo?.codigo_postal ?? "",
+    referencia: ultimo?.referencia ?? "",
+  };
+  const autocompletado = !!(ultimo || perfil?.nombre || perfil?.whatsapp);
 
   // Resumen por marca (los precios ya vienen calculados por la base de datos)
   const porMarca = new Map<string, { cajas: number; total: number }>();
@@ -50,7 +76,12 @@ async function Confirmar() {
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <div className="rounded-md border border-linea bg-blanco p-5 sm:p-8">
-        <FormConfirmar fechaMinima={mananaEnLima()} totalTexto={soles(total)} />
+        <FormConfirmar
+          fechaMinima={mananaEnLima()}
+          totalTexto={soles(total)}
+          iniciales={iniciales}
+          autocompletado={autocompletado}
+        />
       </div>
 
       <aside className="h-fit rounded-md border border-linea bg-blanco p-5 lg:sticky lg:top-24">

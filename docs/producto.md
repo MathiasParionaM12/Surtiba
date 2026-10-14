@@ -25,7 +25,7 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |
-| Confirmar pedido | Datos del evento (opcionales): nombre, tipo, fecha, invitados. Además: fecha deseada de entrega, dirección y nota |
+| Confirmar pedido | Quién recibe (nombre y celular con prefijo de país), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Datos del evento opcionales: nombre, tipo, fecha, invitados. Se autocompleta con el perfil y el último pedido |
 | Mis pedidos | Lista con su estado. Botón **"Repetir pedido"** |
 | Detalle del pedido | Línea de tiempo: Recibido → En preparación → En camino → Entregado |
 

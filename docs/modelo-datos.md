@@ -107,7 +107,12 @@ PK compuesta (comprador_id, producto_id). La vista `carrito_detalle` le agrega e
 | evento_fecha | date | opcional |
 | invitados | integer | opcional |
 | fecha_entrega_deseada | date | |
-| direccion_entrega | text | |
+| direccion_entrega | text | calle y número |
+| direccion_detalle | text | dpto., oficina (opcional) |
+| distrito | text | distrito de Lima o Callao |
+| codigo_postal | text | 5 dígitos (opcional) |
+| referencia | text | opcional |
+| recibe_nombre / recibe_telefono | text | quién recibe; celular en formato +51987654321 |
 | nota | text | opcional |
 | subtotal_centimos | integer | suma de los subpedidos no cancelados |
 | envio_centimos | integer | 0 por ahora (decisión pendiente) |

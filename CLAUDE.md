@@ -92,6 +92,8 @@ Mathias es estudiante de UTEC y está aprendiendo. No es desarrollador experto.
 | 4 | Panel de la marca: órdenes, listo para recojo, stock, precios y productos, sus números | La marca gestiona lo suyo y no ve nada del comprador ni de otras marcas |
 | 5 | Panel del admin: marcas, pedidos, recojos y entregas, pagos manuales, métricas | Un pedido se puede llevar de "recibido" a "entregado" y la comisión se calcula |
 | 6 | Cotizador de evento + cotización en PDF | Con invitados y horas, sugiere cajas, las pasa al carrito y descarga el PDF |
+| 7 | Pedidos por encargo (aprobado el 13-oct-2026, va después de la fase 5) | Si piden más que el stock, la parte que falta queda "por encargo" y la marca la acepta o rechaza; lo que sí hay en stock sigue siendo compra directa |
+| 8 | Pulido visual: animaciones, transiciones y avisos | La app se siente fluida sin romper docs/marca.md |
 
 Si el tiempo no alcanza, la fase 6 es la que más se puede simplificar. Antes de recortarla, pregúntale a Mathias.
 
