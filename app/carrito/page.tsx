@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { BotonPdf } from "@/components/BotonPdf";
 import { EsqueletoTabla } from "@/components/Esqueleto";
+import { cotizacionDelCarrito } from "@/lib/acciones-cotizador";
 import { cambiarCajas, quitarDelCarrito } from "@/lib/acciones-pedidos";
 import { botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
@@ -12,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Carrito · Surtiba" };
 
-type Avisos = { repetido?: string; omitidos?: string };
+type Avisos = { repetido?: string; omitidos?: string; cotizador?: string };
 
 export default function PaginaCarrito({ searchParams }: PageProps<"/carrito">) {
   return (
@@ -99,9 +101,16 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
 
   const repetido = Number(avisos.repetido ?? NaN);
   const omitidos = Number(avisos.omitidos ?? 0);
+  const delCotizador = Number(avisos.cotizador ?? NaN);
 
   return (
     <>
+      {delCotizador > 0 && (
+        <p role="status" className="mt-6 border-l-2 border-verde pl-3 text-sm">
+          Pasamos {delCotizador} {delCotizador === 1 ? "producto" : "productos"} del cotizador a tu carrito. Revisa las
+          cantidades antes de continuar.
+        </p>
+      )}
       {!Number.isNaN(repetido) && (
         <p role="status" className="mt-6 border-l-2 border-verde pl-3 text-sm">
           Agregamos {repetido} {repetido === 1 ? "producto" : "productos"} de tu pedido anterior.
@@ -215,11 +224,11 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
             {porEncargo > 0 && (
               <>
                 <div className="mt-2 flex justify-between border-t border-linea pt-3">
-                  <dt>Pagas ahora (con stock)</dt>
+                  <dt>Hay en stock</dt>
                   <dd className="font-mono font-medium">{soles(pagasAhora)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gris">Por encargo (pagas al confirmar)</dt>
+                  <dt className="text-gris">Falta (por encargo)</dt>
                   <dd className="font-mono text-gris">{soles(porEncargo)}</dd>
                 </div>
               </>
@@ -227,7 +236,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
           </dl>
           <p className="mt-2 text-xs text-gris">
             Tarifa de envío por definir.
-            {porEncargo > 0 && " Lo que pasa del stock se convierte en un pedido por encargo aparte."}
+            {porEncargo > 0 && " Lo que pasa del stock va por encargo: al confirmar eliges si lo recibes aparte o todo junto."}
           </p>
 
           {hayProblemas ? (
@@ -242,6 +251,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               Continuar con el pedido
             </Link>
           )}
+          <BotonPdf preparar={cotizacionDelCarrito} className="mt-3" />
           <Link href="/catalogo" className="mt-3 block text-center text-sm font-medium text-verde hover:text-tinta">
             Seguir comprando
           </Link>

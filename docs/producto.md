@@ -128,6 +128,8 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ### Cotización en PDF
 - Se genera desde el carrito: logo, fecha, código (COT-0001), productos por marca, cajas, precio por caja y totales.
 - **Cada cotización se guarda** en una tabla simple (comprador, fecha, ítems y total) para medir cuántas terminan en pedido.
+- También se descarga desde el cotizador (con los datos del evento). Solo compradores con sesión.
+- "Terminó en pedido": cuando el comprador envía un pedido, su última cotización sin pedido de los últimos 30 días queda vinculada a ese pedido.
 - Pie: "Precios válidos sujetos a stock al momento de pedir." No promete fechas de entrega.
 
 ### Avisos

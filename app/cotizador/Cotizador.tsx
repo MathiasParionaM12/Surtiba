@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
-import { cotizar } from "@/lib/acciones-cotizador";
+import { BotonPdf } from "@/components/BotonPdf";
+import { cotizacionDelEvento, cotizar, pasarAlCarrito } from "@/lib/acciones-cotizador";
 import { LIMITES, type AvisoMinimo, type EntradaCotizador, type Receta, type ResultadoCotizacion, type TipoEvento } from "@/lib/cotizador";
 import { botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
@@ -60,6 +61,7 @@ export function Cotizador({
   const [resultado, setResultado] = useState(resultadoInicial);
   const [error, setError] = useState<string>();
   const [calculando, iniciar] = useTransition();
+  const [pasando, pasar] = useTransition();
   const ultimo = useRef(0);
   const primeraVez = useRef(true);
 
@@ -80,6 +82,14 @@ export function Cotizador({
     }, 350);
     return () => clearTimeout(espera);
   }, [tipoId, invitados, horas, tragos, cajasManual]);
+
+  const entradaActual = (): EntradaCotizador => ({
+    tipoEventoId: tipoId,
+    invitados: Number(invitados),
+    horas: Number(horas),
+    tragos,
+    cajasManual,
+  });
 
   const cambiarTipo = (id: string) => {
     const tipo = tipos.find((t) => t.id === id);
@@ -329,6 +339,33 @@ export function Cotizador({
             </div>
           )}
         </div>
+
+        {rol === "comprador" && resultado.productos.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={pasando || calculando}
+                onClick={() =>
+                  pasar(async () => {
+                    const r = await pasarAlCarrito(entradaActual());
+                    if (r?.error) setError(r.error); // si sale bien, el servidor te lleva al carrito
+                  })
+                }
+                className={`${botonPrimario} w-full`}
+              >
+                {pasando ? "Pasando al carrito…" : "Pasar todo al carrito"}
+              </button>
+              <BotonPdf preparar={() => cotizacionDelEvento(entradaActual())} />
+            </div>
+            <p className="text-xs text-gris">
+              Al pasarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Ahí puedes ajustarlas.
+            </p>
+          </div>
+        )}
+        {rol === "admin" && (
+          <p className="text-xs text-gris">Solo los compradores pueden pasarlo al carrito y descargar la cotización.</p>
+        )}
 
         {!resultado.conSesion && rol === null && (
           <div className="flex flex-col gap-3 rounded-md border border-linea bg-blanco p-4 text-sm sm:flex-row sm:items-center sm:justify-between">

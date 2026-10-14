@@ -270,6 +270,10 @@ export type Database = {
         };
         Returns: string;
       };
+      crear_cotizacion: {
+        Args: { p_items?: Json; p_evento?: Json };
+        Returns: { cotizacion_id: string; codigo: string }[];
+      };
       crear_pedido: {
         Args: {
           p_fecha_entrega: string;
