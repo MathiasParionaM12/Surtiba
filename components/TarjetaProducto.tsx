@@ -20,7 +20,7 @@ export function TarjetaProducto({ p }: { p: ProductoTarjeta }) {
         href={`/catalogo/${p.id}`}
         className="group flex flex-1 flex-col overflow-hidden rounded-md border border-linea bg-blanco transition-colors hover:border-gris"
       >
-        <FotoProducto categoria={p.categoria} ml={p.ml} />
+        <FotoProducto categoria={p.categoria} ml={p.ml} foto={p.foto} />
         <div className="flex flex-1 flex-col p-4">
           {p.inactivo && (
             <p className="mb-2 self-start rounded-sm border border-linea px-2 py-0.5 font-mono text-[11px] tracking-[0.08em] text-gris uppercase">

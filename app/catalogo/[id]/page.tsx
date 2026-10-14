@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
-import { CATEGORIAS, esUuid, ordenarTramos, textoTramo } from "@/lib/catalogo";
+import { CATEGORIAS, esUuid, ordenarTramos, textoTramo, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -40,6 +40,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
       <Ficha
         categoria={p.categoria!}
         ml={p.ml!}
+        foto={urlFoto(p.foto_url)}
         marca={p.marca!}
         nombre={p.nombre!}
         datos={[
@@ -71,7 +72,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, activo, marcas(nombre_comercial, pedido_minimo_cajas, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, pedido_minimo_cajas, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -92,6 +93,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
     <Ficha
       categoria={p.categoria}
       ml={p.ml}
+      foto={urlFoto(p.foto_url)}
       marca={p.marcas.nombre_comercial}
       nombre={p.nombre}
       datos={[
@@ -140,6 +142,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
 function Ficha({
   categoria,
   ml,
+  foto,
   marca,
   nombre,
   datos,
@@ -147,6 +150,7 @@ function Ficha({
 }: {
   categoria: string;
   ml: number;
+  foto: string | null;
   marca: string;
   nombre: string;
   datos: [string, string][];
@@ -154,7 +158,7 @@ function Ficha({
 }) {
   return (
     <div className="mt-6 grid gap-8 md:grid-cols-2 md:gap-12">
-      <FotoProducto categoria={categoria} ml={ml} grande />
+      <FotoProducto categoria={categoria} ml={ml} foto={foto} grande />
       <div>
         <p className={sello}>
           {marca} · {CATEGORIAS[categoria] ?? categoria}

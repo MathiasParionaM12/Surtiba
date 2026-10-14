@@ -176,6 +176,24 @@ export type Database = {
       };
     };
     Functions: {
+      marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
+      rechazar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
+      guardar_producto: {
+        Args: {
+          p_id: string | null;
+          p_nombre: string;
+          p_categoria: string;
+          p_ml: number;
+          p_grado: number;
+          p_unidades: number;
+          p_registro: string | null;
+          p_stock: number;
+          p_activo: boolean;
+          p_tramos: Json;
+          p_marca_id?: string;
+        };
+        Returns: string;
+      };
       crear_pedido: {
         Args: {
           p_fecha_entrega: string;

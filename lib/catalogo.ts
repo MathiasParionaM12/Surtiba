@@ -44,6 +44,7 @@ export type ProductoTarjeta = {
   stock?: number;
   inactivo?: boolean; // solo lo ve el admin: el producto o su marca está desactivado
   favorito?: boolean; // solo compradores: muestra el corazón
+  foto?: string | null; // dirección pública de la foto (si tiene)
 };
 
 type FilaProducto = {
@@ -54,6 +55,7 @@ type FilaProducto = {
   grado: number;
   unidades_por_caja: number;
   stock_cajas: number;
+  foto_url: string | null;
   activo: boolean;
   marcas: { nombre_comercial: string; activa: boolean } | null;
   escalas_precio: { desde_cajas: number; precio_caja_centimos: number }[];
@@ -77,5 +79,12 @@ export function aTarjeta(p: FilaProducto, favorito?: boolean): ProductoTarjeta |
     stock: p.stock_cajas,
     inactivo: !p.activo || !p.marcas?.activa,
     favorito,
+    foto: urlFoto(p.foto_url),
   };
+}
+
+// Dirección pública de una foto guardada en Supabase Storage (carpeta "productos")
+export function urlFoto(ruta: string | null | undefined) {
+  if (!ruta) return null;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/productos/${ruta}`;
 }

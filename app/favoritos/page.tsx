@@ -34,7 +34,7 @@ async function ListaFavoritos() {
   const { data } = await supabase
     .from("favoritos")
     .select(
-      "creado_en, productos(id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos))",
+      "creado_en, productos(id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos))",
     )
     .order("creado_en", { ascending: false });
 

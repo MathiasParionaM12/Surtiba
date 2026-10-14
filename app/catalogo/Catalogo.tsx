@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { TarjetaProducto, type ProductoTarjeta } from "@/components/TarjetaProducto";
-import { aTarjeta, CATEGORIAS, esUuid } from "@/lib/catalogo";
+import { aTarjeta, CATEGORIAS, esUuid, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +27,7 @@ async function CatalogoPublico() {
     grado: p.grado!,
     unidades: p.unidades_por_caja!,
     precioCaja: p.precio_caja_centimos!,
+    foto: urlFoto(p.foto_url),
   }));
 
   return (
@@ -58,7 +59,7 @@ async function CatalogoConSesion({ filtros, esComprador }: { filtros: Filtros; e
   let consulta = supabase
     .from("productos")
     .select(
-      "id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos)",
+      "id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos)",
     )
     .order("nombre");
   if (filtros.categoria && CATEGORIAS[filtros.categoria]) consulta = consulta.eq("categoria", filtros.categoria);

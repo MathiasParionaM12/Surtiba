@@ -1,0 +1,135 @@
+"use server";
+
+// Acciones del panel de la marca. Los cambios de estado pasan por funciones de la base
+// de datos que revisan que la orden sea de esta marca y que el cambio sea válido.
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import type { EstadoForm } from "@/lib/acciones-auth";
+import { CATEGORIAS, esUuid } from "@/lib/catalogo";
+import { exigirRol } from "@/lib/sesion";
+import { createClient } from "@/lib/supabase/server";
+
+// Los mensajes P0001 los escribimos nosotros en las funciones de la base de datos (en español)
+function mensaje(error: { code?: string; message: string }) {
+  return error.code === "P0001" ? error.message : "No pudimos guardar el cambio. Intenta de nuevo en unos minutos.";
+}
+
+function actualizarPantallas() {
+  revalidatePath("/", "layout");
+}
+
+export async function marcarListo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const id = String(form.get("subpedido_id") ?? "");
+  if (!esUuid(id)) return { error: "No encontramos esa orden." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("marcar_listo", { p_subpedido: id });
+  if (error) return { error: mensaje(error) };
+
+  actualizarPantallas();
+  return { mensaje: "Listo. Surtiba verá que esta orden está lista para recoger." };
+}
+
+export async function rechazarOrden(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const id = String(form.get("subpedido_id") ?? "");
+  const motivo = String(form.get("motivo") ?? "").trim();
+  if (!esUuid(id)) return { error: "No encontramos esa orden." };
+  if (motivo.length < 5) return { error: "Escribe el motivo (al menos 5 letras).", valores: { motivo } };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("rechazar_subpedido", { p_subpedido: id, p_motivo: motivo });
+  if (error) return { error: mensaje(error), valores: { motivo } };
+
+  actualizarPantallas();
+  return { mensaje: "Registramos que no puedes atender esta orden. El stock volvió a tu inventario." };
+}
+
+// Stock rápido: el formulario trae un campo "stock:<id del producto>" por cada producto
+export async function guardarStock(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const cambios: { id: string; stock: number }[] = [];
+  for (const [campo, valor] of form.entries()) {
+    if (!campo.startsWith("stock:")) continue;
+    const id = campo.slice("stock:".length);
+    const stock = Number(valor);
+    if (!esUuid(id)) continue;
+    if (!Number.isInteger(stock) || stock < 0 || stock > 99999) {
+      return { error: "El stock debe ser un número entero entre 0 y 99,999." };
+    }
+    cambios.push({ id, stock });
+  }
+
+  // RLS: cada update solo funciona si el producto es de esta marca
+  const supabase = await createClient();
+  for (const c of cambios) {
+    const { error } = await supabase.from("productos").update({ stock_cajas: c.stock }).eq("id", c.id);
+    if (error) return { error: "No pudimos guardar el stock. Intenta de nuevo." };
+  }
+
+  actualizarPantallas();
+  return { mensaje: `Stock guardado (${cambios.length} productos).` };
+}
+
+// Crear o editar un producto con su escala de precios
+export async function guardarProducto(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const leer = (campo: string) => String(form.get(campo) ?? "").trim();
+  const id = leer("id");
+  const valores = {
+    nombre: leer("nombre"),
+    categoria: leer("categoria"),
+    ml: leer("ml"),
+    grado: leer("grado"),
+    unidades: leer("unidades"),
+    registro: leer("registro"),
+    stock: leer("stock"),
+    activo: form.get("activo") ? "si" : "",
+  };
+
+  if (!valores.nombre) return { error: "Escribe el nombre del producto.", valores };
+  if (!CATEGORIAS[valores.categoria]) return { error: "Elige una categoría.", valores };
+
+  // Tramos: "desde" en cajas y precio en soles (se guarda en céntimos)
+  const desdes = form.getAll("tramo_desde").map(String);
+  const precios = form.getAll("tramo_precio").map(String);
+  const tramos = desdes
+    .map((d, i) => ({ desde: Number(d), precio: Math.round(Number(precios[i]) * 100) }))
+    .filter((t) => !(Number.isNaN(t.desde) && Number.isNaN(t.precio)));
+  if (tramos.some((t) => !Number.isInteger(t.desde) || !Number.isFinite(t.precio))) {
+    return { error: "Revisa los tramos: cada uno necesita las cajas 'desde' y un precio.", valores };
+  }
+
+  const supabase = await createClient();
+  const { data: nuevoId, error } = await supabase.rpc("guardar_producto", {
+    p_id: esUuid(id) ? id : null,
+    p_nombre: valores.nombre,
+    p_categoria: valores.categoria,
+    p_ml: Number(valores.ml),
+    p_grado: Number(valores.grado),
+    p_unidades: Number(valores.unidades),
+    p_registro: valores.registro || null,
+    p_stock: Number(valores.stock || 0),
+    p_activo: !!valores.activo,
+    p_tramos: tramos,
+  });
+  if (error) return { error: mensaje(error), valores };
+
+  actualizarPantallas();
+  redirect(`/marca/productos/${nuevoId}?${esUuid(id) ? "guardado" : "creado"}=1`);
+}
+
+// Después de subir la foto a Storage (desde el navegador), se guarda su ruta en el producto
+export async function guardarFoto(productoId: string, ruta: string): Promise<EstadoForm> {
+  const usuario = await exigirRol("marca");
+  if (!esUuid(productoId) || !ruta.startsWith(`${usuario.marcaId}/`)) return { error: "Foto no válida." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("productos").update({ foto_url: ruta }).eq("id", productoId).select("id");
+  if (error || !data?.length) return { error: "No pudimos guardar la foto. Intenta de nuevo." };
+
+  actualizarPantallas();
+  return { mensaje: "Foto actualizada." };
+}

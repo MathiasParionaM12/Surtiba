@@ -1,152 +1,121 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Suspense } from "react";
 import { EsqueletoPagina } from "@/components/Esqueleto";
-import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { sello } from "@/lib/estilos";
-import { soles } from "@/lib/formato";
-import { rutaInicio } from "@/lib/roles";
-import { obtenerUsuario } from "@/lib/sesion";
+import { inicioMesLima, mesActual, soles } from "@/lib/formato";
+import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Panel de marca · Surtiba" };
+export const metadata: Metadata = { title: "Resumen · Panel de marca · Surtiba" };
 
-export default function PaginaMarca() {
+export default function PaginaResumenMarca() {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
-      <Suspense fallback={<EsqueletoPagina />}>
-        <PanelMarca />
-      </Suspense>
-    </main>
+    <Suspense fallback={<EsqueletoPagina />}>
+      <Resumen />
+    </Suspense>
   );
 }
 
-async function PanelMarca() {
-  const usuario = await obtenerUsuario();
-  if (!usuario) redirect("/ingresar");
-  if (usuario.rol !== "marca" || !usuario.marcaId) redirect(rutaInicio(usuario.rol));
+async function Resumen() {
+  const usuario = await exigirRol("marca");
 
-  // RLS: la marca solo recibe SUS subpedidos y SUS productos. La tabla pedidos ni la puede leer.
+  // RLS: la marca recibe solo sus subpedidos y sus productos
   const supabase = await createClient();
   const [{ data: marca }, { data: ordenes }, { data: productos }] = await Promise.all([
-    supabase.from("marcas").select("nombre_comercial, pedido_minimo_cajas").eq("id", usuario.marcaId).single(),
+    supabase.from("marcas").select("nombre_comercial").eq("id", usuario.marcaId!).single(),
     supabase
       .from("subpedidos")
-      .select("id, codigo, estado, total_cajas, total_centimos, fecha_recojo, items(cajas, productos(nombre))")
+      .select("id, codigo, estado, total_cajas, total_centimos, comision_centimos, entregado_en, creado_en")
       .order("creado_en", { ascending: false }),
-    supabase
-      .from("productos")
-      .select("id, nombre, activo, stock_cajas, escalas_precio(desde_cajas, precio_caja_centimos)")
-      .order("nombre"),
+    supabase.from("productos").select("id, nombre, stock_cajas, activo").order("nombre"),
   ]);
 
-  const pendientes = (ordenes ?? []).filter((o) => o.estado === "pendiente").length;
-  const activos = (productos ?? []).filter((p) => p.activo).length;
-  const agotados = (productos ?? []).filter((p) => p.activo && p.stock_cajas === 0).length;
+  // Mis números del mes: solo cuenta lo ENTREGADO este mes (docs/modelo-datos.md, "Métrica principal")
+  const inicioMes = new Date(inicioMesLima()).getTime();
+  const entregadasMes = (ordenes ?? []).filter(
+    (o) => o.estado === "entregado" && o.entregado_en && new Date(o.entregado_en).getTime() >= inicioMes,
+  );
+  const cajasMes = entregadasMes.reduce((s, o) => s + o.total_cajas, 0);
+  const ventasMes = entregadasMes.reduce((s, o) => s + o.total_centimos, 0);
+  const comisionMes = entregadasMes.reduce((s, o) => s + o.comision_centimos, 0);
+  const pendientes = (ordenes ?? []).filter((o) => o.estado === "pendiente");
+  const agotados = (productos ?? []).filter((p) => p.activo && p.stock_cajas === 0);
 
   return (
     <>
-      <p className={sello}>Panel de marca</p>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{marca?.nombre_comercial}</h1>
-      <p className="mt-2 max-w-2xl text-gris">
-        Aquí ves las órdenes que Surtiba te hace. Surtiba recoge en tu local y entrega al cliente: por eso no ves datos del
-        comprador.
-      </p>
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{marca?.nombre_comercial}</h1>
+      <p className="mt-2 text-gris">Tus números de {mesActual()}. Solo cuentan los pedidos ya entregados.</p>
 
-      <div className="mt-8 grid grid-cols-3 overflow-hidden rounded-md border border-linea bg-blanco">
-        <Cifra valor={pendientes} texto="Órdenes pendientes" />
-        <Cifra valor={activos} texto="Productos activos" />
-        <Cifra valor={agotados} texto="Productos agotados" />
-      </div>
-
-      <section className="mt-12">
-        <h2 className="text-xl font-semibold tracking-tight">Órdenes de Surtiba</h2>
-        {ordenes && ordenes.length > 0 ? (
-          <div className="mt-4 overflow-x-auto rounded-md border border-linea bg-blanco">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead>
-                <tr className="border-b border-linea text-left">
-                  <th className={`${sello} px-4 py-3 font-medium`}>Código</th>
-                  <th className={`${sello} px-4 py-3 font-medium`}>Productos</th>
-                  <th className={`${sello} px-4 py-3 text-right font-medium`}>Cajas</th>
-                  <th className={`${sello} px-4 py-3 text-right font-medium`}>Total</th>
-                  <th className={`${sello} px-4 py-3 font-medium`}>Recojo</th>
-                  <th className={`${sello} px-4 py-3 font-medium`}>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ordenes.map((o) => (
-                  <tr key={o.id} className="border-b border-linea last:border-b-0">
-                    <td className="px-4 py-3 font-mono">{o.codigo}</td>
-                    <td className="px-4 py-3">
-                      {o.items.map((i) => (
-                        <p key={i.productos?.nombre}>
-                          <span className="font-mono">{i.cajas} ×</span> {i.productos?.nombre}
-                        </p>
-                      ))}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono">{o.total_cajas}</td>
-                    <td className="px-4 py-3 text-right font-mono whitespace-nowrap">{soles(o.total_centimos)}</td>
-                    <td className="px-4 py-3 font-mono text-gris">{o.fecha_recojo ?? "Por definir"}</td>
-                    <td className="px-4 py-3">
-                      <EtiquetaEstado estado={o.estado} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="mt-4 text-gris">Aún no tienes órdenes. Cuando un cliente pida tus productos, aparecerán aquí.</p>
-        )}
-      </section>
-
-      <section className="mt-12">
-        <h2 className="text-xl font-semibold tracking-tight">Tus productos y stock</h2>
-        <div className="mt-4 overflow-x-auto rounded-md border border-linea bg-blanco">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="border-b border-linea text-left">
-                <th className={`${sello} px-4 py-3 font-medium`}>Producto</th>
-                <th className={`${sello} px-4 py-3 text-right font-medium`}>Stock (cajas)</th>
-                <th className={`${sello} px-4 py-3 text-right font-medium`}>Precio por caja</th>
-                <th className={`${sello} px-4 py-3 font-medium`}>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(productos ?? []).map((p) => (
-                <tr key={p.id} className="border-b border-linea last:border-b-0">
-                  <td className="px-4 py-3">{p.nombre}</td>
-                  <td className={`px-4 py-3 text-right font-mono ${p.stock_cajas === 0 ? "text-gris" : ""}`}>
-                    {p.stock_cajas === 0 ? "Agotado" : p.stock_cajas}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
-                    {(() => {
-                      const primero = p.escalas_precio.find((e) => e.desde_cajas === 1);
-                      return primero ? soles(primero.precio_caja_centimos) : "—";
-                    })()}
-                  </td>
-                  <td className="px-4 py-3 text-gris">{p.activo ? "Activo" : "Inactivo"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="mt-6 grid grid-cols-2 overflow-hidden rounded-md border border-linea bg-blanco lg:grid-cols-4">
+        <div className="border-r border-b border-linea p-5 lg:border-b-0">
+          {/* Resaltador: un solo uso por pantalla, en la métrica principal */}
+          <p className="font-mono text-3xl font-medium">
+            <span className="bg-[linear-gradient(var(--color-resaltador),var(--color-resaltador))] bg-[length:100%_0.3em] bg-[position:0_92%] bg-no-repeat">
+              {cajasMes}
+            </span>
+          </p>
+          <p className="mt-1 text-sm text-gris">Cajas vendidas del mes</p>
         </div>
-      </section>
+        <div className="border-b border-linea p-5 lg:border-r lg:border-b-0">
+          <p className="font-mono text-2xl font-medium sm:text-3xl">{soles(ventasMes)}</p>
+          <p className="mt-1 text-sm text-gris">Ventas del mes</p>
+        </div>
+        <div className="border-r border-linea p-5">
+          <p className="font-mono text-2xl font-medium sm:text-3xl">{soles(comisionMes)}</p>
+          <p className="mt-1 text-sm text-gris">Comisión por pagar</p>
+        </div>
+        <div className="p-5">
+          <p className="font-mono text-2xl font-medium sm:text-3xl">{pendientes.length}</p>
+          <p className="mt-1 text-sm text-gris">Órdenes pendientes</p>
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-gris">Tus primeros 3 pedidos entregados no pagan comisión.</p>
 
-      <p className="mt-10 border-l-2 border-linea pl-3 text-sm text-gris">
-        Próximamente en este panel: marcar órdenes como «Listo para recojo», editar stock, precios y productos, y ver tus
-        números del mes.
-      </p>
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        <section>
+          <h2 className={sello}>Necesitan tu atención</h2>
+          {pendientes.length === 0 ? (
+            <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">
+              No tienes órdenes pendientes. Cuando un cliente pida tus productos, aparecerán aquí.
+            </p>
+          ) : (
+            <ul className="mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
+              {pendientes.map((o) => (
+                <li key={o.id} className="border-b border-linea last:border-b-0">
+                  <Link href={`/marca/ordenes/${o.id}`} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-papel">
+                    <span>
+                      <span className="font-mono font-medium">{o.codigo}</span>
+                      <span className="ml-2 font-mono text-xs text-gris">{o.total_cajas} cajas</span>
+                    </span>
+                    <span className="text-sm font-medium text-verde">Revisar →</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 className={sello}>Agotados</h2>
+          {agotados.length === 0 ? (
+            <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">
+              Todos tus productos activos tienen stock.
+            </p>
+          ) : (
+            <ul className="mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
+              {agotados.map((p) => (
+                <li key={p.id} className="flex items-center justify-between gap-4 border-b border-linea px-4 py-3 last:border-b-0">
+                  <span>{p.nombre}</span>
+                  <Link href="/marca/stock" className="text-sm font-medium text-verde hover:text-tinta">
+                    Actualizar stock
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </>
-  );
-}
-
-function Cifra({ valor, texto }: { valor: number; texto: string }) {
-  return (
-    <div className="border-r border-linea p-4 last:border-r-0 sm:p-5">
-      <p className="font-mono text-2xl font-medium sm:text-3xl">{valor}</p>
-      <p className="mt-1 text-xs text-gris sm:text-sm">{texto}</p>
-    </div>
   );
 }

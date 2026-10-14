@@ -23,3 +23,16 @@ export function mananaEnLima() {
   d.setUTCDate(d.getUTCDate() + 1);
   return d.toISOString().slice(0, 10);
 }
+
+// Primer instante del mes actual en Lima (Perú no cambia de hora: siempre UTC-5)
+export function inicioMesLima() {
+  const [anio, mes] = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima", year: "numeric", month: "2-digit" })
+    .format(new Date())
+    .split("-");
+  return `${anio}-${mes}-01T00:00:00-05:00`;
+}
+
+// Nombre del mes actual: "octubre"
+export function mesActual() {
+  return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(new Date());
+}

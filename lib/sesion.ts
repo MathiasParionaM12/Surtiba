@@ -1,5 +1,6 @@
 import { cache } from "react";
-import type { Rol } from "@/lib/roles";
+import { redirect } from "next/navigation";
+import { rutaInicio, type Rol } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
 export type Usuario = {
@@ -36,3 +37,11 @@ export const obtenerUsuario = cache(async (): Promise<Usuario | null> => {
     marcaId: perfil.marca_id,
   };
 });
+
+// Para páginas de un solo rol: si no hay sesión va a /ingresar; si el rol no coincide, a su inicio.
+export async function exigirRol(rol: Rol): Promise<Usuario> {
+  const usuario = await obtenerUsuario();
+  if (!usuario) redirect("/ingresar");
+  if (usuario.rol !== rol) redirect(rutaInicio(usuario.rol));
+  return usuario;
+}
