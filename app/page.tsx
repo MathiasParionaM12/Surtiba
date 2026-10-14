@@ -39,6 +39,9 @@ export default function Home() {
           <Link href="/catalogo" className={botonPrimario}>
             Ver catálogo
           </Link>
+          <Link href="/cotizador" className={botonSecundario}>
+            Cotizar mi evento
+          </Link>
           <Link href="/registro" className={botonSecundario}>
             Crear cuenta
           </Link>

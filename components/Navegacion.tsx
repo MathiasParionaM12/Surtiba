@@ -8,13 +8,19 @@ type Enlace = { href: string; texto: string; aviso?: number };
 // Enlaces del menú según quién ingresó. "aviso" = número a resaltar (ej. pedidos por pagar)
 function enlacesPara(rol: Rol | null, porPagar = 0): Enlace[] {
   const catalogo = { href: "/catalogo", texto: "Catálogo" };
+  const cotizador = { href: "/cotizador", texto: "Cotizar evento" };
   if (rol === "comprador") {
-    return [catalogo, { href: "/favoritos", texto: "Favoritos" }, { href: "/pedidos", texto: "Mis pedidos", aviso: porPagar }];
+    return [
+      catalogo,
+      cotizador,
+      { href: "/favoritos", texto: "Favoritos" },
+      { href: "/pedidos", texto: "Mis pedidos", aviso: porPagar },
+    ];
   }
   if (rol === "marca") return [catalogo, { href: "/marca", texto: "Mi panel" }];
   if (rol === "admin") return [catalogo, { href: "/admin", texto: "Panel Surtiba" }];
   if (rol === "solicitante") return [{ href: "/solicitud", texto: "Mi solicitud" }];
-  return [catalogo];
+  return [catalogo, cotizador];
 }
 
 // Pedidos del comprador con algo por pagar (encargo confirmado o diferencia pendiente)
