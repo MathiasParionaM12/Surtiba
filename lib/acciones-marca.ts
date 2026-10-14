@@ -47,30 +47,52 @@ export async function rechazarOrden(_estado: EstadoForm, form: FormData): Promis
   return { mensaje: "Registramos que no puedes atender esta orden. El stock volvió a tu inventario." };
 }
 
-// Stock rápido: el formulario trae un campo "stock:<id del producto>" por cada producto
+// Stock rápido: por cada producto el formulario trae "stock:<id>" (lo nuevo) y "antes:<id>"
+// (lo que había en pantalla). Solo se guardan las filas que la marca cambió.
 export async function guardarStock(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("marca");
-  const cambios: { id: string; stock: number }[] = [];
+  const cambios: { id: string; stock: number; antes: number }[] = [];
   for (const [campo, valor] of form.entries()) {
     if (!campo.startsWith("stock:")) continue;
     const id = campo.slice("stock:".length);
     const stock = Number(valor);
+    const antes = Number(form.get(`antes:${id}`));
     if (!esUuid(id)) continue;
     if (!Number.isInteger(stock) || stock < 0 || stock > 99999) {
       return { error: "El stock debe ser un número entero entre 0 y 99,999." };
     }
-    cambios.push({ id, stock });
+    if (stock !== antes) cambios.push({ id, stock, antes });
   }
+  if (cambios.length === 0) return { mensaje: "No cambiaste ningún número." };
 
-  // RLS: cada update solo funciona si el producto es de esta marca
+  // Solo se guarda si el stock sigue siendo el que viste. Si un pedido o un rechazo lo cambió
+  // mientras editabas, no se pisa: se avisa para que revises el número nuevo.
+  // (RLS además asegura que el producto sea de esta marca.)
   const supabase = await createClient();
+  let guardados = 0;
+  let cambiaronMientras = 0;
   for (const c of cambios) {
-    const { error } = await supabase.from("productos").update({ stock_cajas: c.stock }).eq("id", c.id);
+    const { data, error } = await supabase
+      .from("productos")
+      .update({ stock_cajas: c.stock })
+      .eq("id", c.id)
+      .eq("stock_cajas", c.antes)
+      .select("id");
     if (error) return { error: "No pudimos guardar el stock. Intenta de nuevo." };
+    if (data.length > 0) guardados++;
+    else cambiaronMientras++;
   }
 
   actualizarPantallas();
-  return { mensaje: `Stock guardado (${cambios.length} productos).` };
+  if (cambiaronMientras > 0) {
+    return {
+      error:
+        `${cambiaronMientras} ${cambiaronMientras === 1 ? "producto cambió" : "productos cambiaron"} mientras editabas ` +
+        "(por un pedido o un rechazo) y no se guardó. La tabla ya muestra el número actual: revísalo y guarda de nuevo." +
+        (guardados > 0 ? ` Los demás (${guardados}) sí se guardaron.` : ""),
+    };
+  }
+  return { mensaje: `Stock guardado (${guardados} ${guardados === 1 ? "producto" : "productos"}).` };
 }
 
 // Crear o editar un producto con su escala de precios

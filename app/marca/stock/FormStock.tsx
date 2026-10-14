@@ -13,7 +13,8 @@ export function FormStock({ productos }: { productos: ProductoStock[] }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(guardarStock, {});
 
   return (
-    <form action={accion}>
+    // key: cuando llegan números nuevos del servidor, la tabla se vuelve a dibujar con ellos
+    <form key={productos.map((p) => p.stock).join(",")} action={accion}>
       <div className="overflow-x-auto rounded-md border border-linea bg-blanco">
         <table className="w-full min-w-[480px] text-sm">
           <thead>
@@ -32,6 +33,8 @@ export function FormStock({ productos }: { productos: ProductoStock[] }) {
                 </td>
                 <td className="px-4 py-2.5 text-gris">{p.activo ? "Activo" : "Inactivo"}</td>
                 <td className="px-4 py-2.5 text-right">
+                  {/* Lo que había en pantalla: el servidor lo compara para no pisar cambios de otros */}
+                  <input type="hidden" name={`antes:${p.id}`} value={p.stock} />
                   <input
                     id={`stock-${p.id}`}
                     name={`stock:${p.id}`}

@@ -11,6 +11,7 @@ import { fecha, soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { AgregarRapido } from "./AgregarRapido";
 
 export const metadata: Metadata = { title: "Detalle del pedido · Surtiba" };
 
@@ -53,11 +54,36 @@ async function DetallePedido({
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, subpedidos(id, estado, total_cajas, total_centimos, marcas(nombre_comercial), items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, subpedidos(id, estado, marca_id, total_cajas, total_centimos, marcas(nombre_comercial), items(producto_id, cajas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
     )
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
+
+  // Opciones parecidas para lo que una marca no pudo atender: misma categoría, otra marca, con stock.
+  // (RLS: el comprador solo recibe productos activos de marcas activas.)
+  const noAtendidos = p.subpedidos
+    .filter((s) => s.estado === "rechazado" || s.estado === "cancelado")
+    .flatMap((s) => s.items.map((i) => ({ ...i, marcaId: s.marca_id })));
+  const categorias = [...new Set(noAtendidos.map((i) => i.productos?.categoria).filter((c): c is string => !!c))];
+  const { data: candidatos } = categorias.length
+    ? await supabase
+        .from("productos")
+        .select("id, nombre, categoria, marca_id, stock_cajas, marcas(nombre_comercial), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)")
+        .in("categoria", categorias)
+        .gt("stock_cajas", 0)
+        .order("nombre")
+    : { data: [] };
+
+  const parecidos = (item: (typeof noAtendidos)[number]) =>
+    (candidatos ?? [])
+      .filter((c) => c.categoria === item.productos?.categoria && c.marca_id !== item.marcaId)
+      .slice(0, 3)
+      .map((c) => {
+        const cajas = Math.min(item.cajas, c.stock_cajas);
+        const tramo = c.escalas_precio.find((e) => cajas >= e.desde_cajas && (e.hasta_cajas === null || cajas <= e.hasta_cajas));
+        return { ...c, cajas, precio: tramo?.precio_caja_centimos ?? null };
+      });
 
   const pasoActual = PASOS.findIndex((s) => s.estado === p.estado);
   const cancelado = p.estado === "cancelado";
@@ -137,6 +163,36 @@ async function DetallePedido({
                     </li>
                   ))}
                 </ul>
+
+                {/* Opciones parecidas de otras marcas para lo que no se pudo atender */}
+                {fuera &&
+                  s.items.map((i) => {
+                    const opciones = parecidos({ ...i, marcaId: s.marca_id });
+                    if (opciones.length === 0) return null;
+                    return (
+                      <div key={`alt-${i.producto_id}`} className="border-t border-linea bg-papel px-4 py-4 sm:px-5">
+                        <p className="text-sm font-medium">En lugar de {i.productos?.nombre}, puedes pedir:</p>
+                        <ul className="mt-3 flex flex-col gap-2">
+                          {opciones.map((o) => (
+                            <li
+                              key={o.id}
+                              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-linea bg-blanco px-3 py-2.5"
+                            >
+                              <Link href={`/catalogo/${o.id}`} className="min-w-0 text-sm hover:text-verde">
+                                <span className="font-medium">{o.nombre}</span>
+                                <span className="block text-xs text-gris">
+                                  {o.marcas?.nombre_comercial} · {o.precio !== null ? `${soles(o.precio)} por caja` : "ver precio"} ·{" "}
+                                  {o.stock_cajas} disp.
+                                </span>
+                              </Link>
+                              <AgregarRapido productoId={o.id} cajas={o.cajas} />
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-xs text-gris">Se agregan a tu carrito para un pedido nuevo.</p>
+                      </div>
+                    );
+                  })}
               </section>
             );
           })}
