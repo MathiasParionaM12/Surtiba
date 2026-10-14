@@ -10,6 +10,7 @@ function enlacesPara(rol: Rol | null) {
   }
   if (rol === "marca") return [catalogo, { href: "/marca", texto: "Mi panel" }];
   if (rol === "admin") return [catalogo, { href: "/admin", texto: "Panel Surtiba" }];
+  if (rol === "solicitante") return [{ href: "/solicitud", texto: "Mi solicitud" }];
   return [catalogo];
 }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TarjetaProducto, type ProductoTarjeta } from "@/components/TarjetaProducto";
 import { aTarjeta, CATEGORIAS, esUuid, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
@@ -9,6 +10,8 @@ export type Filtros = { categoria?: string; marca?: string };
 
 export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros> }) {
   const [usuario, filtros] = await Promise.all([obtenerUsuario(), searchParams]);
+  // Quien está en revisión como marca todavía no ve el catálogo
+  if (usuario?.rol === "solicitante") redirect("/solicitud");
   if (usuario) return <CatalogoConSesion filtros={filtros} esComprador={usuario.rol === "comprador"} />;
   return <CatalogoPublico />;
 }

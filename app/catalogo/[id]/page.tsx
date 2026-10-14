@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
@@ -29,6 +29,7 @@ export default function PaginaProducto({ params }: PageProps<"/catalogo/[id]">) 
 
 async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const [{ id }, usuario] = await Promise.all([params, obtenerUsuario()]);
+  if (usuario?.rol === "solicitante") redirect("/solicitud");
   if (!esUuid(id)) notFound();
   const supabase = await createClient();
 

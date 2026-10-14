@@ -5,7 +5,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { PAISES, PREFIJO_PERU } from "@/lib/paises";
+import { DISTRITOS } from "@/lib/distritos";
+import { PAISES, PREFIJO_PERU, telefonoValido } from "@/lib/paises";
 import { rutaInicio, type Rol } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -116,4 +117,60 @@ export async function salir() {
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/");
+}
+
+// "Quiero vender": crea la cuenta como SOLICITUD de marca. El trigger de la base de datos la guarda
+// en solicitudes_marca y el perfil queda como "solicitante" hasta que el admin la apruebe.
+export async function registrarVendedor(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  const email = leer(form, "email").toLowerCase();
+  const password = String(form.get("password") ?? "");
+  const password2 = String(form.get("password2") ?? "");
+  const nombre = leer(form, "nombre");
+  const prefijo = leer(form, "prefijo") || PREFIJO_PERU;
+  const numero = leer(form, "whatsapp").replace(/[\s-]/g, "");
+  const nombreComercial = leer(form, "nombre_comercial");
+  const razonSocial = leer(form, "razon_social");
+  const ruc = leer(form, "ruc").replace(/\s/g, "");
+  const direccion = leer(form, "direccion");
+  const distrito = leer(form, "distrito");
+  const valores = {
+    email, nombre, prefijo, whatsapp: numero, nombre_comercial: nombreComercial,
+    razon_social: razonSocial, ruc, direccion, distrito,
+  };
+
+  if (!nombre) return { error: "Escribe tu nombre.", valores };
+  if (!telefonoValido(prefijo, numero)) {
+    return { error: "Escribe un celular válido. En Perú: 9 dígitos que empiezan con 9.", valores };
+  }
+  if (!nombreComercial || !razonSocial) return { error: "Completa el nombre comercial y la razón social de tu marca.", valores };
+  if (!/^\d{11}$/.test(ruc)) return { error: "El RUC de tu marca tiene 11 dígitos.", valores };
+  if (!direccion) return { error: "Escribe la dirección donde Surtiba recogerá tus pedidos.", valores };
+  if (!DISTRITOS.includes(distrito)) return { error: "Elige el distrito de la dirección de recojo.", valores };
+  if (!email) return { error: "Escribe tu correo.", valores };
+  if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres.", valores };
+  if (password !== password2) return { error: "Las contraseñas no coinciden. Escríbelas de nuevo.", valores };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        tipo: "vender",
+        nombre,
+        whatsapp: `${prefijo}${numero}`,
+        nombre_comercial: nombreComercial,
+        razon_social: razonSocial,
+        ruc,
+        direccion_recojo: `${direccion}, ${distrito}`,
+      },
+    },
+  });
+  if (error) return { error: mensajeDeError(error.code), valores };
+  if (!data.session) {
+    return { mensaje: "Te enviamos un correo para confirmar tu cuenta. Ábrelo y luego ingresa.", valores };
+  }
+
+  revalidatePath("/", "layout");
+  redirect(rutaInicio("solicitante"));
 }

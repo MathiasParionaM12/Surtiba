@@ -133,6 +133,27 @@ export type Database = {
           { foreignKeyName: "productos_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
         ];
       };
+      solicitudes_marca: {
+        Row: {
+          contacto_nombre: string | null; contacto_whatsapp: string | null; creado_en: string; direccion_recojo: string; estado: string;
+          id: string; marca_id: string | null; motivo_rechazo: string | null; nombre_comercial: string; perfil_id: string;
+          razon_social: string; revisado_en: string | null; ruc: string;
+        };
+        Insert: {
+          contacto_nombre?: string | null; contacto_whatsapp?: string | null; creado_en?: string; direccion_recojo: string; estado?: string;
+          id?: string; marca_id?: string | null; motivo_rechazo?: string | null; nombre_comercial: string; perfil_id: string;
+          razon_social: string; revisado_en?: string | null; ruc: string;
+        };
+        Update: {
+          contacto_nombre?: string | null; contacto_whatsapp?: string | null; creado_en?: string; direccion_recojo?: string; estado?: string;
+          id?: string; marca_id?: string | null; motivo_rechazo?: string | null; nombre_comercial?: string; perfil_id?: string;
+          razon_social?: string; revisado_en?: string | null; ruc?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "solicitudes_marca_perfil_id_fkey"; columns: ["perfil_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "solicitudes_marca_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
+        ];
+      };
       subpedidos: {
         Row: {
           codigo: string; comision_centimos: number; comision_pct_aplicada: number; creado_en: string; entregado_en: string | null;
@@ -177,6 +198,23 @@ export type Database = {
     };
     Functions: {
       marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
+      aprobar_solicitud: { Args: { p_solicitud: string; p_comision: number; p_pedido_minimo: number }; Returns: string };
+      rechazar_solicitud: { Args: { p_solicitud: string; p_motivo: string }; Returns: undefined };
+      admin_guardar_marca: {
+        Args: {
+          p_marca: string; p_nombre: string; p_pedido_minimo: number; p_activa: boolean; p_comision: number;
+          p_razon_social: string; p_ruc: string; p_contacto_nombre: string; p_contacto_whatsapp: string;
+          p_contacto_correo: string; p_direccion_recojo: string;
+        };
+        Returns: undefined;
+      };
+      admin_fijar_recojo: { Args: { p_subpedido: string; p_fecha: string }; Returns: undefined };
+      admin_marcar_recogido: { Args: { p_subpedido: string }; Returns: undefined };
+      admin_en_camino: { Args: { p_pedido: string }; Returns: undefined };
+      admin_entregar: { Args: { p_pedido: string }; Returns: undefined };
+      admin_cancelar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
+      admin_cancelar_pedido: { Args: { p_pedido: string; p_motivo: string }; Returns: undefined };
+      admin_marcar_pagado: { Args: { p_pedido: string; p_metodo: string }; Returns: undefined };
       agregar_reemplazo: { Args: { p_pedido: string; p_producto: string; p_cajas: number }; Returns: string };
       rechazar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
       guardar_producto: {
