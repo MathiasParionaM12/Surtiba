@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
+import { rutaInicio } from "@/lib/roles";
+import { obtenerUsuario } from "@/lib/sesion";
 
 const PASOS = [
   {
@@ -19,6 +22,43 @@ const PASOS = [
   },
 ];
 
+// Visitante: crear cuenta. Comprador: sus pedidos. Marca y admin: su panel.
+async function Acciones() {
+  const usuario = await obtenerUsuario();
+  const catalogo = (
+    <Link href="/catalogo" className={botonPrimario}>
+      Ver catálogo
+    </Link>
+  );
+  if (usuario?.rol === "marca" || usuario?.rol === "admin" || usuario?.rol === "solicitante") {
+    return (
+      <>
+        {usuario.rol !== "solicitante" && catalogo}
+        <Link href={rutaInicio(usuario.rol)} className={usuario.rol === "solicitante" ? botonPrimario : botonSecundario}>
+          {usuario.rol === "marca" ? "Ir a mi panel" : usuario.rol === "admin" ? "Ir al panel Surtiba" : "Ver mi solicitud"}
+        </Link>
+      </>
+    );
+  }
+  return (
+    <>
+      {catalogo}
+      <Link href="/cotizador" className={botonSecundario}>
+        Cotizar mi evento
+      </Link>
+      {usuario ? (
+        <Link href="/pedidos" className={botonSecundario}>
+          Mis pedidos
+        </Link>
+      ) : (
+        <Link href="/registro" className={botonSecundario}>
+          Crear cuenta
+        </Link>
+      )}
+    </>
+  );
+}
+
 export default function Home() {
   return (
     <main className="flex-1">
@@ -36,15 +76,16 @@ export default function Home() {
           Para caterings, organizadores de eventos, wedding planners y bares que compran por caja.
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/catalogo" className={botonPrimario}>
-            Ver catálogo
-          </Link>
-          <Link href="/cotizador" className={botonSecundario}>
-            Cotizar mi evento
-          </Link>
-          <Link href="/registro" className={botonSecundario}>
-            Crear cuenta
-          </Link>
+          {/* Los botones dependen de quién ingresó; mientras se sabe, solo el catálogo */}
+          <Suspense
+            fallback={
+              <Link href="/catalogo" className={botonPrimario}>
+                Ver catálogo
+              </Link>
+            }
+          >
+            <Acciones />
+          </Suspense>
         </div>
       </section>
 
