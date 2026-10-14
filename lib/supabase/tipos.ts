@@ -270,6 +270,14 @@ export type Database = {
         };
         Returns: string;
       };
+      admin_guardar_tipo_evento: {
+        Args: { p_id: string | null; p_nombre: string; p_primera: number; p_siguiente: number; p_activo: boolean; p_mezcla: Json };
+        Returns: string;
+      };
+      admin_guardar_receta: {
+        Args: { p_id: string | null; p_nombre: string; p_categoria: string; p_ml: number; p_activo: boolean };
+        Returns: string;
+      };
       crear_cotizacion: {
         Args: { p_items?: Json; p_evento?: Json };
         Returns: { cotizacion_id: string; codigo: string }[];

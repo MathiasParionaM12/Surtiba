@@ -4,6 +4,7 @@
 // datos que revisa que quien la usa sea admin y que el cambio de estado sea válido.
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
 import { exigirRol } from "@/lib/sesion";
@@ -143,5 +144,52 @@ export async function marcarPagado(_e: EstadoForm, form: FormData): Promise<Esta
   return ejecutar(
     supabase.rpc("admin_marcar_pagado", { p_pedido: pedido, p_metodo: texto(form, "metodo") }),
     "Pago registrado.",
+  );
+}
+
+// ── Cotizador ──
+// Acepta "1.5" o "1,5"
+function decimal(form: FormData, campo: string) {
+  const n = Number(texto(form, campo).replace(",", "."));
+  return Number.isFinite(n) ? n : NaN;
+}
+
+// Tipo de evento + su mezcla de tragos (campos "pct_<receta_id>"). La base de datos valida que sume 100 %.
+export async function guardarTipoEvento(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const mezcla = [...form.entries()]
+    .filter(([campo]) => campo.startsWith("pct_") && esUuid(campo.slice(4)))
+    .map(([campo, valor]) => ({ receta_id: campo.slice(4), porcentaje: Math.trunc(Number(valor)) || 0 }))
+    .filter((m) => m.porcentaje > 0);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_guardar_tipo_evento", {
+    p_id: id(form, "tipo_id"),
+    p_nombre: texto(form, "nombre"),
+    p_primera: decimal(form, "primera"),
+    p_siguiente: decimal(form, "siguiente"),
+    p_activo: form.get("activo") === "on",
+    p_mezcla: mezcla,
+  });
+  if (error) {
+    return { error: error.code === "P0001" ? error.message : "No pudimos guardar el tipo de evento. Revisa los números." };
+  }
+  revalidatePath("/", "layout");
+  if (!id(form, "tipo_id")) redirect(`/admin/cotizador/tipos/${data}?creado=1`);
+  return { mensaje: "Guardado. El cotizador ya usa estos valores." };
+}
+
+export async function guardarReceta(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.rpc("admin_guardar_receta", {
+      p_id: id(form, "receta_id"),
+      p_nombre: texto(form, "nombre"),
+      p_categoria: texto(form, "categoria"),
+      p_ml: Math.trunc(Number(texto(form, "ml"))),
+      p_activo: form.get("activo") === "on",
+    }),
+    "Trago guardado.",
   );
 }
