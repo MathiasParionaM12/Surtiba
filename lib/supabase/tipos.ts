@@ -18,6 +18,15 @@ export type Database = {
           { foreignKeyName: "carrito_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "productos"; referencedColumns: ["id"] },
         ];
       };
+      cotizaciones: {
+        Row: { codigo: string; comprador_id: string; creado_en: string; evento: Json | null; id: string; items: Json; pedido_id: string | null; total_centimos: number };
+        Insert: { codigo?: string; comprador_id: string; creado_en?: string; evento?: Json | null; id?: string; items: Json; pedido_id?: string | null; total_centimos: number };
+        Update: { codigo?: string; comprador_id?: string; creado_en?: string; evento?: Json | null; id?: string; items?: Json; pedido_id?: string | null; total_centimos?: number };
+        Relationships: [
+          { foreignKeyName: "cotizaciones_comprador_id_fkey"; columns: ["comprador_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "cotizaciones_pedido_id_fkey"; columns: ["pedido_id"]; isOneToOne: false; referencedRelation: "pedidos"; referencedColumns: ["id"] },
+        ];
+      };
       escalas_precio: {
         Row: { desde_cajas: number; hasta_cajas: number | null; id: string; precio_caja_centimos: number; producto_id: string };
         Insert: { desde_cajas: number; hasta_cajas?: number | null; id?: string; precio_caja_centimos: number; producto_id: string };
@@ -133,6 +142,12 @@ export type Database = {
           { foreignKeyName: "productos_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
         ];
       };
+      recetas: {
+        Row: { activo: boolean; categoria: string; id: string; ml_por_trago: number; nombre: string; orden: number };
+        Insert: { activo?: boolean; categoria: string; id?: string; ml_por_trago: number; nombre: string; orden?: number };
+        Update: { activo?: boolean; categoria?: string; id?: string; ml_por_trago?: number; nombre?: string; orden?: number };
+        Relationships: [];
+      };
       solicitudes_marca: {
         Row: {
           contacto_nombre: string | null; contacto_whatsapp: string | null; creado_en: string; direccion_recojo: string; estado: string;
@@ -175,6 +190,21 @@ export type Database = {
           { foreignKeyName: "subpedidos_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
           { foreignKeyName: "subpedidos_pedido_id_fkey"; columns: ["pedido_id"]; isOneToOne: false; referencedRelation: "pedidos"; referencedColumns: ["id"] },
         ];
+      };
+      tipo_evento_recetas: {
+        Row: { porcentaje: number; receta_id: string; tipo_evento_id: string };
+        Insert: { porcentaje: number; receta_id: string; tipo_evento_id: string };
+        Update: { porcentaje?: number; receta_id?: string; tipo_evento_id?: string };
+        Relationships: [
+          { foreignKeyName: "tipo_evento_recetas_receta_id_fkey"; columns: ["receta_id"]; isOneToOne: false; referencedRelation: "recetas"; referencedColumns: ["id"] },
+          { foreignKeyName: "tipo_evento_recetas_tipo_evento_id_fkey"; columns: ["tipo_evento_id"]; isOneToOne: false; referencedRelation: "tipos_evento"; referencedColumns: ["id"] },
+        ];
+      };
+      tipos_evento: {
+        Row: { activo: boolean; id: string; nombre: string; orden: number; tragos_hora_siguiente: number; tragos_primera_hora: number };
+        Insert: { activo?: boolean; id?: string; nombre: string; orden?: number; tragos_hora_siguiente: number; tragos_primera_hora: number };
+        Update: { activo?: boolean; id?: string; nombre?: string; orden?: number; tragos_hora_siguiente?: number; tragos_primera_hora?: number };
+        Relationships: [];
       };
     };
     Views: {

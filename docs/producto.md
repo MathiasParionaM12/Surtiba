@@ -117,12 +117,13 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
    - Si las cajas sugeridas de una marca no llegan a su pedido mínimo, el cotizador lo avisa **en ese momento**, sin esperar al carrito ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.") y ofrece subir al mínimo o cambiar de producto.
 5. Los parámetros (tragos por persona en la primera hora, tragos por hora siguiente, ml por trago) **los configura el admin**. Los valores iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
-### Ideas para la fase 6 (por definir con Mathias antes de construir)
-- Parámetros según el **tipo de evento** (boda, corporativo, etc.), no uno solo para todos.
-- Calcular con **recetas**: qué trago se sirve y cuántos ml de cada bebida lleva.
-- Que el cotizador **recomiende automáticamente productos de Surtiba** según el evento.
-- Guardar cada cotización para medir cuántas terminan en pedido.
-- Las tablas del cotizador (`config_cotizador`, `cotizaciones`) se crean en la fase 6, no en la 1.
+### Decisiones de la fase 6 (aprobadas por Mathias el 14-oct-2026)
+- Parámetros según el **tipo de evento** (Boda, Evento corporativo, Cumpleaños o fiesta, Cóctel o lanzamiento), cada uno con su **mezcla sugerida** de tragos en %.
+- Se calcula con **recetas**: qué trago se sirve, con qué licor y cuántos ml (ej.: Pisco sour → pisco, 90 ml).
+- El cotizador **recomienda un producto de Surtiba por cada trago** (con stock y buen precio); el comprador lo puede cambiar.
+- **Abierto a todos:** cualquiera calcula las cajas. Los precios completos, agregar al carrito y el PDF piden ingresar.
+- **PDF real** (archivo descargable), también desde el carrito. Cada cotización se guarda (COT-0001) para medir cuántas terminan en pedido.
+- Valores iniciales: **supuestos de Claude por validar con caterings**, editables por el admin.
 
 ### Cotización en PDF
 - Se genera desde el carrito: logo, fecha, código (COT-0001), productos por marca, cajas, precio por caja y totales.

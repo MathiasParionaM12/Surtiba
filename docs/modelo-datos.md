@@ -11,9 +11,10 @@ perfiles ─┬─ (rol=marca) ─► marcas ─► productos ─► escalas_pre
           │                              │
           ├─ (rol=comprador) ─► pedidos ─► subpedidos (uno por marca) ─► items
           │                                                               (cada ítem apunta a un producto)
-          └─ (rol=comprador) ─► favoritos ─► productos
+          ├─ (rol=comprador) ─► favoritos ─► productos
+          └─ (rol=comprador) ─► cotizaciones ─► (pedido, si terminó en pedido)
 
-config_cotizador (1 fila, la edita el admin)
+Cotizador (lo edita el admin): tipos_evento ─► tipo_evento_recetas ◄─ recetas
 ```
 
 ## Tablas
@@ -165,8 +166,16 @@ Restricción: un solo subpedido por (pedido_id, marca_id).
 | precio_caja_centimos | integer | **copia** del precio aplicado según la escala |
 | subtotal_centimos | integer | cajas × precio |
 
-### config_cotizador (se diseña y crea en la fase 6)
-Borrador. En la fase 6 se rediseña (parámetros por tipo de evento, recetas, ml) y se agrega la tabla `cotizaciones`. Ver "Ideas para la fase 6" en `producto.md`.
+### Cotizador (fase 6, `supabase/sql/17_cotizador.sql`)
+Reemplaza al borrador `config_cotizador`. Los valores iniciales son **supuestos por validar con caterings**; el admin los edita.
+
+**tipos_evento**: nombre (Boda, Evento corporativo…), `tragos_primera_hora` y `tragos_hora_siguiente` (por persona, numeric), orden, activo.
+
+**recetas**: nombre del trago (Pisco sour, Chilcano…), `categoria` del licor base (la misma lista que `productos.categoria`), `ml_por_trago`, orden, activo. Una receta usa un solo licor; no incluye hielo, gaseosas ni insumos.
+
+**tipo_evento_recetas**: la mezcla sugerida de cada tipo de evento: (tipo_evento_id, receta_id, `porcentaje`). Los porcentajes de un tipo suman 100 (se valida al guardar).
+
+**cotizaciones**: `codigo` (COT-0001), comprador_id, creado_en, `evento` (jsonb: tipo, invitados, horas y tragos; null si no vino del cotizador), `items` (jsonb: copia de productos, cajas y precios), `total_centimos`, `pedido_id` (null hasta que termina en pedido). Solo la crea una función del servidor; nadie la escribe directo.
 | Columna | Tipo | Nota |
 |---|---|---|
 | tragos_primera_hora | numeric | por invitado |
@@ -204,7 +213,8 @@ recibido ─► en_preparacion ─► en_camino ─► entregado
 | pedidos | no | los suyos | **no** | todo |
 | subpedidos e items | no | los de sus pedidos | solo los de su marca | todo |
 | favoritos | no | los suyos | no | no hace falta |
-| config_cotizador (fase 6) | no | leer | no | editar |
+| tipos_evento, recetas, tipo_evento_recetas | los activos | los activos | los activos | todo (editar) |
+| cotizaciones | no | las suyas (solo leer) | no | todas (solo leer) |
 
 La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los datos del evento). Todo lo que necesita está en su subpedido.
 
