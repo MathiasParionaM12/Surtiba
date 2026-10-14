@@ -38,9 +38,9 @@ export type Database = {
         ];
       };
       items: {
-        Row: { cajas: number; id: string; precio_caja_centimos: number; producto_id: string; subpedido_id: string; subtotal_centimos: number };
-        Insert: { cajas: number; id?: string; precio_caja_centimos: number; producto_id: string; subpedido_id: string; subtotal_centimos: number };
-        Update: { cajas?: number; id?: string; precio_caja_centimos?: number; producto_id?: string; subpedido_id?: string; subtotal_centimos?: number };
+        Row: { cajas: number; cajas_reservadas: number; id: string; precio_caja_centimos: number; producto_id: string; subpedido_id: string; subtotal_centimos: number };
+        Insert: { cajas: number; cajas_reservadas?: number; id?: string; precio_caja_centimos: number; producto_id: string; subpedido_id: string; subtotal_centimos: number };
+        Update: { cajas?: number; cajas_reservadas?: number; id?: string; precio_caja_centimos?: number; producto_id?: string; subpedido_id?: string; subtotal_centimos?: number };
         Relationships: [
           { foreignKeyName: "items_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "catalogo_publico"; referencedColumns: ["id"] },
           { foreignKeyName: "items_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "productos"; referencedColumns: ["id"] },
@@ -256,6 +256,7 @@ export type Database = {
           p_evento_tipo?: string;
           p_evento_fecha?: string;
           p_invitados?: number;
+          p_modo?: "separado" | "junto";
         };
         Returns: { pedido_id: string; codigo: string; tipo: string }[];
       };

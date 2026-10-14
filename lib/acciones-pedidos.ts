@@ -109,6 +109,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     evento_fecha: leer("evento_fecha"),
     invitados: leer("invitados"),
     metodo_pago: leer("metodo_pago"),
+    modo: leer("modo") === "junto" ? "junto" : "separado",
   };
 
   if (!valores.recibe_nombre) return { error: "Escribe el nombre de quien recibe el pedido.", valores };
@@ -143,6 +144,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     p_evento_tipo: valores.evento_tipo || undefined,
     p_evento_fecha: valores.evento_fecha || undefined,
     p_invitados: invitados,
+    p_modo: valores.modo as "separado" | "junto",
   });
 
   if (error) {
@@ -152,7 +154,8 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   }
 
   actualizarPantallas();
-  // Puede crear 1 o 2 pedidos: la compra directa (pagada) y/o el encargo (por confirmar)
+  // Puede crear 1 o 2 pedidos: la compra directa (pagada) y/o el encargo (por confirmar).
+  // Con "todo junto" crea solo el encargo.
   const directo = data.find((p) => p.tipo === "directo");
   const encargo = data.find((p) => p.tipo === "encargo");
   if (directo) redirect(`/pedidos/${directo.pedido_id}?nuevo=1${encargo ? `&encargo=${encargo.pedido_id}` : ""}`);

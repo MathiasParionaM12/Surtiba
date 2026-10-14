@@ -39,13 +39,18 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
     supabase
       .from("subpedidos")
       .select(
-        "codigo, estado, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, fecha_recojo, fecha_disponible, motivo_rechazo, creado_en, listo_en, recogido_en, entregado_en, items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre))",
+        "codigo, estado, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, fecha_recojo, fecha_disponible, motivo_rechazo, creado_en, listo_en, recogido_en, entregado_en, items(cajas, cajas_reservadas, precio_caja_centimos, subtotal_centimos, productos(nombre))",
       )
       .eq("id", id)
       .maybeSingle(),
     supabase.from("marcas_privado").select("direccion_recojo").eq("marca_id", usuario.marcaId!).maybeSingle(),
   ]);
   if (!o) notFound();
+
+  // Encargo: por confirmar, o aceptado (tiene fecha). En "todo junto" parte ya salió de su stock.
+  const esEncargo = o.estado === "por_confirmar" || !!o.fecha_disponible;
+  const apartadas = o.items.reduce((s, i) => s + i.cajas_reservadas, 0);
+  const porProducir = o.items.reduce((s, i) => s + i.cajas - i.cajas_reservadas, 0);
 
   return (
     <>
@@ -60,7 +65,9 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
-          {o.estado === "por_confirmar" && <AccionesEncargo subpedidoId={id} hoy={hoyEnLima()} />}
+          {o.estado === "por_confirmar" && (
+            <AccionesEncargo subpedidoId={id} hoy={hoyEnLima()} apartadas={apartadas} porProducir={porProducir} />
+          )}
           {o.estado === "pendiente" && o.fecha_disponible && (
             <p className="border-l-2 border-verde pl-3 text-sm">
               Encargo aceptado: tenlo listo para el <span className="font-mono">{fecha(o.fecha_disponible)}</span>. Podrás
@@ -87,6 +94,13 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
                   <span>
                     <span className="font-mono font-medium">{i.cajas} cajas</span> · {i.productos?.nombre}
                     <span className="block font-mono text-xs text-gris">{soles(i.precio_caja_centimos)} por caja</span>
+                    {esEncargo && i.cajas_reservadas > 0 && (o.estado === "por_confirmar" || o.estado === "pendiente") && (
+                      <span className="block text-xs text-gris">
+                        {i.cajas_reservadas === i.cajas
+                          ? "Ya apartadas de tu stock"
+                          : `${i.cajas_reservadas} ya apartadas de tu stock · ${i.cajas - i.cajas_reservadas} por producir`}
+                      </span>
+                    )}
                   </span>
                   <span className="font-mono">{soles(i.subtotal_centimos)}</span>
                 </li>

@@ -161,6 +161,7 @@ Restricción: un solo subpedido por (pedido_id, marca_id).
 | subpedido_id | uuid FK → subpedidos | |
 | producto_id | uuid FK → productos | |
 | cajas | integer | ≥ 1 |
+| cajas_reservadas | integer | cuántas salieron del stock (compra directa: todas; encargo separado: 0; "todo junto": las que había). Es lo que vuelve al stock si se rechaza o cancela |
 | precio_caja_centimos | integer | **copia** del precio aplicado según la escala |
 | subtotal_centimos | integer | cajas × precio |
 

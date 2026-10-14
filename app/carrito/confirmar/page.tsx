@@ -110,11 +110,11 @@ async function Confirmar() {
         {total - pagasAhora > 0 && (
           <dl className="mt-3 flex flex-col gap-1 border-t border-linea pt-3 text-sm">
             <div className="flex justify-between">
-              <dt>Pagas ahora</dt>
+              <dt>Hay en stock</dt>
               <dd className="font-mono font-medium">{soles(pagasAhora)}</dd>
             </div>
             <div className="flex justify-between text-gris">
-              <dt>Por encargo</dt>
+              <dt>Falta (por encargo)</dt>
               <dd className="font-mono">{soles(total - pagasAhora)}</dd>
             </div>
           </dl>

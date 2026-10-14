@@ -70,8 +70,8 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ### Stock
 - La marca declara cuántas cajas tiene de cada producto.
 - Se puede pedir más de lo disponible: **lo que falta se convierte en un pedido por encargo** aparte (ver "Pedidos por encargo y pago").
-- **Al pagar la compra directa, el stock se descuenta** (se reserva) en la misma transacción. Un encargo no reserva stock: la marca lo produce.
-- Si un subpedido se rechaza o se cancela, el stock vuelve.
+- **Al pagar la compra directa, el stock se descuenta** (se reserva) en la misma transacción. Un encargo no reserva stock: la marca lo produce. Excepción: en **"todo junto"** se aparta lo que hay en stock.
+- Si un subpedido se rechaza o se cancela, vuelve al stock exactamente lo que se había apartado.
 - Si dos compradores piden la última caja al mismo tiempo, solo uno se la lleva en compra directa; al otro esa caja le queda por encargo.
 
 ### Pedidos por encargo y pago (fase 7, decidido el 14-oct-2026)
@@ -80,6 +80,9 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
   - Cada marca **acepta** (indicando la fecha en que lo tendrá listo) o **rechaza** con motivo.
   - Cuando todas respondieron y alguna aceptó, el pedido pasa a **"confirmado · por pagar"** y el cliente ve el aviso *"Tu pedido está confirmado y en producción. Págalo para continuar"* (más un número en "Mis pedidos").
   - Al pagar, sigue el flujo normal. La marca no puede marcarlo "Listo para recojo" antes del pago. Si todas rechazan, se cancela.
+- **El comprador elige** (decidido el 14-oct-2026), solo si falta stock y algo sí hay:
+  - **"Lo que hay ahora + el resto por encargo"** (lo de arriba): dos pedidos, pagos y entregas por separado.
+  - **"Todo junto cuando esté completo"**: **un solo pedido por encargo** con todo el carrito. Se aparta lo que hay en stock; **cada marca del pedido confirma** su parte con fecha (o la rechaza y lo apartado vuelve a su stock). Cuando todas respondieron, el cliente **paga todo en un solo pago** y llega junto.
 - Ambos pedidos usan el precio del tramo según el **total** de cajas pedidas del producto. El pedido mínimo se cuenta sobre el total.
 - **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
 

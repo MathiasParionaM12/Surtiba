@@ -65,7 +65,7 @@ async function DetallePedido({
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, tipo, pagado_centimos, subpedidos(id, estado, marca_id, total_cajas, total_centimos, fecha_disponible, marcas(nombre_comercial), items(producto_id, cajas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, tipo, pagado_centimos, subpedidos(id, estado, marca_id, total_cajas, total_centimos, fecha_disponible, marcas(nombre_comercial), items(producto_id, cajas, cajas_reservadas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -115,6 +115,8 @@ async function DetallePedido({
     ? await supabase.from("pedidos").select("codigo").eq("id", encargoId).maybeSingle()
     : { data: null };
   const cancelado = p.estado === "cancelado";
+  // "Todo junto": un encargo que apartó parte del stock (el resto lo producen las marcas)
+  const todoJunto = p.tipo === "encargo" && p.subpedidos.some((s) => s.items.some((i) => i.cajas_reservadas > 0));
 
   return (
     <>
@@ -140,9 +142,13 @@ async function DetallePedido({
             </>
           ) : (
             <>
-              <p className="font-medium">Enviamos tu encargo {p.codigo} a la marca.</p>
+              <p className="font-medium">
+                {todoJunto ? `Enviamos tu pedido ${p.codigo} para recibirlo todo junto.` : `Enviamos tu encargo ${p.codigo} a la marca.`}
+              </p>
               <p className="mt-1 text-sm text-gris">
-                Cuando la marca confirme cuándo lo tiene listo, te avisaremos aquí para que lo pagues.
+                {todoJunto
+                  ? "Ya apartamos lo que había en stock. Cuando las marcas confirmen lo que falta, te avisaremos aquí para que pagues todo."
+                  : "Cuando la marca confirme cuándo lo tiene listo, te avisaremos aquí para que lo pagues."}
               </p>
             </>
           )}
@@ -242,6 +248,13 @@ async function DetallePedido({
                       <span>
                         <span className="font-mono">{i.cajas} ×</span> {i.productos?.nombre ?? "Producto ya no disponible"}
                         <span className="block font-mono text-xs text-gris">{soles(i.precio_caja_centimos)} por caja</span>
+                        {p.tipo === "encargo" && i.cajas_reservadas > 0 && (s.estado === "por_confirmar" || s.estado === "pendiente") && (
+                          <span className="block text-xs text-gris">
+                            {i.cajas_reservadas === i.cajas
+                              ? "Apartadas del stock"
+                              : `${i.cajas_reservadas} apartadas del stock · ${i.cajas - i.cajas_reservadas} por producir`}
+                          </span>
+                        )}
                       </span>
                       <span className="font-mono">{soles(i.subtotal_centimos)}</span>
                     </li>

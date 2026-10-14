@@ -7,10 +7,28 @@ import type { EstadoForm } from "@/lib/acciones-auth";
 import { responderEncargo } from "@/lib/acciones-marca";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
 
-// Encargo por confirmar: la marca dice cuándo lo tendrá listo, o que no puede hacerlo
-export function AccionesEncargo({ subpedidoId, hoy }: { subpedidoId: string; hoy: string }) {
+// Encargo por confirmar: la marca dice cuándo lo tendrá listo, o que no puede hacerlo.
+// En "todo junto" una parte (o todo) ya salió de su stock: solo produce lo que falta.
+export function AccionesEncargo({
+  subpedidoId,
+  hoy,
+  apartadas,
+  porProducir,
+}: {
+  subpedidoId: string;
+  hoy: string;
+  apartadas: number;
+  porProducir: number;
+}) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(responderEncargo, {});
   const [respuesta, setRespuesta] = useState<"acepto" | "no">("acepto");
+
+  const explicacion =
+    apartadas === 0
+      ? "El cliente pidió más de lo que tienes en stock. Dinos si puedes hacerlo y para cuándo. El cliente paga recién cuando confirmes."
+      : porProducir === 0
+        ? `El cliente quiere recibir todo su pedido junto. Ya apartamos estas ${apartadas} cajas de tu stock: dinos para cuándo las tienes listas. El cliente paga cuando todas las marcas confirmen.`
+        : `El cliente quiere recibir todo junto. Ya apartamos ${apartadas} cajas de tu stock; faltan ${porProducir} por producir. Dinos si puedes hacerlo y para cuándo. El cliente paga cuando todas las marcas confirmen.`;
 
   return (
     <form action={accion} className="flex flex-col gap-4 rounded-md border border-tinta bg-blanco p-5">
@@ -18,10 +36,7 @@ export function AccionesEncargo({ subpedidoId, hoy }: { subpedidoId: string; hoy
       <input type="hidden" name="respuesta" value={respuesta} />
       <div>
         <p className="font-medium">Este es un pedido por encargo.</p>
-        <p className="mt-1 text-sm text-gris">
-          El cliente pidió más de lo que tienes en stock. Dinos si puedes hacerlo y para cuándo. El cliente paga recién
-          cuando confirmes.
-        </p>
+        <p className="mt-1 text-sm text-gris">{explicacion}</p>
       </div>
 
       <div className="flex gap-2">
@@ -59,6 +74,7 @@ export function AccionesEncargo({ subpedidoId, hoy }: { subpedidoId: string; hoy
             defaultValue={estado.valores?.motivo}
             className={`${campo} h-auto py-2`}
           />
+          {apartadas > 0 && <span className="text-xs text-gris">Las {apartadas} cajas apartadas vuelven a tu stock.</span>}
         </label>
       )}
 
