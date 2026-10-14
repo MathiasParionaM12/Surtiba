@@ -6,9 +6,10 @@ import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { esUuid } from "@/lib/catalogo";
 import { sello } from "@/lib/estilos";
-import { fecha, soles } from "@/lib/formato";
+import { fecha, hoyEnLima, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { AccionesEncargo } from "./AccionesEncargo";
 import { AccionesOrden } from "./AccionesOrden";
 
 export const metadata: Metadata = { title: "Orden · Panel de marca · Surtiba" };
@@ -38,7 +39,7 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
     supabase
       .from("subpedidos")
       .select(
-        "codigo, estado, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, fecha_recojo, motivo_rechazo, creado_en, listo_en, recogido_en, entregado_en, items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre))",
+        "codigo, estado, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, fecha_recojo, fecha_disponible, motivo_rechazo, creado_en, listo_en, recogido_en, entregado_en, items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -59,6 +60,13 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
+          {o.estado === "por_confirmar" && <AccionesEncargo subpedidoId={id} hoy={hoyEnLima()} />}
+          {o.estado === "pendiente" && o.fecha_disponible && (
+            <p className="border-l-2 border-verde pl-3 text-sm">
+              Encargo aceptado: tenlo listo para el <span className="font-mono">{fecha(o.fecha_disponible)}</span>. Podrás
+              marcarlo listo cuando el cliente haya pagado (si aún no paga, te lo diremos al intentarlo).
+            </p>
+          )}
           {o.estado === "pendiente" && <AccionesOrden subpedidoId={id} />}
           {o.estado === "listo_recojo" && o.listo_en && (
             <p className="border-l-2 border-verde pl-3 text-sm">

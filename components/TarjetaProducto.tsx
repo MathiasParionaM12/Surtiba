@@ -46,7 +46,7 @@ export function TarjetaProducto({ p }: { p: ProductoTarjeta }) {
                 </p>
                 {agotado ? (
                   <span className="rounded-sm border border-linea px-2 py-0.5 font-mono text-[11px] tracking-[0.08em] text-gris uppercase">
-                    Agotado
+                    Por encargo
                   </span>
                 ) : (
                   <span className="font-mono text-xs whitespace-nowrap text-verde">

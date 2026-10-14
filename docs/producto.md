@@ -69,10 +69,19 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 
 ### Stock
 - La marca declara cuántas cajas tiene de cada producto.
-- No se puede pedir más de lo disponible.
-- **Al enviar el pedido, el stock se descuenta** (se reserva) en la misma transacción.
+- Se puede pedir más de lo disponible: **lo que falta se convierte en un pedido por encargo** aparte (ver "Pedidos por encargo y pago").
+- **Al pagar la compra directa, el stock se descuenta** (se reserva) en la misma transacción. Un encargo no reserva stock: la marca lo produce.
 - Si un subpedido se rechaza o se cancela, el stock vuelve.
-- Si dos compradores piden la última caja al mismo tiempo, solo uno lo logra y el otro ve un mensaje claro.
+- Si dos compradores piden la última caja al mismo tiempo, solo uno se la lleva en compra directa; al otro esa caja le queda por encargo.
+
+### Pedidos por encargo y pago (fase 7, decidido el 14-oct-2026)
+- **Compra directa (hay stock):** al confirmar, el cliente **paga en el carrito** (pago simulado: Yape, Plin, transferencia o tarjeta) y se reserva el stock. No hay aprobación de la marca: Surtiba coordina el recojo. La marca igual marca "Listo para recojo" cuando lo tiene empacado.
+- **Pedido por encargo (pide más que el stock):** lo que falta va en un **pedido aparte** con su propio código, en estado **"por confirmar"**. Todos los productos aceptan encargo.
+  - Cada marca **acepta** (indicando la fecha en que lo tendrá listo) o **rechaza** con motivo.
+  - Cuando todas respondieron y alguna aceptó, el pedido pasa a **"confirmado · por pagar"** y el cliente ve el aviso *"Tu pedido está confirmado y en producción. Págalo para continuar"* (más un número en "Mis pedidos").
+  - Al pagar, sigue el flujo normal. La marca no puede marcarlo "Listo para recojo" antes del pago. Si todas rechazan, se cancela.
+- Ambos pedidos usan el precio del tramo según el **total** de cajas pedidas del producto. El pedido mínimo se cuenta sobre el total.
+- **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
 
 ### Pedido mínimo
 - Cada marca tiene un pedido mínimo en cajas (la suma de sus productos en el pedido).
@@ -123,7 +132,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
 - **Aprobación de productos:** cada producto que suba una marca queda "en revisión" hasta que el admin lo acepte; recién ahí aparece en el catálogo.
-- **Pago al comprar (fase 7):** si hay stock, se paga al hacer el pedido (compra directa); si no hay stock, la parte que falta es un pedido por encargo que la marca acepta antes de cobrarse. La pasarela de pago sigue fuera del MVP: en el prototipo el admin marca el pago a mano.
+- ~~**Pago al comprar**~~ → ya construido en la fase 7 (ver "Pedidos por encargo y pago").
 - **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija de 5 % por ahora.
 
 ## Fuera del MVP (no construir; si parece necesario, preguntar)

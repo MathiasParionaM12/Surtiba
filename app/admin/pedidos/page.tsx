@@ -13,6 +13,8 @@ export const metadata: Metadata = { title: "Pedidos · Panel Surtiba" };
 
 type Filtros = { estado?: string; marca?: string; pago?: string };
 const ESTADOS = [
+  ["por_confirmar", "Encargo por confirmar"],
+  ["por_pagar", "Encargo por pagar"],
   ["recibido", "Recibido"],
   ["en_preparacion", "En preparación"],
   ["en_camino", "En camino"],
@@ -45,7 +47,7 @@ async function Lista({ searchParams }: { searchParams: Promise<Filtros> }) {
   let consulta = supabase
     .from("pedidos")
     .select(
-      "id, codigo, estado, total_centimos, pago_estado, creado_en, fecha_entrega_deseada, perfiles(empresa, nombre), subpedidos(estado, marcas(nombre_comercial))",
+      "id, codigo, estado, tipo, total_centimos, pagado_centimos, pago_estado, creado_en, fecha_entrega_deseada, perfiles(empresa, nombre), subpedidos(estado, marcas(nombre_comercial))",
     )
     .order("creado_en", { ascending: false });
   if (filtros.estado && ESTADOS.some(([v]) => v === filtros.estado)) consulta = consulta.eq("estado", filtros.estado);
@@ -124,6 +126,7 @@ async function Lista({ searchParams }: { searchParams: Promise<Filtros> }) {
                     <Link href={`/admin/pedidos/${p.id}`} className="font-mono font-medium text-verde hover:text-tinta">
                       {p.codigo}
                     </Link>
+                    {p.tipo === "encargo" && <span className="ml-1.5 text-[11px] text-gris">Encargo</span>}
                     <span className="block text-xs text-gris">{fecha(p.creado_en)}</span>
                   </td>
                   <td className="px-4 py-3">{p.perfiles?.empresa ?? p.perfiles?.nombre ?? "—"}</td>
@@ -144,7 +147,17 @@ async function Lista({ searchParams }: { searchParams: Promise<Filtros> }) {
                   <td className="px-4 py-3">
                     <EtiquetaEstado estado={p.estado} />
                   </td>
-                  <td className="px-4 py-3 text-xs">{p.pago_estado === "pagado" ? "Pagado" : <span className="text-gris">Pendiente</span>}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    {p.estado === "por_confirmar" ? (
+                      <span className="text-gris">Al confirmar</span>
+                    ) : p.pagado_centimos >= p.total_centimos && p.pagado_centimos > 0 ? (
+                      "Pagado"
+                    ) : p.estado === "cancelado" ? (
+                      <span className="text-gris">—</span>
+                    ) : (
+                      <span>Falta {soles(p.total_centimos - p.pagado_centimos)}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

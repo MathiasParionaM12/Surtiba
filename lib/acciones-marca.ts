@@ -178,3 +178,30 @@ export async function guardarMinimo(_estado: EstadoForm, form: FormData): Promis
   actualizarPantallas();
   return { mensaje: `Pedido mínimo guardado: ${minimo} ${minimo === 1 ? "caja" : "cajas"}.` };
 }
+
+// La marca responde un encargo: lo acepta con la fecha en que lo tendrá listo, o lo rechaza con motivo
+export async function responderEncargo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const id = String(form.get("subpedido_id") ?? "");
+  const acepta = form.get("respuesta") === "acepto";
+  const fecha = String(form.get("fecha") ?? "");
+  const motivo = String(form.get("motivo") ?? "").trim();
+  if (!esUuid(id)) return { error: "No encontramos ese encargo." };
+  if (acepta && !fecha) return { error: "Elige la fecha en que lo tendrás listo." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("marca_responder_encargo", {
+    p_subpedido: id,
+    p_acepta: acepta,
+    p_fecha: acepta ? fecha : undefined,
+    p_motivo: acepta ? undefined : motivo,
+  });
+  if (error) return { error: mensaje(error), valores: { motivo, fecha } };
+
+  actualizarPantallas();
+  return {
+    mensaje: acepta
+      ? "Encargo aceptado. Le avisamos al cliente para que lo pague; te diremos aquí cuando puedas marcarlo listo."
+      : "Registramos que no puedes hacer este encargo.",
+  };
+}

@@ -8,15 +8,26 @@ import { repetirPedido } from "@/lib/acciones-pedidos";
 import { esUuid } from "@/lib/catalogo";
 import { botonSecundario, sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
+import { nombreMetodo, saldos } from "@/lib/pagos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { AgregarRapido } from "./AgregarRapido";
+import { FormPagar } from "./FormPagar";
 
 export const metadata: Metadata = { title: "Detalle del pedido · Surtiba" };
 
-const PASOS = [
-  { estado: "recibido", texto: "Recibido" },
+// Línea de tiempo: la compra directa empieza pagada; el encargo primero espera a la marca y al pago
+const PASOS_DIRECTO = [
+  { estado: "recibido", texto: "Pagado" },
+  { estado: "en_preparacion", texto: "En preparación" },
+  { estado: "en_camino", texto: "En camino" },
+  { estado: "entregado", texto: "Entregado" },
+];
+const PASOS_ENCARGO = [
+  { estado: "por_confirmar", texto: "Por confirmar" },
+  { estado: "por_pagar", texto: "Confirmado" },
+  { estado: "recibido", texto: "Pagado" },
   { estado: "en_preparacion", texto: "En preparación" },
   { estado: "en_camino", texto: "En camino" },
   { estado: "entregado", texto: "Entregado" },
@@ -30,7 +41,7 @@ export default function PaginaPedido({ params, searchParams }: PageProps<"/pedid
       </Link>
       <div className="mt-6">
         <Suspense fallback={<EsqueletoPagina />}>
-          <DetallePedido params={params} searchParams={searchParams as Promise<{ nuevo?: string }>} />
+          <DetallePedido params={params} searchParams={searchParams as Promise<{ nuevo?: string; encargo?: string }>} />
         </Suspense>
       </div>
     </main>
@@ -42,9 +53,9 @@ async function DetallePedido({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ nuevo?: string }>;
+  searchParams: Promise<{ nuevo?: string; encargo?: string }>;
 }) {
-  const [{ id }, { nuevo }, usuario] = await Promise.all([params, searchParams, obtenerUsuario()]);
+  const [{ id }, { nuevo, encargo: encargoId }, usuario] = await Promise.all([params, searchParams, obtenerUsuario()]);
   if (!usuario) redirect("/ingresar");
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
   if (!esUuid(id)) notFound();
@@ -54,7 +65,7 @@ async function DetallePedido({
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, subpedidos(id, estado, marca_id, total_cajas, total_centimos, marcas(nombre_comercial), items(producto_id, cajas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, tipo, pagado_centimos, subpedidos(id, estado, marca_id, total_cajas, total_centimos, fecha_disponible, marcas(nombre_comercial), items(producto_id, cajas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -76,7 +87,7 @@ async function DetallePedido({
     : { data: [] };
 
   // Si el pedido sigue abierto, el reemplazo entra AL MISMO pedido; si no, va al carrito.
-  const abierto = p.estado === "recibido" || p.estado === "en_preparacion";
+  const abierto = p.tipo === "directo" && (p.estado === "recibido" || p.estado === "en_preparacion");
   const estadoDeMarca = new Map(p.subpedidos.map((s) => [s.marca_id, s.estado]));
 
   const parecidos = (item: (typeof noAtendidos)[number]) =>
@@ -95,18 +106,68 @@ async function DetallePedido({
       .filter((c) => c.sirve)
       .slice(0, 3);
 
+  const PASOS = p.tipo === "encargo" ? PASOS_ENCARGO : PASOS_DIRECTO;
   const pasoActual = PASOS.findIndex((s) => s.estado === p.estado);
+  const { falta, aFavor } = saldos(p);
+  const puedePagar = falta > 0 && p.estado !== "cancelado" && p.estado !== "por_confirmar";
+  // Código del encargo creado junto con esta compra (para el aviso de "pedido nuevo")
+  const { data: encargoNuevo } = esUuid(encargoId)
+    ? await supabase.from("pedidos").select("codigo").eq("id", encargoId).maybeSingle()
+    : { data: null };
   const cancelado = p.estado === "cancelado";
 
   return (
     <>
       {nuevo && (
         <div role="status" className="mb-8 rounded-md border border-verde bg-blanco p-5">
-          <p className="font-medium">Recibimos tu pedido {p.codigo}.</p>
-          <p className="mt-1 text-sm text-gris">
-            Ya reservamos el stock. Surtiba lo revisará con cada marca y coordinará la entrega contigo.
-          </p>
+          {p.tipo === "directo" ? (
+            <>
+              <p className="font-medium">
+                Pagaste tu pedido {p.codigo} ({nombreMetodo(p.pago_metodo)}, pago simulado).
+              </p>
+              <p className="mt-1 text-sm text-gris">
+                Ya reservamos el stock. Surtiba coordina el recojo con cada marca y la entrega contigo.
+              </p>
+              {encargoNuevo && (
+                <p className="mt-3 text-sm">
+                  Lo que faltaba de stock va en el encargo{" "}
+                  <Link href={`/pedidos/${encargoId}`} className="font-mono font-medium text-verde underline underline-offset-4">
+                    {encargoNuevo.codigo}
+                  </Link>
+                  : la marca lo confirmará y te avisaremos aquí para que lo pagues.
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="font-medium">Enviamos tu encargo {p.codigo} a la marca.</p>
+              <p className="mt-1 text-sm text-gris">
+                Cuando la marca confirme cuándo lo tiene listo, te avisaremos aquí para que lo pagues.
+              </p>
+            </>
+          )}
         </div>
+      )}
+
+      {/* Aviso para pagar: encargo confirmado o diferencia pendiente */}
+      {puedePagar && (
+        <div className="mb-8 rounded-md border border-tinta bg-blanco p-5">
+          <p className="font-medium">
+            {p.estado === "por_pagar"
+              ? "Tu pedido está confirmado y en producción. Págalo para continuar."
+              : `Falta pagar ${soles(falta)} de este pedido.`}
+          </p>
+          {p.estado === "por_pagar" && (
+            <p className="mt-1 text-sm text-gris">Cuando lo pagues, la marca lo prepara y Surtiba coordina la entrega.</p>
+          )}
+          <FormPagar pedidoId={id} monto={falta} />
+        </div>
+      )}
+      {aFavor > 0 && (
+        <p className="mb-8 border-l-2 border-verde pl-3 text-sm">
+          Tienes un saldo a favor de <strong className="font-mono">{soles(aFavor)}</strong> porque una marca no pudo atender
+          parte de tu pedido. Surtiba te lo devolverá.
+        </p>
       )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -127,7 +188,10 @@ async function DetallePedido({
       {cancelado ? (
         <p className="mt-8 border-l-2 border-rojo pl-3">Este pedido fue cancelado. Si tienes dudas, escríbenos.</p>
       ) : (
-        <ol className="mt-8 grid grid-cols-4 gap-2" aria-label="Estado del pedido">
+        <ol
+          className={`mt-8 grid gap-2 ${PASOS.length === 6 ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-4"}`}
+          aria-label="Estado del pedido"
+        >
           {PASOS.map((s, i) => {
             const hecho = i <= pasoActual;
             return (
@@ -154,6 +218,16 @@ async function DetallePedido({
                   <h2 className="font-semibold">{s.marcas?.nombre_comercial ?? "Marca"}</h2>
                   <EtiquetaEstado estado={s.estado} />
                 </header>
+                {s.estado === "por_confirmar" && (
+                  <p className="border-b border-linea bg-papel px-4 py-2.5 text-sm sm:px-5">
+                    Esperando que la marca confirme este encargo.
+                  </p>
+                )}
+                {s.fecha_disponible && !fuera && (
+                  <p className="border-b border-linea bg-papel px-4 py-2.5 text-sm sm:px-5">
+                    La marca lo tendrá listo el <span className="font-mono">{fecha(s.fecha_disponible)}</span>.
+                  </p>
+                )}
                 {fuera && (
                   <p className="border-b border-linea bg-papel px-4 py-2.5 text-sm sm:px-5">
                     Esta parte no se entregará y no suma al total. Surtiba te contactará.
@@ -260,7 +334,11 @@ async function DetallePedido({
               </div>
             </dl>
             <p className="mt-3 text-xs text-gris">
-              Pago: {p.pago_estado === "pagado" ? "recibido" : "pendiente (Surtiba lo coordina contigo)"}
+              {p.pagado_centimos > 0
+                ? `Pagado: ${soles(p.pagado_centimos)}${p.pago_metodo ? ` con ${nombreMetodo(p.pago_metodo)}` : ""} (simulado)`
+                : p.estado === "por_confirmar"
+                  ? "Lo pagas cuando la marca confirme el encargo."
+                  : "Pago pendiente."}
             </p>
           </div>
         </aside>

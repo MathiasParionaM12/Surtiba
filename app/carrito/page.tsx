@@ -61,13 +61,16 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
     marcas.set(l.marca_id!, grupo);
   }
 
-  // Problemas que impiden enviar el pedido
+  // Problemas que impiden enviar el pedido (la falta de stock ya no es problema: va por encargo)
   const problemaDe = (l: (typeof lineas)[number]) => {
     if (!l.activo || !l.marca_activa) return "Ya no está disponible. Quítalo del carrito.";
-    if (l.stock_cajas === 0) return "Se agotó. Quítalo del carrito.";
-    if (l.cajas! > l.stock_cajas!) return `Solo quedan ${l.stock_cajas} cajas. Baja la cantidad.`;
     if (l.precio_caja_centimos === null) return "No tiene precio para esa cantidad.";
     return null;
+  };
+  // Cuántas cajas salen ahora (con stock) y cuántas van por encargo
+  const partes = (l: (typeof lineas)[number]) => {
+    const ahora = Math.min(l.cajas!, Math.max(0, l.stock_cajas!));
+    return { ahora, encargo: l.cajas! - ahora };
   };
   // Todo se calcula antes de dibujar: totales por marca, faltante del mínimo, problemas y siguiente tramo
   const grupos = [...marcas.entries()].map(([marcaId, grupo]) => {
@@ -90,6 +93,9 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
   const hayProblemas = grupos.some((g) => g.faltan > 0 || g.items.some((i) => i.problema));
   const total = lineas.reduce((suma, l) => suma + (l.subtotal_centimos ?? 0), 0);
   const totalCajas = lineas.reduce((suma, l) => suma + l.cajas!, 0);
+  // Se paga ahora solo la compra directa; el encargo se paga cuando la marca lo confirme
+  const pagasAhora = lineas.reduce((s, l) => s + partes(l).ahora * (l.precio_caja_centimos ?? 0), 0);
+  const porEncargo = total - pagasAhora;
 
   const repetido = Number(avisos.repetido ?? NaN);
   const omitidos = Number(avisos.omitidos ?? 0);
@@ -138,6 +144,14 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
                           </p>
                         )}
                         {problema && <p className="mt-1 border-l-2 border-rojo pl-2 text-xs">{problema}</p>}
+                        {!problema && partes(l).encargo > 0 && (
+                          <p className="mt-1 border-l-2 border-linea pl-2 text-xs">
+                            {partes(l).ahora > 0
+                              ? `${partes(l).ahora} ahora + ${partes(l).encargo} por encargo`
+                              : "Todo por encargo"}{" "}
+                            <span className="text-gris">· la marca confirma el encargo y recién ahí lo pagas</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -198,8 +212,23 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               <dt className="font-medium">Total</dt>
               <dd className="font-mono font-semibold">{soles(total)}</dd>
             </div>
+            {porEncargo > 0 && (
+              <>
+                <div className="mt-2 flex justify-between border-t border-linea pt-3">
+                  <dt>Pagas ahora (con stock)</dt>
+                  <dd className="font-mono font-medium">{soles(pagasAhora)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-gris">Por encargo (pagas al confirmar)</dt>
+                  <dd className="font-mono text-gris">{soles(porEncargo)}</dd>
+                </div>
+              </>
+            )}
           </dl>
-          <p className="mt-2 text-xs text-gris">Tarifa de envío por definir. Precios sujetos a stock al momento de pedir.</p>
+          <p className="mt-2 text-xs text-gris">
+            Tarifa de envío por definir.
+            {porEncargo > 0 && " Lo que pasa del stock se convierte en un pedido por encargo aparte."}
+          </p>
 
           {hayProblemas ? (
             <>

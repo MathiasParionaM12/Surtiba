@@ -15,6 +15,7 @@ import {
   marcarRecogido,
 } from "@/lib/acciones-admin";
 import { esUuid } from "@/lib/catalogo";
+import { METODOS_PAGO_ADMIN, nombreMetodo, saldos } from "@/lib/pagos";
 import { campo, sello } from "@/lib/estilos";
 import { fecha, hoyEnLima, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
@@ -53,13 +54,15 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, pagado_en, perfiles(nombre, empresa, whatsapp, ruc, tipo_negocio), subpedidos(id, estado, fecha_recojo, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, motivo_rechazo, marcas(nombre_comercial), items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, pagado_en, tipo, pagado_centimos, perfiles(nombre, empresa, whatsapp, ruc, tipo_negocio), subpedidos(id, estado, fecha_recojo, fecha_disponible, total_cajas, total_centimos, comision_pct_aplicada, exento_comision, comision_centimos, motivo_rechazo, marcas(nombre_comercial), items(cajas, precio_caja_centimos, subtotal_centimos, productos(nombre)))",
     )
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
 
   const abierto = p.estado === "recibido" || p.estado === "en_preparacion";
+  const cancelable = abierto || p.estado === "por_confirmar" || p.estado === "por_pagar";
+  const { falta, aFavor } = saldos(p);
   const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
   const todoRecogido = vigentes.length > 0 && vigentes.every((s) => s.estado === "recogido");
   const algoRecogido = vigentes.some((s) => s.estado === "recogido");
@@ -71,6 +74,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         <div>
           <p className={sello}>Pedido</p>
           <h1 className="mt-2 font-mono text-3xl font-semibold tracking-tight">{p.codigo}</h1>
+          {p.tipo === "encargo" && <p className="mt-1 text-sm font-medium">Pedido por encargo</p>}
           <p className="mt-1 text-sm text-gris">Hecho el {fecha(p.creado_en)}</p>
         </div>
         <EtiquetaEstado estado={p.estado} />
@@ -129,6 +133,22 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
               )}
 
               {/* Acciones de esta parte */}
+              {s.estado === "por_confirmar" && (
+                <div className="border-t border-linea px-4 py-3 text-sm text-gris sm:px-5">
+                  Encargo: esperando que la marca confirme si puede hacerlo y para cuándo.
+                  <details className="mt-2">
+                    <summary className="cursor-pointer hover:text-tinta">Cancelar esta parte</summary>
+                    <FormAccion accion={cancelarSubpedido} ocultos={{ subpedido_id: s.id }} texto="Cancelar parte" variante="secundario" className="mt-3">
+                      <input name="motivo" required minLength={5} placeholder="Motivo" className={`${campo} h-10 w-64`} />
+                    </FormAccion>
+                  </details>
+                </div>
+              )}
+              {s.fecha_disponible && (s.estado === "pendiente" || s.estado === "listo_recojo") && (
+                <p className="border-t border-linea px-4 py-2.5 text-sm sm:px-5">
+                  Encargo: la marca lo tendrá listo el <span className="font-mono">{fecha(s.fecha_disponible)}</span>.
+                </p>
+              )}
               {(s.estado === "pendiente" || s.estado === "listo_recojo") && (
                 <div className="flex flex-col gap-4 border-t border-linea px-4 py-4 sm:px-5">
                   <div className="flex flex-wrap items-end gap-4">
@@ -214,34 +234,47 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
               <span className="text-gris">Total</span>
               <span className="font-mono font-semibold">{soles(p.total_centimos)}</span>
             </div>
-            <div className="mt-4 border-t border-linea pt-4">
-              {p.pago_estado === "pagado" ? (
+            <div className="mt-4 flex flex-col gap-2 border-t border-linea pt-4">
+              {p.pagado_centimos > 0 && (
                 <p>
-                  Pagado por <span className="font-medium capitalize">{p.pago_metodo}</span>
+                  Pagado {soles(p.pagado_centimos)}
+                  {p.pago_metodo && <span> con {nombreMetodo(p.pago_metodo)}</span>}
                   {p.pagado_en && <span className="text-gris"> el {fecha(p.pagado_en)}</span>}
                 </p>
+              )}
+              {aFavor > 0 && (
+                <p className="border-l-2 border-verde pl-2">
+                  A devolver al comprador: <span className="font-mono">{soles(aFavor)}</span> (por fuera de la app)
+                </p>
+              )}
+              {p.estado === "por_confirmar" ? (
+                <p className="text-gris">Se paga cuando las marcas confirmen el encargo.</p>
               ) : p.estado === "cancelado" ? (
                 <p className="text-gris">Pedido cancelado.</p>
-              ) : (
-                <FormAccion accion={marcarPagado} ocultos={{ pedido_id: id }} texto="Marcar pagado">
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-xs font-medium text-gris">Método</span>
-                    <select name="metodo" required defaultValue="" className={`${campo} h-10 w-40`}>
-                      <option value="" disabled>
-                        Elige
-                      </option>
-                      <option value="transferencia">Transferencia</option>
-                      <option value="yape">Yape</option>
-                      <option value="plin">Plin</option>
-                      <option value="efectivo">Efectivo</option>
-                    </select>
-                  </label>
-                </FormAccion>
-              )}
+              ) : falta > 0 ? (
+                <>
+                  <p className="font-medium">Falta pagar {soles(falta)}</p>
+                  <FormAccion accion={marcarPagado} ocultos={{ pedido_id: id }} texto="Marcar pagado">
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-medium text-gris">Método</span>
+                      <select name="metodo" required defaultValue="" className={`${campo} h-10 w-40`}>
+                        <option value="" disabled>
+                          Elige
+                        </option>
+                        {METODOS_PAGO_ADMIN.map((m) => (
+                          <option key={m.valor} value={m.valor}>
+                            {m.texto}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </FormAccion>
+                </>
+              ) : null}
             </div>
           </div>
 
-          {abierto && !algoRecogido && (
+          {cancelable && !algoRecogido && (
             <details className="rounded-md border border-linea bg-blanco p-5">
               <summary className="cursor-pointer text-gris hover:text-tinta">Cancelar todo el pedido</summary>
               <p className="mt-3 text-xs text-gris">El stock de todas las marcas vuelve. Avísale al comprador por fuera de la app.</p>

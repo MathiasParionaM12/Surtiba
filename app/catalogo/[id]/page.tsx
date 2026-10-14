@@ -102,7 +102,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         ["Grado", `${p.grado}%`],
         ["Unidades por caja", `${p.unidades_por_caja}`],
         ["Registro sanitario", p.registro_sanitario ?? "—"],
-        ["Stock disponible", p.stock_cajas === 0 ? "Agotado" : `${p.stock_cajas} cajas`],
+        ["Stock disponible", p.stock_cajas === 0 ? "Agotado (por encargo)" : `${p.stock_cajas} cajas`],
       ]}
     >
       {(!p.activo || !p.marcas.activa) && (
@@ -113,7 +113,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
       {esComprador && (
         <div className="mb-8 flex items-start gap-2">
           <div className="flex-1">
-            <FormAgregar productoId={id} agotado={p.stock_cajas === 0} enCarrito={enCarrito?.cajas ?? 0} />
+            <FormAgregar productoId={id} stock={p.stock_cajas} enCarrito={enCarrito?.cajas ?? 0} />
           </div>
           <BotonFavorito productoId={id} activo={!!favorito} className="pt-1" />
         </div>

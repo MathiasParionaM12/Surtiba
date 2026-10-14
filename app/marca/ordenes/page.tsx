@@ -32,8 +32,9 @@ async function ListaOrdenes() {
     .select("id, codigo, estado, total_cajas, total_centimos, fecha_recojo, creado_en, items(cajas, productos(nombre))")
     .order("creado_en", { ascending: false });
 
-  // Las pendientes van primero
-  const ordenes = [...(data ?? [])].sort((a, b) => Number(b.estado === "pendiente") - Number(a.estado === "pendiente"));
+  // Primero los encargos por confirmar, luego las pendientes
+  const prioridad = (e: string) => (e === "por_confirmar" ? 2 : e === "pendiente" ? 1 : 0);
+  const ordenes = [...(data ?? [])].sort((a, b) => prioridad(b.estado) - prioridad(a.estado));
 
   if (ordenes.length === 0) {
     return (
@@ -78,7 +79,7 @@ async function ListaOrdenes() {
               </td>
               <td className="px-4 py-3 text-right">
                 <Link href={`/marca/ordenes/${o.id}`} className="font-medium whitespace-nowrap text-verde hover:text-tinta">
-                  {o.estado === "pendiente" ? "Revisar" : "Ver"}
+                  {o.estado === "por_confirmar" ? "Responder" : o.estado === "pendiente" ? "Revisar" : "Ver"}
                 </Link>
               </td>
             </tr>

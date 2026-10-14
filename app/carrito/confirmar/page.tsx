@@ -35,7 +35,7 @@ async function Confirmar() {
 
   const supabase = await createClient();
   const [{ data }, { data: perfil }, { data: ultimo }] = await Promise.all([
-    supabase.from("carrito_detalle").select("marca, cajas, subtotal_centimos").order("marca"),
+    supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase.from("perfiles").select("nombre, whatsapp").eq("id", usuario.id).single(),
     // Último pedido del comprador (RLS: solo los suyos), para autocompletar la dirección
     supabase
@@ -72,13 +72,19 @@ async function Confirmar() {
     porMarca.set(l.marca!, m);
   }
   const total = [...porMarca.values()].reduce((s, m) => s + m.total, 0);
+  // Se paga ahora solo lo que tiene stock; lo demás es un encargo que se paga cuando la marca lo confirme
+  const pagasAhora = lineas.reduce(
+    (s, l) => s + Math.min(l.cajas!, Math.max(0, l.stock_cajas!)) * (l.precio_caja_centimos ?? 0),
+    0,
+  );
 
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <div className="rounded-md border border-linea bg-blanco p-5 sm:p-8">
         <FormConfirmar
           fechaMinima={mananaEnLima()}
-          totalTexto={soles(total)}
+          pagasAhora={pagasAhora}
+          porEncargo={total - pagasAhora}
           iniciales={iniciales}
           autocompletado={autocompletado}
         />
@@ -101,6 +107,18 @@ async function Confirmar() {
           <span className="font-medium">Total</span>
           <span className="font-mono font-semibold">{soles(total)}</span>
         </div>
+        {total - pagasAhora > 0 && (
+          <dl className="mt-3 flex flex-col gap-1 border-t border-linea pt-3 text-sm">
+            <div className="flex justify-between">
+              <dt>Pagas ahora</dt>
+              <dd className="font-mono font-medium">{soles(pagasAhora)}</dd>
+            </div>
+            <div className="flex justify-between text-gris">
+              <dt>Por encargo</dt>
+              <dd className="font-mono">{soles(total - pagasAhora)}</dd>
+            </div>
+          </dl>
+        )}
         <p className="mt-2 text-xs text-gris">Envío: tarifa por definir.</p>
         <Link href="/carrito" className={`${botonSecundario} mt-5 w-full`}>
           Editar carrito

@@ -47,15 +47,7 @@ export async function agregarAlCarrito(_estado: EstadoForm, form: FormData): Pro
   ]);
   if (!producto) return { error: "Este producto ya no está disponible." };
 
-  const total = (actual?.cajas ?? 0) + cajas;
-  if (total > producto.stock_cajas) {
-    return {
-      error:
-        producto.stock_cajas === 0
-          ? "Este producto está agotado."
-          : `Solo hay ${producto.stock_cajas} cajas disponibles${actual ? ` y ya tienes ${actual.cajas} en tu carrito` : ""}.`,
-    };
-  }
+  const total = Math.min((actual?.cajas ?? 0) + cajas, MAX_CAJAS);
 
   const { error } = await supabase
     .from("carrito")
@@ -63,7 +55,15 @@ export async function agregarAlCarrito(_estado: EstadoForm, form: FormData): Pro
   if (error) return { error: "No pudimos agregarlo al carrito. Intenta de nuevo." };
 
   actualizarPantallas();
-  return { mensaje: `Listo: tienes ${total} ${total === 1 ? "caja" : "cajas"} de ${producto.nombre} en tu carrito.` };
+  // Si pide más que el stock, lo que falta irá como pedido por encargo (la marca lo confirma)
+  const encargo = Math.max(0, total - producto.stock_cajas);
+  const textoCajas = (n: number) => `${n} ${n === 1 ? "caja" : "cajas"}`;
+  return {
+    mensaje:
+      encargo === 0
+        ? `Listo: tienes ${textoCajas(total)} de ${producto.nombre} en tu carrito.`
+        : `Listo: ${textoCajas(total)} de ${producto.nombre} en tu carrito: ${textoCajas(total - encargo)} ahora y ${textoCajas(encargo)} por encargo.`,
+  };
 }
 
 export async function cambiarCajas(form: FormData) {
@@ -108,6 +108,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     evento_tipo: leer("evento_tipo"),
     evento_fecha: leer("evento_fecha"),
     invitados: leer("invitados"),
+    metodo_pago: leer("metodo_pago"),
   };
 
   if (!valores.recibe_nombre) return { error: "Escribe el nombre de quien recibe el pedido.", valores };
@@ -133,6 +134,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     p_distrito: valores.distrito,
     p_recibe_nombre: valores.recibe_nombre,
     p_recibe_telefono: `${valores.prefijo}${valores.telefono}`,
+    p_metodo_pago: valores.metodo_pago || undefined,
     p_direccion_detalle: valores.direccion_detalle || undefined,
     p_codigo_postal: valores.codigo_postal || undefined,
     p_referencia: valores.referencia || undefined,
@@ -150,7 +152,11 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   }
 
   actualizarPantallas();
-  redirect(`/pedidos/${data[0].pedido_id}?nuevo=1`);
+  // Puede crear 1 o 2 pedidos: la compra directa (pagada) y/o el encargo (por confirmar)
+  const directo = data.find((p) => p.tipo === "directo");
+  const encargo = data.find((p) => p.tipo === "encargo");
+  if (directo) redirect(`/pedidos/${directo.pedido_id}?nuevo=1${encargo ? `&encargo=${encargo.pedido_id}` : ""}`);
+  redirect(`/pedidos/${encargo!.pedido_id}?nuevo=1`);
 }
 
 export async function repetirPedido(form: FormData) {
@@ -218,4 +224,20 @@ export async function agregarReemplazo(_estado: EstadoForm, form: FormData): Pro
 
   actualizarPantallas();
   return { mensaje: `Agregado a tu pedido ${codigo}.` };
+}
+
+// El cliente paga un encargo confirmado (o lo que falte de un pedido). Pago simulado.
+export async function pagarPedido(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await comprador();
+  const pedidoId = String(form.get("pedido_id") ?? "");
+  const metodo = String(form.get("metodo_pago") ?? "");
+  if (!esUuid(pedidoId)) return { error: "No encontramos ese pedido." };
+  if (!metodo) return { error: "Elige cómo vas a pagar." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("pagar_pedido", { p_pedido: pedidoId, p_metodo: metodo });
+  if (error) return { error: error.code === "P0001" ? error.message : "No pudimos registrar el pago. Intenta de nuevo." };
+
+  actualizarPantallas();
+  return { mensaje: "Pago registrado (simulado). Seguimos con tu pedido." };
 }

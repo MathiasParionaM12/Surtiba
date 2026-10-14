@@ -7,6 +7,8 @@ import type { EstadoForm } from "@/lib/acciones-auth";
 import { confirmarPedido } from "@/lib/acciones-pedidos";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
+import { soles } from "@/lib/formato";
+import { METODOS_PAGO } from "@/lib/pagos";
 import { PAISES } from "@/lib/paises";
 
 // Valores con los que empieza el formulario (perfil del comprador y su último pedido)
@@ -14,12 +16,14 @@ export type Iniciales = Record<string, string>;
 
 export function FormConfirmar({
   fechaMinima,
-  totalTexto,
+  pagasAhora,
+  porEncargo,
   iniciales,
   autocompletado,
 }: {
   fechaMinima: string;
-  totalTexto: string;
+  pagasAhora: number; // céntimos: lo que tiene stock (se paga ahora)
+  porEncargo: number; // céntimos: lo que va por encargo (se paga al confirmar)
   iniciales: Iniciales;
   autocompletado: boolean;
 }) {
@@ -195,14 +199,45 @@ export function FormConfirmar({
         </label>
       </fieldset>
 
+      {/* Pago: solo de lo que tiene stock. El encargo se paga cuando la marca lo confirme. */}
+      {pagasAhora > 0 && (
+        <fieldset className="border-t border-linea pt-6">
+          <legend className={`${sello} mb-4 pt-6`}>Pago</legend>
+          <p className="mb-3 text-sm">
+            Pagas ahora <strong className="font-mono">{soles(pagasAhora)}</strong>
+            {porEncargo > 0 && (
+              <span className="text-gris"> · el encargo ({soles(porEncargo)}) lo pagas cuando la marca lo confirme</span>
+            )}
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {METODOS_PAGO.map((m) => (
+              <label
+                key={m.valor}
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-linea bg-blanco px-3 py-2.5 text-sm has-[:checked]:border-tinta"
+              >
+                <input type="radio" name="metodo_pago" value={m.valor} required defaultChecked={v.metodo_pago === m.valor} className="accent-verde" />
+                {m.texto}
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gris">Pago simulado: es un prototipo, no se cobra dinero real.</p>
+        </fieldset>
+      )}
+
       <AvisoForm error={estado.error} mensaje={estado.mensaje} />
 
       <div className="flex flex-col gap-3 border-t border-linea pt-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gris">
-          Al enviar, Surtiba reserva el stock de cada marca. No hay pago en línea: Surtiba coordina el pago contigo.
+          {pagasAhora > 0
+            ? "Al pagar, Surtiba reserva el stock de cada marca."
+            : "Las marcas confirmarán tu encargo y te avisaremos aquí para que lo pagues."}
         </p>
         <button type="submit" disabled={enviando} className={`${botonPrimario} shrink-0`}>
-          {enviando ? "Enviando pedido…" : `Enviar pedido · ${totalTexto}`}
+          {enviando
+            ? "Enviando…"
+            : pagasAhora > 0
+              ? `Pagar ${soles(pagasAhora)} y enviar`
+              : `Enviar pedido por encargo · ${soles(porEncargo)}`}
         </button>
       </div>
     </form>

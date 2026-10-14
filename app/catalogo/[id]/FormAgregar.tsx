@@ -7,12 +7,8 @@ import type { EstadoForm } from "@/lib/acciones-auth";
 import { agregarAlCarrito } from "@/lib/acciones-pedidos";
 import { botonPrimario, campo } from "@/lib/estilos";
 
-export function FormAgregar({ productoId, agotado, enCarrito }: { productoId: string; agotado: boolean; enCarrito: number }) {
+export function FormAgregar({ productoId, stock, enCarrito }: { productoId: string; stock: number; enCarrito: number }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(agregarAlCarrito, {});
-
-  if (agotado) {
-    return <p className="rounded-md border border-linea bg-blanco p-4 text-sm text-gris">Este producto está agotado por ahora.</p>;
-  }
 
   return (
     <form action={accion} className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
@@ -34,6 +30,13 @@ export function FormAgregar({ productoId, agotado, enCarrito }: { productoId: st
           {enviando ? "Agregando…" : "Agregar al carrito"}
         </button>
       </div>
+      {!estado.mensaje && (
+        <p className="mt-3 text-xs text-gris">
+          {stock === 0
+            ? "Agotado por ahora: puedes pedirlo por encargo. La marca te confirmará cuándo lo tiene y recién ahí lo pagas."
+            : `Hay ${stock} cajas para entrega directa. Si pides más, lo que falte va por encargo.`}
+        </p>
+      )}
       {enCarrito > 0 && !estado.mensaje && (
         <p className="mt-3 text-xs text-gris">Ya tienes {enCarrito} en tu carrito. Lo que agregues se suma.</p>
       )}

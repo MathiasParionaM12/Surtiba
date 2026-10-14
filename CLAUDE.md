@@ -27,11 +27,11 @@ Marketplace B2B **gestionado** que conecta **marcas peruanas de licores y cócte
 
 1. **La marca se registra con "Quiero vender" y el admin la aprueba** (fija comisión y pedido mínimo). Después, la marca mantiene sus precios, productos y stock.
 2. **Comprador cotiza o navega**, arma un pedido de varias marcas en una sola compra y puede descargar la cotización en PDF.
-3. **Al enviar**, el sistema aplica la escala de precios, revisa el stock y el pedido mínimo, **reserva el stock** y divide el pedido en **subpedidos (uno por marca)**.
+3. **Al enviar**, el sistema aplica la escala de precios, revisa el pedido mínimo y divide el pedido en **subpedidos (uno por marca)**. Lo que tiene stock es **compra directa**: se paga en ese momento (pago simulado) y **reserva el stock**. Lo que supera el stock va a un **pedido por encargo** que la marca acepta (con fecha) antes de que el cliente lo pague.
 4. **Cada marca ve solo su subpedido**, sin datos del comprador, y lo marca como **listo para recojo**.
 5. **Admin recoge, entrega y cierra el pedido.** Al entregarse se calcula la comisión de cada marca.
 
-**Es un prototipo funcional para el curso: no habrá ventas, compras ni envíos reales.** Debe demostrar cómo funcionaría todo el flujo, con datos ficticios. No hay pasarela de pago: el admin marca "pagado" a mano y los estados de recojo y entrega se simulan desde el panel del admin.
+**Es un prototipo funcional para el curso: no habrá ventas, compras ni envíos reales.** Debe demostrar cómo funcionaría todo el flujo, con datos ficticios. No hay pasarela de pago: el pago en el carrito es **simulado** (el admin también puede marcar "pagado" a mano) y los estados de recojo y entrega se simulan desde el panel del admin.
 
 ## Stack (decidido, no cambiar sin preguntar)
 

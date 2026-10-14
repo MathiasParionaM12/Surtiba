@@ -1,6 +1,8 @@
 // Etiqueta de estado con los colores de docs/marca.md:
 // gris = pendiente/recibido · verde = en proceso · tinta = entregado · rojo apagado = rechazado/cancelado
 const ESTADOS: Record<string, { texto: string; clase: string }> = {
+  por_confirmar: { texto: "Por confirmar", clase: "border-linea text-gris" },
+  por_pagar: { texto: "Confirmado · por pagar", clase: "border-tinta text-tinta" },
   pendiente: { texto: "Pendiente", clase: "border-linea text-gris" },
   recibido: { texto: "Recibido", clase: "border-linea text-gris" },
   listo_recojo: { texto: "Listo para recojo", clase: "border-verde text-verde" },

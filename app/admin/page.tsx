@@ -23,14 +23,21 @@ async function Inicio() {
   const inicioMes = inicioMesLima();
 
   // RLS: el admin ve todo
-  const [{ data: entregadas }, { data: pedidosMes }, solicitudes, listas, { data: abiertos }, pagos] = await Promise.all([
-    supabase.from("subpedidos").select("total_cajas, comision_centimos").eq("estado", "entregado").gte("entregado_en", inicioMes),
-    supabase.from("pedidos").select("comprador_id, estado").gte("creado_en", inicioMes),
-    supabase.from("solicitudes_marca").select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
-    supabase.from("subpedidos").select("*", { count: "exact", head: true }).eq("estado", "listo_recojo"),
-    supabase.from("pedidos").select("id, estado, subpedidos(estado)").in("estado", ["recibido", "en_preparacion", "en_camino"]),
-    supabase.from("pedidos").select("*", { count: "exact", head: true }).eq("pago_estado", "pendiente").neq("estado", "cancelado"),
-  ]);
+  const [{ data: entregadas }, { data: pedidosMes }, solicitudes, listas, { data: abiertos }, pagos, encargosMarca, encargosPago] =
+    await Promise.all([
+      supabase.from("subpedidos").select("total_cajas, comision_centimos").eq("estado", "entregado").gte("entregado_en", inicioMes),
+      supabase.from("pedidos").select("comprador_id, estado").gte("creado_en", inicioMes),
+      supabase.from("solicitudes_marca").select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
+      supabase.from("subpedidos").select("*", { count: "exact", head: true }).eq("estado", "listo_recojo"),
+      supabase.from("pedidos").select("id, estado, subpedidos(estado)").in("estado", ["recibido", "en_preparacion", "en_camino"]),
+      supabase
+        .from("pedidos")
+        .select("*", { count: "exact", head: true })
+        .eq("pago_estado", "pendiente")
+        .in("estado", ["recibido", "en_preparacion", "en_camino", "entregado"]),
+      supabase.from("subpedidos").select("*", { count: "exact", head: true }).eq("estado", "por_confirmar"),
+      supabase.from("pedidos").select("*", { count: "exact", head: true }).eq("estado", "por_pagar"),
+    ]);
 
   // Métrica principal: cajas vendidas del mes = cajas de subpedidos ENTREGADOS este mes
   const cajasMes = (entregadas ?? []).reduce((s, x) => s + x.total_cajas, 0);
@@ -47,6 +54,8 @@ async function Inicio() {
 
   const tareas = [
     { cantidad: solicitudes.count ?? 0, texto: "solicitudes de marca por revisar", href: "/admin/marcas" },
+    { cantidad: encargosMarca.count ?? 0, texto: "encargos esperando respuesta de la marca", href: "/admin/pedidos?estado=por_confirmar" },
+    { cantidad: encargosPago.count ?? 0, texto: "encargos confirmados esperando pago del cliente", href: "/admin/pedidos?estado=por_pagar" },
     { cantidad: listas.count ?? 0, texto: "órdenes listas para recoger", href: "/admin/logistica" },
     { cantidad: paraSalir, texto: "pedidos completos para enviar", href: "/admin/logistica" },
     { cantidad: enCamino, texto: "pedidos en camino por entregar", href: "/admin/logistica" },
@@ -113,7 +122,7 @@ async function MetricasCompletas() {
     supabase
       .from("subpedidos")
       .select("marca_id, estado, total_cajas, total_centimos, comision_centimos, comision_pct_aplicada, exento_comision, marcas(nombre_comercial)"),
-    supabase.from("pedidos").select("estado, pago_estado, total_centimos"),
+    supabase.from("pedidos").select("estado, pago_estado, total_centimos, pagado_centimos"),
   ]);
 
   const entregadas = (partes ?? []).filter((s) => s.estado === "entregado");
@@ -128,10 +137,16 @@ async function MetricasCompletas() {
     exonerada: entregadas.reduce((a, s) => a + exonerada(s), 0),
   };
   const vigentes = (pedidos ?? []).filter((p) => p.estado !== "cancelado");
-  const cobrado = vigentes.filter((p) => p.pago_estado === "pagado").reduce((a, p) => a + p.total_centimos, 0);
-  const porCobrar = vigentes.filter((p) => p.pago_estado !== "pagado").reduce((a, p) => a + p.total_centimos, 0);
+  // Cobrado: lo que pagaron (sin contar lo que hay que devolver). Por cobrar: lo que falta de pedidos ya confirmados.
+  const cobrado = (pedidos ?? []).reduce((a, p) => a + Math.min(p.pagado_centimos, p.total_centimos), 0);
+  const aDevolver = (pedidos ?? []).reduce((a, p) => a + Math.max(0, p.pagado_centimos - p.total_centimos), 0);
+  const porCobrar = vigentes
+    .filter((p) => p.estado !== "por_confirmar")
+    .reduce((a, p) => a + Math.max(0, p.total_centimos - p.pagado_centimos), 0);
 
   const ESTADOS: [string, string][] = [
+    ["por_confirmar", "Encargos por confirmar"],
+    ["por_pagar", "Encargos por pagar"],
     ["recibido", "Recibidos"],
     ["en_preparacion", "En preparación"],
     ["en_camino", "En camino"],
@@ -174,7 +189,7 @@ async function MetricasCompletas() {
     <>
       <section className="mt-10">
         <h2 className={sello}>Desde el inicio</h2>
-        <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-linea bg-linea lg:grid-cols-3">
+        <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-linea bg-linea lg:grid-cols-4">
           {[
             [String(totales.cajas), "Cajas entregadas"],
             [soles(totales.ventas), "Ventas entregadas"],
@@ -182,6 +197,7 @@ async function MetricasCompletas() {
             [soles(totales.exonerada), "Comisión exonerada (3 primeras entregas)"],
             [soles(cobrado), "Cobrado a compradores"],
             [soles(porCobrar), "Por cobrar"],
+            [soles(aDevolver), "Por devolver (marcas que no atendieron algo ya pagado)"],
           ].map(([valor, texto]) => (
             <div key={texto} className="bg-blanco p-4 sm:p-5">
               <p className="font-mono text-xl font-medium sm:text-2xl">{valor}</p>

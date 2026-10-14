@@ -39,7 +39,10 @@ async function Resumen() {
   const cajasMes = entregadasMes.reduce((s, o) => s + o.total_cajas, 0);
   const ventasMes = entregadasMes.reduce((s, o) => s + o.total_centimos, 0);
   const comisionMes = entregadasMes.reduce((s, o) => s + o.comision_centimos, 0);
-  const pendientes = (ordenes ?? []).filter((o) => o.estado === "pendiente");
+  // Encargos por confirmar primero, luego órdenes pendientes
+  const pendientes = (ordenes ?? [])
+    .filter((o) => o.estado === "pendiente" || o.estado === "por_confirmar")
+    .sort((a, b) => Number(b.estado === "por_confirmar") - Number(a.estado === "por_confirmar"));
   const agotados = (productos ?? []).filter((p) => p.activo && p.stock_cajas === 0);
 
   return (
@@ -87,8 +90,9 @@ async function Resumen() {
                     <span>
                       <span className="font-mono font-medium">{o.codigo}</span>
                       <span className="ml-2 font-mono text-xs text-gris">{o.total_cajas} cajas</span>
+                      {o.estado === "por_confirmar" && <span className="ml-2 text-xs font-medium">· Encargo por confirmar</span>}
                     </span>
-                    <span className="text-sm font-medium text-verde">Revisar →</span>
+                    <span className="text-sm font-medium text-verde">{o.estado === "por_confirmar" ? "Responder →" : "Revisar →"}</span>
                   </Link>
                 </li>
               ))}

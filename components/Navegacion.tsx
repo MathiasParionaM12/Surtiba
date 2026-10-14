@@ -1,12 +1,15 @@
 import Link from "next/link";
 import type { Rol } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
+import { createClient } from "@/lib/supabase/server";
 
-// Enlaces del menú según quién ingresó
-function enlacesPara(rol: Rol | null) {
+type Enlace = { href: string; texto: string; aviso?: number };
+
+// Enlaces del menú según quién ingresó. "aviso" = número a resaltar (ej. pedidos por pagar)
+function enlacesPara(rol: Rol | null, porPagar = 0): Enlace[] {
   const catalogo = { href: "/catalogo", texto: "Catálogo" };
   if (rol === "comprador") {
-    return [catalogo, { href: "/favoritos", texto: "Favoritos" }, { href: "/pedidos", texto: "Mis pedidos" }];
+    return [catalogo, { href: "/favoritos", texto: "Favoritos" }, { href: "/pedidos", texto: "Mis pedidos", aviso: porPagar }];
   }
   if (rol === "marca") return [catalogo, { href: "/marca", texto: "Mi panel" }];
   if (rol === "admin") return [catalogo, { href: "/admin", texto: "Panel Surtiba" }];
@@ -14,14 +17,46 @@ function enlacesPara(rol: Rol | null) {
   return [catalogo];
 }
 
+// Pedidos del comprador con algo por pagar (encargo confirmado o diferencia pendiente)
+async function contarPorPagar() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("pedidos")
+    .select("estado, total_centimos, pagado_centimos")
+    .not("estado", "in", "(cancelado,por_confirmar)");
+  return (data ?? []).filter((p) => p.total_centimos > p.pagado_centimos).length;
+}
+
+async function enlacesDelUsuario() {
+  const usuario = await obtenerUsuario();
+  const porPagar = usuario?.rol === "comprador" ? await contarPorPagar() : 0;
+  return enlacesPara(usuario?.rol ?? null, porPagar);
+}
+
+function TextoEnlace({ e }: { e: Enlace }) {
+  return (
+    <>
+      {e.texto}
+      {!!e.aviso && (
+        <span
+          className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-sm bg-tinta px-1 font-mono text-[11px] text-blanco"
+          aria-label={`${e.aviso} por pagar`}
+        >
+          {e.aviso}
+        </span>
+      )}
+    </>
+  );
+}
+
 // Computadora: enlaces al lado del logo
 export async function NavPrincipal() {
-  const usuario = await obtenerUsuario();
+  const enlaces = await enlacesDelUsuario();
   return (
     <nav className="hidden items-center gap-5 sm:flex">
-      {enlacesPara(usuario?.rol ?? null).map((e) => (
+      {enlaces.map((e) => (
         <Link key={e.href} href={e.href} className="text-sm font-medium hover:text-verde">
-          {e.texto}
+          <TextoEnlace e={e} />
         </Link>
       ))}
     </nav>
@@ -32,11 +67,12 @@ export async function NavPrincipal() {
 export async function NavMovil() {
   const usuario = await obtenerUsuario();
   if (!usuario) return null;
+  const enlaces = await enlacesDelUsuario();
   return (
     <nav className="flex gap-5 overflow-x-auto border-t border-linea px-4 py-2.5 sm:hidden">
-      {enlacesPara(usuario.rol).map((e) => (
+      {enlaces.map((e) => (
         <Link key={e.href} href={e.href} className="text-sm font-medium whitespace-nowrap hover:text-verde">
-          {e.texto}
+          <TextoEnlace e={e} />
         </Link>
       ))}
     </nav>

@@ -74,7 +74,7 @@ export type Database = {
         Row: {
           codigo: string; comprador_id: string; creado_en: string; direccion_entrega: string; entregado_en: string | null;
           direccion_detalle: string | null; distrito: string | null; codigo_postal: string | null; referencia: string | null;
-          recibe_nombre: string | null; recibe_telefono: string | null;
+          recibe_nombre: string | null; recibe_telefono: string | null; tipo: string; pagado_centimos: number;
           envio_centimos: number; estado: string; evento_fecha: string | null; evento_nombre: string | null; evento_tipo: string | null;
           fecha_entrega_deseada: string; id: string; invitados: number | null; nota: string | null; pagado_en: string | null;
           pago_estado: string; pago_metodo: string | null; subtotal_centimos: number; total_centimos: number;
@@ -159,6 +159,7 @@ export type Database = {
           codigo: string; comision_centimos: number; comision_pct_aplicada: number; creado_en: string; entregado_en: string | null;
           estado: string; exento_comision: boolean; fecha_recojo: string | null; id: string; listo_en: string | null; marca_id: string;
           motivo_rechazo: string | null; pedido_id: string; recogido_en: string | null; total_cajas: number; total_centimos: number;
+          fecha_disponible: string | null;
         };
         Insert: {
           codigo: string; comision_centimos?: number; comision_pct_aplicada: number; creado_en?: string; entregado_en?: string | null;
@@ -198,6 +199,11 @@ export type Database = {
     };
     Functions: {
       marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
+      marca_responder_encargo: {
+        Args: { p_subpedido: string; p_acepta: boolean; p_fecha?: string; p_motivo?: string };
+        Returns: undefined;
+      };
+      pagar_pedido: { Args: { p_pedido: string; p_metodo: string }; Returns: undefined };
       aprobar_solicitud: { Args: { p_solicitud: string; p_comision?: number }; Returns: string };
       marca_guardar_minimo: { Args: { p_minimo: number }; Returns: undefined };
       rechazar_solicitud: { Args: { p_solicitud: string; p_motivo: string }; Returns: undefined };
@@ -241,6 +247,7 @@ export type Database = {
           p_distrito: string;
           p_recibe_nombre: string;
           p_recibe_telefono: string;
+          p_metodo_pago?: string;
           p_direccion_detalle?: string;
           p_codigo_postal?: string;
           p_referencia?: string;
@@ -250,7 +257,7 @@ export type Database = {
           p_evento_fecha?: string;
           p_invitados?: number;
         };
-        Returns: { pedido_id: string; codigo: string }[];
+        Returns: { pedido_id: string; codigo: string; tipo: string }[];
       };
     };
     Enums: { [_ in never]: never };

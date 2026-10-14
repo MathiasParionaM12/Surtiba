@@ -33,7 +33,7 @@ async function ListaPedidos() {
   const supabase = await createClient();
   const { data: pedidos } = await supabase
     .from("pedidos")
-    .select("id, codigo, estado, total_centimos, creado_en, fecha_entrega_deseada, evento_nombre, subpedidos(total_cajas, estado)")
+    .select("id, codigo, estado, tipo, total_centimos, pagado_centimos, creado_en, fecha_entrega_deseada, evento_nombre, subpedidos(total_cajas, estado)")
     .order("creado_en", { ascending: false });
 
   if (!pedidos || pedidos.length === 0) {
@@ -59,7 +59,12 @@ async function ListaPedidos() {
               className="grid grid-cols-2 gap-3 rounded-md border border-linea bg-blanco p-4 transition-colors hover:border-gris sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-6 sm:p-5"
             >
               <div className="col-span-2 sm:col-span-1">
-                <p className="font-mono font-medium">{p.codigo}</p>
+                <p className="font-mono font-medium">
+                  {p.codigo}
+                  {p.tipo === "encargo" && (
+                    <span className="ml-2 rounded-sm border border-linea px-1.5 py-0.5 font-sans text-[11px] font-normal text-gris">Encargo</span>
+                  )}
+                </p>
                 <p className="mt-0.5 text-sm text-gris">
                   {p.evento_nombre ? `${p.evento_nombre} · ` : ""}Pedido el {fecha(p.creado_en)}
                 </p>
@@ -74,8 +79,11 @@ async function ListaPedidos() {
                 </p>
                 <p className="font-mono font-medium">{soles(p.total_centimos)}</p>
               </div>
-              <div className="col-span-2 sm:col-span-1">
+              <div className="col-span-2 flex flex-col items-start gap-1 sm:col-span-1">
                 <EtiquetaEstado estado={p.estado} />
+                {p.estado !== "cancelado" && p.estado !== "por_confirmar" && p.total_centimos > p.pagado_centimos && (
+                  <span className="text-xs font-medium">Por pagar: {soles(p.total_centimos - p.pagado_centimos)}</span>
+                )}
               </div>
             </Link>
           </li>
