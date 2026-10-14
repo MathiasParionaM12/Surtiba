@@ -31,7 +31,9 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 
 El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla con Surtiba.
 
-### Marca (una cuenta por marca; la crea el admin)
+### Marca (una cuenta por marca)
+Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Quiero vender"** y llena los datos de su marca (nombre comercial, razón social, RUC, dirección de recojo). Queda como **solicitud en revisión** (no vende ni compra) hasta que el admin la **aprueba** y fija su % de comisión y su pedido mínimo. Recién ahí es marca y ve su panel. Si el admin la rechaza, ve el motivo.
+
 | Pantalla | Qué tiene |
 |---|---|
 | Inicio / **Mis números** | Cajas vendidas del mes, ventas del mes (S/), comisión por pagar, órdenes pendientes |
@@ -44,10 +46,10 @@ El comprador **nunca** ve datos de contacto de las marcas. Si tiene dudas, habla
 | Pantalla | Qué tiene |
 |---|---|
 | Inicio | Cajas vendidas del mes (métrica principal), pedidos del mes, compradores activos, comisión del mes |
-| Marcas | Crear marca y su cuenta, % de comisión, pedido mínimo, activar/desactivar. Puede editar sus productos |
+| Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
 | Pedidos | Todos los pedidos, con filtros por estado y marca. Ve los datos del comprador |
 | Logística | **Recojos**: subpedidos listos, agrupados por marca, con botón "Recogido". **Entregas**: pedidos con todo recogido, con botones "En camino" y "Entregado" |
-| Pagos | Marcar un pedido como pagado y con qué método (transferencia, Yape, etc.). Sin pasarela |
+| Pagos | Marcar un pedido como pagado y con qué método: transferencia, Yape, Plin o efectivo. Sin pasarela |
 
 ## Reglas de negocio
 

@@ -25,7 +25,7 @@ Marketplace B2B **gestionado** que conecta **marcas peruanas de licores y cócte
 
 ## El ciclo central del MVP (tiene que funcionar a fines de noviembre de 2026)
 
-1. **Admin crea la marca** y sube su catálogo inicial. Después, la marca mantiene sus precios, productos y stock.
+1. **La marca se registra con "Quiero vender" y el admin la aprueba** (fija comisión y pedido mínimo). Después, la marca mantiene sus precios, productos y stock.
 2. **Comprador cotiza o navega**, arma un pedido de varias marcas en una sola compra y puede descargar la cotización en PDF.
 3. **Al enviar**, el sistema aplica la escala de precios, revisa el stock y el pedido mínimo, **reserva el stock** y divide el pedido en **subpedidos (uno por marca)**.
 4. **Cada marca ve solo su subpedido**, sin datos del comprador, y lo marca como **listo para recojo**.
