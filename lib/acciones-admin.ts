@@ -34,14 +34,11 @@ function texto(form: FormData, campo: string) {
 export async function aprobarSolicitud(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("admin");
   const solicitud = id(form, "solicitud_id");
-  const comision = Number(texto(form, "comision"));
-  const minimo = Number(texto(form, "pedido_minimo"));
   if (!solicitud) return { error: "No encontramos esa solicitud." };
-  if (!(comision >= 0 && comision <= 100)) return { error: "La comisión debe estar entre 0 y 100 %." };
-  if (!(Number.isInteger(minimo) && minimo >= 1)) return { error: "El pedido mínimo debe ser de al menos 1 caja." };
+  // Comisión fija de 5 % por ahora; el pedido mínimo es el que eligió la marca en su solicitud
   const supabase = await createClient();
   return ejecutar(
-    supabase.rpc("aprobar_solicitud", { p_solicitud: solicitud, p_comision: comision, p_pedido_minimo: minimo }),
+    supabase.rpc("aprobar_solicitud", { p_solicitud: solicitud }),
     "Marca aprobada. Ya puede ingresar a su panel y cargar sus productos.",
   );
 }

@@ -7,6 +7,7 @@ const PESTANAS = [
   { href: "/marca/ordenes", texto: "Órdenes" },
   { href: "/marca/productos", texto: "Productos" },
   { href: "/marca/stock", texto: "Stock" },
+  { href: "/marca/mi-marca", texto: "Mi marca" },
 ];
 
 // Marco común del panel de la marca: título y pestañas. Cada pestaña revisa que el usuario sea marca.

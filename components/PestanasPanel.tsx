@@ -12,7 +12,11 @@ export function PestanasBase({ enlaces, ruta }: { enlaces: Enlace[]; ruta: strin
     ruta !== null && (i === 0 ? ruta === href : ruta === href || ruta.startsWith(`${href}/`));
 
   return (
-    <nav className="mt-4 flex gap-6 overflow-x-auto border-b border-linea" aria-label="Secciones del panel">
+    // Se puede deslizar en celular, pero sin barra ni flechas de desplazamiento
+    <nav
+      className="mt-4 flex gap-6 overflow-x-auto border-b border-linea [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      aria-label="Secciones del panel"
+    >
       {enlaces.map((e, i) => (
         <Link
           key={e.href}

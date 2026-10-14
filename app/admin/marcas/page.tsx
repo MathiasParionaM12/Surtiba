@@ -28,7 +28,7 @@ async function Marcas() {
   const [{ data: solicitudes }, { data: marcas }] = await Promise.all([
     supabase
       .from("solicitudes_marca")
-      .select("id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, creado_en")
+      .select("id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, pedido_minimo_cajas, creado_en")
       .eq("estado", "pendiente")
       .order("creado_en"),
     supabase
@@ -65,16 +65,13 @@ async function Marcas() {
                 </p>
 
                 <div className="mt-5 grid gap-5 border-t border-linea pt-5 md:grid-cols-2">
-                  <FormAccion accion={aprobarSolicitud} ocultos={{ solicitud_id: s.id }} texto="Aprobar marca">
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-gris">Comisión (%)</span>
-                      <input name="comision" type="number" min={0} max={100} step="0.01" required className={`${campo} h-10 w-24 font-mono`} />
-                    </label>
-                    <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-medium text-gris">Pedido mínimo (cajas)</span>
-                      <input name="pedido_minimo" type="number" min={1} required className={`${campo} h-10 w-24 font-mono`} />
-                    </label>
-                  </FormAccion>
+                  <div>
+                    <p className="mb-3 text-sm">
+                      Pedido mínimo que eligió: <strong className="font-mono">{s.pedido_minimo_cajas} cajas</strong> · Comisión:{" "}
+                      <strong className="font-mono">5%</strong> <span className="text-gris">(fija por ahora)</span>
+                    </p>
+                    <FormAccion accion={aprobarSolicitud} ocultos={{ solicitud_id: s.id }} texto="Aprobar marca" />
+                  </div>
                   <FormAccion accion={rechazarSolicitud} ocultos={{ solicitud_id: s.id }} texto="Rechazar" variante="secundario">
                     <label className="flex flex-1 flex-col gap-1.5">
                       <span className="text-xs font-medium text-gris">Motivo (lo verá la marca)</span>

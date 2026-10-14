@@ -48,6 +48,19 @@ export function FormVender() {
             </optgroup>
           </select>
         </label>
+        <label className="flex flex-col gap-2">
+          <Etiqueta texto="Pedido mínimo (cajas)" obligatorio />
+          <input
+            name="pedido_minimo"
+            type="number"
+            min={1}
+            max={9999}
+            required
+            defaultValue={v.pedido_minimo ?? "1"}
+            className={`${campo} font-mono`}
+          />
+          <span className="text-xs text-gris">Lo mínimo que te deben pedir, sumando cualquiera de tus productos.</span>
+        </label>
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Dirección donde Surtiba recogerá tus pedidos" obligatorio />
           <input name="direccion" placeholder="Calle, número, referencia" required defaultValue={v.direccion} className={campo} />

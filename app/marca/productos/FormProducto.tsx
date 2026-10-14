@@ -129,7 +129,11 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
             const siguiente = tramos[i + 1]?.desde;
             const hasta = siguiente && Number(siguiente) > Number(t.desde) ? Number(siguiente) - 1 : null;
             return (
-              <div key={i} className="flex flex-wrap items-end gap-3 rounded-md border border-linea bg-papel p-3">
+              // Cuadrícula de columnas fijas: los cuadros no se mueven al agregar o quitar tramos
+              <div
+                key={i}
+                className="grid grid-cols-2 items-end gap-3 rounded-md border border-linea bg-papel p-3 sm:grid-cols-[6rem_6.5rem_minmax(0,9rem)_auto]"
+              >
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-medium text-gris">Desde (cajas)</span>
                   <input
@@ -140,14 +144,14 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
                     readOnly={i === 0}
                     value={i === 0 ? "1" : t.desde}
                     onChange={(e) => cambiarTramo(i, "desde", e.target.value)}
-                    className={`${campo} h-10 w-24 font-mono ${i === 0 ? "bg-papel text-gris" : ""}`}
+                    className={`${campo} h-10 font-mono ${i === 0 ? "bg-papel text-gris" : ""}`}
                   />
                 </label>
-                <p className="h-10 content-center font-mono text-sm text-gris">
+                <p className="flex h-10 items-center font-mono text-sm whitespace-nowrap text-gris">
                   {hasta ? `hasta ${hasta}` : i === tramos.length - 1 ? "o más" : ""}
                 </p>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-gris">Precio por caja (S/)</span>
+                  <span className="text-xs font-medium whitespace-nowrap text-gris">Precio por caja (S/)</span>
                   <input
                     name="tramo_precio"
                     type="number"
@@ -157,17 +161,19 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
                     value={t.precio}
                     onChange={(e) => cambiarTramo(i, "precio", e.target.value)}
                     placeholder="420.00"
-                    className={`${campo} h-10 w-32 font-mono`}
+                    className={`${campo} h-10 font-mono`}
                   />
                 </label>
-                {i > 0 && (
+                {i > 0 ? (
                   <button
                     type="button"
                     onClick={() => setTramos((x) => x.filter((_, j) => j !== i))}
-                    className="h-10 px-2 text-sm font-medium text-gris hover:text-tinta"
+                    className="h-10 justify-self-start px-2 text-sm font-medium text-gris hover:text-tinta"
                   >
                     Quitar
                   </button>
+                ) : (
+                  <span />
                 )}
               </div>
             );

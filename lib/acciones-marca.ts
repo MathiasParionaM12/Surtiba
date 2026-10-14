@@ -164,3 +164,17 @@ export async function guardarFoto(productoId: string, ruta: string): Promise<Est
   actualizarPantallas();
   return { mensaje: "Foto actualizada." };
 }
+
+// La marca cambia su propio pedido mínimo (lo decide ella, no Surtiba)
+export async function guardarMinimo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const minimo = Number(form.get("pedido_minimo"));
+  if (!Number.isInteger(minimo) || minimo < 1 || minimo > 9999) return { error: "El pedido mínimo debe ser de al menos 1 caja." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("marca_guardar_minimo", { p_minimo: minimo });
+  if (error) return { error: mensaje(error) };
+
+  actualizarPantallas();
+  return { mensaje: `Pedido mínimo guardado: ${minimo} ${minimo === 1 ? "caja" : "cajas"}.` };
+}

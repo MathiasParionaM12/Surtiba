@@ -23,7 +23,7 @@ Extiende `auth.users` de Supabase (mismo `id`).
 | Columna | Tipo | Nota |
 |---|---|---|
 | id | uuid PK | = auth.users.id |
-| rol | text | `comprador` · `marca` · `admin` |
+| rol | text | `comprador` · `marca` · `admin` · `solicitante` (se registró con "Quiero vender" y espera aprobación) |
 | nombre | text | |
 | empresa | text | |
 | tipo_negocio | text | `catering` · `organizador_eventos` · `wedding_planner` · `bar_restaurante` · `otro` (solo compradores) |
@@ -40,6 +40,18 @@ Extiende `auth.users` de Supabase (mismo `id`).
 | pedido_minimo_cajas | integer | ≥ 1 |
 | activa | boolean | si es false, sus productos no se ven |
 | creado_en | timestamptz | |
+
+### solicitudes_marca (fase 5)
+Solicitudes de "Quiero vender". Las crea el trigger al registrarse; el admin las aprueba (crea la marca con 5 % de comisión y el pedido mínimo que eligió la marca) o las rechaza con motivo. Las ven la propia persona y el admin.
+| Columna | Tipo | Nota |
+|---|---|---|
+| perfil_id | uuid FK → perfiles | quien la envió (rol `solicitante` hasta que la aprueben) |
+| nombre_comercial / razon_social / ruc / direccion_recojo | text | datos de la marca |
+| contacto_nombre / contacto_whatsapp | text | |
+| pedido_minimo_cajas | integer | lo decide la marca |
+| estado | text | `pendiente` · `aprobada` · `rechazada` |
+| motivo_rechazo | text | |
+| marca_id | uuid FK → marcas | la marca creada al aprobar |
 
 ### marcas_privado (solo la propia marca y el admin)
 Separada de `marcas` para no usar vistas que se salten RLS.

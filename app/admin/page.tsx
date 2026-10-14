@@ -98,6 +98,162 @@ async function Inicio() {
           ))}
         </ul>
       </section>
+
+      <Suspense fallback={<EsqueletoPagina />}>
+        <MetricasCompletas />
+      </Suspense>
+    </>
+  );
+}
+
+// ── Panel completo: totales desde el inicio, cobros, estados y detalle por marca ──
+async function MetricasCompletas() {
+  const supabase = await createClient();
+  const [{ data: partes }, { data: pedidos }] = await Promise.all([
+    supabase
+      .from("subpedidos")
+      .select("marca_id, estado, total_cajas, total_centimos, comision_centimos, comision_pct_aplicada, exento_comision, marcas(nombre_comercial)"),
+    supabase.from("pedidos").select("estado, pago_estado, total_centimos"),
+  ]);
+
+  const entregadas = (partes ?? []).filter((s) => s.estado === "entregado");
+  // Comisión que no se cobró por ser una de las 3 primeras entregas de la marca
+  const exonerada = (s: (typeof entregadas)[number]) =>
+    s.exento_comision ? Math.round((s.total_centimos * s.comision_pct_aplicada) / 100) : 0;
+
+  const totales = {
+    cajas: entregadas.reduce((a, s) => a + s.total_cajas, 0),
+    ventas: entregadas.reduce((a, s) => a + s.total_centimos, 0),
+    comision: entregadas.reduce((a, s) => a + s.comision_centimos, 0),
+    exonerada: entregadas.reduce((a, s) => a + exonerada(s), 0),
+  };
+  const vigentes = (pedidos ?? []).filter((p) => p.estado !== "cancelado");
+  const cobrado = vigentes.filter((p) => p.pago_estado === "pagado").reduce((a, p) => a + p.total_centimos, 0);
+  const porCobrar = vigentes.filter((p) => p.pago_estado !== "pagado").reduce((a, p) => a + p.total_centimos, 0);
+
+  const ESTADOS: [string, string][] = [
+    ["recibido", "Recibidos"],
+    ["en_preparacion", "En preparación"],
+    ["en_camino", "En camino"],
+    ["entregado", "Entregados"],
+    ["cancelado", "Cancelados"],
+  ];
+
+  // Detalle por marca
+  const porMarca = new Map<
+    string,
+    { nombre: string; entregas: number; cajas: number; ventas: number; comision: number; exonerada: number; enCurso: number; rechazos: number }
+  >();
+  for (const s of partes ?? []) {
+    const m = porMarca.get(s.marca_id) ?? {
+      nombre: s.marcas?.nombre_comercial ?? "",
+      entregas: 0,
+      cajas: 0,
+      ventas: 0,
+      comision: 0,
+      exonerada: 0,
+      enCurso: 0,
+      rechazos: 0,
+    };
+    if (s.estado === "entregado") {
+      m.entregas++;
+      m.cajas += s.total_cajas;
+      m.ventas += s.total_centimos;
+      m.comision += s.comision_centimos;
+      m.exonerada += exonerada(s);
+    } else if (s.estado === "rechazado" || s.estado === "cancelado") {
+      m.rechazos++;
+    } else {
+      m.enCurso++;
+    }
+    porMarca.set(s.marca_id, m);
+  }
+  const marcas = [...porMarca.values()].sort((a, b) => b.ventas - a.ventas || a.nombre.localeCompare(b.nombre));
+
+  return (
+    <>
+      <section className="mt-10">
+        <h2 className={sello}>Desde el inicio</h2>
+        <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-linea bg-linea lg:grid-cols-3">
+          {[
+            [String(totales.cajas), "Cajas entregadas"],
+            [soles(totales.ventas), "Ventas entregadas"],
+            [soles(totales.comision), "Comisión generada"],
+            [soles(totales.exonerada), "Comisión exonerada (3 primeras entregas)"],
+            [soles(cobrado), "Cobrado a compradores"],
+            [soles(porCobrar), "Por cobrar"],
+          ].map(([valor, texto]) => (
+            <div key={texto} className="bg-blanco p-4 sm:p-5">
+              <p className="font-mono text-xl font-medium sm:text-2xl">{valor}</p>
+              <p className="mt-1 text-xs text-gris sm:text-sm">{texto}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-gris">
+          «Cobrado» es lo que pagaron los compradores (pedidos marcados como pagados). La comisión es lo que cada marca le debe a
+          Surtiba por lo entregado.
+        </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className={sello}>Pedidos por estado</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {ESTADOS.map(([estado, texto]) => {
+            const n = (pedidos ?? []).filter((p) => p.estado === estado).length;
+            return (
+              <Link
+                key={estado}
+                href={`/admin/pedidos?estado=${estado}`}
+                className="rounded-md border border-linea bg-blanco px-4 py-2 text-sm hover:border-gris"
+              >
+                <span className="font-mono font-medium">{n}</span> <span className="text-gris">{texto}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className={sello}>Por marca</h2>
+        <div className="mt-3 overflow-x-auto rounded-md border border-linea bg-blanco">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr className="border-b border-linea text-left">
+                <th className={`${sello} px-4 py-3 font-medium`}>Marca</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>Entregas</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>Cajas</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>Ventas</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>Comisión</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>Exonerada</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>En curso</th>
+                <th className={`${sello} px-4 py-3 text-right font-medium`}>No atendidas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {marcas.map((m) => (
+                <tr key={m.nombre} className="border-b border-linea last:border-b-0">
+                  <td className="px-4 py-3">
+                    {m.nombre}
+                    {m.entregas < 3 && (
+                      <span className="block text-xs text-gris">
+                        {3 - m.entregas} {3 - m.entregas === 1 ? "entrega más" : "entregas más"} sin comisión
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">{m.entregas}</td>
+                  <td className="px-4 py-3 text-right font-mono">{m.cajas}</td>
+                  <td className="px-4 py-3 text-right font-mono whitespace-nowrap">{soles(m.ventas)}</td>
+                  <td className="px-4 py-3 text-right font-mono whitespace-nowrap">{soles(m.comision)}</td>
+                  <td className="px-4 py-3 text-right font-mono whitespace-nowrap text-gris">{soles(m.exonerada)}</td>
+                  <td className="px-4 py-3 text-right font-mono">{m.enCurso}</td>
+                  <td className="px-4 py-3 text-right font-mono">{m.rechazos}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-gris">Solo aparecen las marcas que ya recibieron al menos un pedido.</p>
+      </section>
     </>
   );
 }

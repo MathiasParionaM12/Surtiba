@@ -54,8 +54,11 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
           <FormAccion accion={guardarMarca} ocultos={{ marca_id: m.id }} texto="Guardar cambios" className="mt-4">
             <div className="grid w-full grid-cols-2 gap-4">
               <Campo nombre="nombre" etiqueta="Nombre comercial" valor={m.nombre_comercial} ancho />
-              <Campo nombre="comision" etiqueta="Comisión (%)" valor={String(pv?.comision_pct ?? "")} tipo="number" mono />
-              <Campo nombre="pedido_minimo" etiqueta="Pedido mínimo (cajas)" valor={String(m.pedido_minimo_cajas)} tipo="number" mono />
+              {/* Comisión fija de 5 % por ahora y pedido mínimo que decide la marca: aquí solo se muestran */}
+              <input type="hidden" name="comision" value={String(pv?.comision_pct ?? 5)} />
+              <input type="hidden" name="pedido_minimo" value={String(m.pedido_minimo_cajas)} />
+              <Dato etiqueta="Comisión" valor={`${pv?.comision_pct ?? 5}% (fija por ahora)`} />
+              <Dato etiqueta="Pedido mínimo" valor={`${m.pedido_minimo_cajas} cajas (lo decide la marca)`} />
               <Campo nombre="razon_social" etiqueta="Razón social" valor={pv?.razon_social ?? ""} ancho />
               <Campo nombre="ruc" etiqueta="RUC" valor={pv?.ruc ?? ""} mono />
               <Campo nombre="contacto_whatsapp" etiqueta="WhatsApp de contacto" valor={pv?.contacto_whatsapp ?? ""} mono />
@@ -68,7 +71,7 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
               </label>
             </div>
           </FormAccion>
-          <p className="mt-3 text-xs text-gris">Cambiar la comisión no afecta pedidos ya hechos: cada parte guarda el % del momento.</p>
+          <p className="mt-3 text-xs text-gris">Cada pedido guarda el % de comisión del momento en que se hizo.</p>
         </section>
 
         {/* Productos */}
@@ -133,5 +136,14 @@ function Campo({
         className={`${campo} h-10 ${mono ? "font-mono" : ""}`}
       />
     </label>
+  );
+}
+
+function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-gris">{etiqueta}</span>
+      <p className="flex h-10 items-center font-mono text-sm">{valor}</p>
+    </div>
   );
 }

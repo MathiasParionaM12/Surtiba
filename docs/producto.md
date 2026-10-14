@@ -120,6 +120,12 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ### Avisos
 - MVP: el admin ve las novedades en su panel. Correos automáticos solo si sobra tiempo. Nada de WhatsApp API.
 
+## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
+- **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
+- **Aprobación de productos:** cada producto que suba una marca queda "en revisión" hasta que el admin lo acepte; recién ahí aparece en el catálogo.
+- **Pago al comprar (fase 7):** si hay stock, se paga al hacer el pedido (compra directa); si no hay stock, la parte que falta es un pedido por encargo que la marca acepta antes de cobrarse. La pasarela de pago sigue fuera del MVP: en el prototipo el admin marca el pago a mano.
+- **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija de 5 % por ahora.
+
 ## Fuera del MVP (no construir; si parece necesario, preguntar)
 - Pasarela de pago (Culqi, Mercado Pago, Izipay): será el próximo año
 - Facturación electrónica
@@ -131,7 +137,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
 - ¿Los precios incluyen IGV?
-- % de comisión definitivo (el experimento mostró que 12% es alto). Los datos demo usan 5 %.
+- % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 5 %** para todas las marcas (14-oct-2026).
 - Costo de envío: ¿quién lo paga y cuánto? Por ahora, campo en 0.
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
 - Zonas y horarios de entrega

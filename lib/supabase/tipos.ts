@@ -137,7 +137,7 @@ export type Database = {
         Row: {
           contacto_nombre: string | null; contacto_whatsapp: string | null; creado_en: string; direccion_recojo: string; estado: string;
           id: string; marca_id: string | null; motivo_rechazo: string | null; nombre_comercial: string; perfil_id: string;
-          razon_social: string; revisado_en: string | null; ruc: string;
+          razon_social: string; revisado_en: string | null; ruc: string; pedido_minimo_cajas: number;
         };
         Insert: {
           contacto_nombre?: string | null; contacto_whatsapp?: string | null; creado_en?: string; direccion_recojo: string; estado?: string;
@@ -198,7 +198,8 @@ export type Database = {
     };
     Functions: {
       marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
-      aprobar_solicitud: { Args: { p_solicitud: string; p_comision: number; p_pedido_minimo: number }; Returns: string };
+      aprobar_solicitud: { Args: { p_solicitud: string; p_comision?: number }; Returns: string };
+      marca_guardar_minimo: { Args: { p_minimo: number }; Returns: undefined };
       rechazar_solicitud: { Args: { p_solicitud: string; p_motivo: string }; Returns: undefined };
       admin_guardar_marca: {
         Args: {

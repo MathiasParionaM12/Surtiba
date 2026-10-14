@@ -34,7 +34,8 @@ export function inicioMesLima() {
 
 // Nombre del mes actual: "octubre"
 export function mesActual() {
-  return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(new Date());
+  // En español los meses van en minúscula a mitad de frase
+  return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(new Date()).toLowerCase();
 }
 
 // Hoy en Lima, en formato AAAA-MM-DD
