@@ -36,3 +36,8 @@ export function inicioMesLima() {
 export function mesActual() {
   return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(new Date());
 }
+
+// Hoy en Lima, en formato AAAA-MM-DD
+export function hoyEnLima() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());
+}

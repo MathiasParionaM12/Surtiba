@@ -21,7 +21,8 @@ export type DatosProducto = {
   tramos: { desde: string; precio: string }[]; // precio en soles, ej. "420.00"
 };
 
-export function FormProducto({ inicial }: { inicial: DatosProducto }) {
+// marcaId: solo cuando lo usa el admin (para decir de qué marca es el producto)
+export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; marcaId?: string }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(guardarProducto, {});
   const v = estado.valores;
   const [tramos, setTramos] = useState(inicial.tramos.length ? inicial.tramos : [{ desde: "1", precio: "" }]);
@@ -33,6 +34,7 @@ export function FormProducto({ inicial }: { inicial: DatosProducto }) {
   return (
     <form action={accion} className="flex flex-col gap-8">
       {inicial.id && <input type="hidden" name="id" value={inicial.id} />}
+      {marcaId && <input type="hidden" name="marca_id" value={marcaId} />}
       <p className="text-xs text-gris">Los campos con * son obligatorios.</p>
 
       <fieldset className="grid grid-cols-2 gap-5 sm:grid-cols-4">

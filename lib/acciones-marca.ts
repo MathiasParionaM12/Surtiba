@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { CATEGORIAS, esUuid } from "@/lib/catalogo";
-import { exigirRol } from "@/lib/sesion";
+import { exigirRol, obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
 // Los mensajes P0001 los escribimos nosotros en las funciones de la base de datos (en español)
@@ -97,7 +97,11 @@ export async function guardarStock(_estado: EstadoForm, form: FormData): Promise
 
 // Crear o editar un producto con su escala de precios
 export async function guardarProducto(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
-  await exigirRol("marca");
+  // La marca guarda en la suya; el admin puede guardar productos de cualquier marca (manda "marca_id")
+  const usuario = await obtenerUsuario();
+  if (!usuario || (usuario.rol !== "marca" && usuario.rol !== "admin")) return { error: "No tienes permiso para guardar productos." };
+  const esAdmin = usuario.rol === "admin";
+  const marcaAdmin = String(form.get("marca_id") ?? "");
   const leer = (campo: string) => String(form.get(campo) ?? "").trim();
   const id = leer("id");
   const valores = {
@@ -136,19 +140,24 @@ export async function guardarProducto(_estado: EstadoForm, form: FormData): Prom
     p_stock: Number(valores.stock || 0),
     p_activo: !!valores.activo,
     p_tramos: tramos,
+    p_marca_id: esAdmin && esUuid(marcaAdmin) ? marcaAdmin : undefined,
   });
   if (error) return { error: mensaje(error), valores };
 
   actualizarPantallas();
-  redirect(`/marca/productos/${nuevoId}?${esUuid(id) ? "guardado" : "creado"}=1`);
+  const base = esAdmin ? "/admin/productos" : "/marca/productos";
+  redirect(`${base}/${nuevoId}?${esUuid(id) ? "guardado" : "creado"}=1`);
 }
 
 // Después de subir la foto a Storage (desde el navegador), se guarda su ruta en el producto
 export async function guardarFoto(productoId: string, ruta: string): Promise<EstadoForm> {
-  const usuario = await exigirRol("marca");
-  if (!esUuid(productoId) || !ruta.startsWith(`${usuario.marcaId}/`)) return { error: "Foto no válida." };
+  const usuario = await obtenerUsuario();
+  if (!usuario || (usuario.rol !== "marca" && usuario.rol !== "admin") || !esUuid(productoId)) return { error: "Foto no válida." };
 
+  // La foto debe estar en la carpeta de la marca dueña del producto (RLS: la marca solo ve los suyos)
   const supabase = await createClient();
+  const { data: producto } = await supabase.from("productos").select("marca_id").eq("id", productoId).maybeSingle();
+  if (!producto || !ruta.startsWith(`${producto.marca_id}/`)) return { error: "Foto no válida." };
   const { data, error } = await supabase.from("productos").update({ foto_url: ruta }).eq("id", productoId).select("id");
   if (error || !data?.length) return { error: "No pudimos guardar la foto. Intenta de nuevo." };
 
