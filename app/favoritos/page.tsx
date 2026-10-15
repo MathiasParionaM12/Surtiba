@@ -1,3 +1,4 @@
+import { Heart } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -45,6 +46,7 @@ async function ListaFavoritos() {
   if (productos.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
+        <Heart className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
         <p>Aún no tienes favoritos. Toca el corazón de un producto para guardarlo aquí.</p>
         <Link href="/catalogo" className={`${botonPrimario} mt-5`}>
           Ir al catálogo

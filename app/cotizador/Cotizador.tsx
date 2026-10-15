@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
@@ -162,6 +163,7 @@ export function Cotizador({
                   }
                   className={`${botonPrimario} w-full`}
                 >
+                  <ShoppingCart className="size-4" aria-hidden="true" />
                   {pasando ? "Pasando al carrito…" : "Pasar todo al carrito"}
                 </button>
                 <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Guardar y descargar PDF" />
@@ -190,6 +192,7 @@ export function Cotizador({
               {paso < 3 && (
                 <button type="button" onClick={() => irA(paso + 1)} className={botonPrimario}>
                   {paso === 2 ? "Ver resultado" : "Siguiente"}
+                  <ArrowRight className="size-4" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -255,6 +258,7 @@ export function Cotizador({
           {paso < 3 ? (
             <button type="button" onClick={() => irA(paso + 1)} className={`${botonPrimario} h-10`}>
               {paso === 2 ? "Ver resultado" : "Siguiente"}
+                  <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           ) : (
             <span className="text-xs text-gris">{soles(resultado.porInvitado)} por invitado</span>

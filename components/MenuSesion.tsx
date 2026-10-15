@@ -1,3 +1,4 @@
+import { LogOut, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { ContadorCarrito } from "@/components/ContadorCarrito";
 import { salir } from "@/lib/acciones-auth";
@@ -39,13 +40,15 @@ export async function MenuSesion() {
       </div>
       {usuario.rol === "comprador" && (
         <Link href="/carrito" className={`${botonPrimario} h-10 px-3 sm:px-4`}>
-          Carrito
+          <ShoppingCart className="size-4" aria-hidden="true" />
+          <span className="sr-only sm:not-sr-only">Carrito</span>
           <ContadorCarrito cantidad={enCarrito} />
         </Link>
       )}
       <form action={salir}>
-        <button type="submit" className={`${botonSecundario} h-10 px-3 sm:px-4`}>
-          Salir
+        <button type="submit" aria-label="Salir" className={`${botonSecundario} h-10 px-3 sm:px-4`}>
+          <LogOut className="size-4" aria-hidden="true" />
+          <span className="hidden sm:inline">Salir</span>
         </button>
       </form>
     </div>

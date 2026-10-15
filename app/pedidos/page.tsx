@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -39,6 +40,7 @@ async function ListaPedidos() {
   if (!pedidos || pedidos.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
+        <Package className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
         <p>Aún no tienes pedidos. Explora el catálogo para armar el primero.</p>
         <Link href="/catalogo" className={`${botonPrimario} mt-5`}>
           Ir al catálogo

@@ -1,3 +1,4 @@
+import { Calculator } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -41,6 +42,7 @@ async function Lista() {
   if (cotizaciones.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
+        <Calculator className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
         <p>Aún no tienes cotizaciones. Arma tu evento en el cotizador y guárdala en PDF.</p>
         <Link href="/cotizador" className={`${botonPrimario} mt-5`}>
           Ir al cotizador

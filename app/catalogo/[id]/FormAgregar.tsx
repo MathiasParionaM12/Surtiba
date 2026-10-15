@@ -1,5 +1,6 @@
 "use client";
 
+import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
@@ -27,6 +28,7 @@ export function FormAgregar({ productoId, stock, enCarrito }: { productoId: stri
           />
         </label>
         <button type="submit" disabled={enviando} className={`${botonPrimario} flex-1 sm:flex-none`}>
+          <ShoppingCart className="size-4" aria-hidden="true" />
           {enviando ? "Agregando…" : "Agregar al carrito"}
         </button>
       </div>

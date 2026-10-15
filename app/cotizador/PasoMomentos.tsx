@@ -1,5 +1,6 @@
 "use client";
 
+import { Martini, Music, UtensilsCrossed, Wine, type LucideIcon } from "lucide-react";
 import { horasDeFiesta, type EntradaCotizador, type Momento, type Parametros, type Receta } from "@/lib/cotizador";
 import { campo } from "@/lib/estilos";
 import { Interruptor, LineaTiempo } from "./ui";
@@ -9,12 +10,14 @@ const HORAS = [0.5, 1, 1.5, 2, 2.5, 3, 4];
 const textoHoras = (h: number) => `${decimal.format(h)} ${h === 1 ? "hora" : "horas"}`;
 
 function Tarjeta({
+  icono: Icono,
   titulo,
   ayuda,
   activo,
   onActivo,
   children,
 }: {
+  icono: LucideIcon;
   titulo: string;
   ayuda: string;
   activo: boolean;
@@ -24,9 +27,12 @@ function Tarjeta({
   return (
     <div className={`rounded-md border bg-blanco p-4 transition-colors ${activo ? "border-gris" : "border-linea"}`}>
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className={`font-medium ${activo ? "" : "text-gris"}`}>{titulo}</p>
-          <p className="mt-0.5 text-xs text-gris">{ayuda}</p>
+        <div className="flex items-start gap-3">
+          <Icono className={`mt-0.5 size-5 shrink-0 ${activo ? "text-verde" : "text-gris"}`} strokeWidth={1.75} aria-hidden="true" />
+          <div>
+            <p className={`font-medium ${activo ? "" : "text-gris"}`}>{titulo}</p>
+            <p className="mt-0.5 text-xs text-gris">{ayuda}</p>
+          </div>
         </div>
         {onActivo && <Interruptor activo={activo} onCambio={onActivo} etiqueta={titulo} />}
       </div>
@@ -59,6 +65,7 @@ export function PasoMomentos({
       <LineaTiempo momentos={momentos} />
 
       <Tarjeta
+        icono={Martini}
         titulo="Bienvenida"
         ayuda={`Cóctel de recepción. Es cuando más se toma: ${decimal.format(par.bienvenida_tragos_hora)} tragos por persona por hora.`}
         activo={entrada.bienvenida.activo}
@@ -96,6 +103,7 @@ export function PasoMomentos({
       </Tarjeta>
 
       <Tarjeta
+        icono={UtensilsCrossed}
         titulo="Cena con vino"
         ayuda={`${decimal.format(par.cena_copas_hora)} copa de vino por persona por hora de cena. Con comida se toma menos.`}
         activo={entrada.cena.activo}
@@ -118,6 +126,7 @@ export function PasoMomentos({
       </Tarjeta>
 
       <Tarjeta
+        icono={Wine}
         titulo="Brindis"
         ayuda={`${decimal.format(par.brindis_copas)} copa de espumante por persona que toma.`}
         activo={entrada.brindis.activo}
@@ -125,6 +134,7 @@ export function PasoMomentos({
       />
 
       <Tarjeta
+        icono={Music}
         titulo="Fiesta (barra libre)"
         ayuda={
           fiesta > 0

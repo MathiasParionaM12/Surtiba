@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -41,6 +42,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
   if (lineas.length === 0) {
     return (
       <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
+        <ShoppingCart className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
         <p>Tu carrito está vacío. Explora el catálogo para armar tu pedido.</p>
         <Link href="/catalogo" className={`${botonPrimario} mt-5`}>
           Ir al catálogo
@@ -244,11 +246,13 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               <p className="mt-5 border-l-2 border-rojo pl-3 text-sm">Corrige lo marcado en tu carrito para continuar.</p>
               <button type="button" disabled className={`${botonPrimario} mt-4 w-full`}>
                 Continuar con el pedido
+                <ArrowRight className="size-4" aria-hidden="true" />
               </button>
             </>
           ) : (
             <Link href="/carrito/confirmar" className={`${botonPrimario} mt-5 w-full`}>
               Continuar con el pedido
+              <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           )}
           <BotonPdf preparar={cotizacionDelCarrito} className="mt-3" />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -185,6 +186,7 @@ async function DetallePedido({
         <form action={repetirPedido}>
           <input type="hidden" name="pedido_id" value={id} />
           <button type="submit" className={botonSecundario}>
+            <RotateCcw className="size-4" aria-hidden="true" />
             Repetir pedido
           </button>
         </form>

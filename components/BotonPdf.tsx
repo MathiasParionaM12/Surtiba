@@ -1,5 +1,6 @@
 "use client";
 
+import { FileDown } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { AvisoForm } from "@/components/AvisoForm";
@@ -40,6 +41,7 @@ export function BotonPdf({
         }
         className={`${botonSecundario} w-full`}
       >
+        <FileDown className="size-4" aria-hidden="true" />
         {preparando ? "Preparando PDF…" : texto}
       </button>
       <AvisoForm error={error} />
