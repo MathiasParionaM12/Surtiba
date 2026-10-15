@@ -206,9 +206,9 @@ export type Database = {
         ];
       };
       tipo_evento_recetas: {
-        Row: { nivel: string; porcentaje: number | null; receta_id: string; tipo_evento_id: string };
-        Insert: { nivel?: string; porcentaje?: number | null; receta_id: string; tipo_evento_id: string };
-        Update: { nivel?: string; porcentaje?: number | null; receta_id?: string; tipo_evento_id?: string };
+        Row: { nivel: string; receta_id: string; tipo_evento_id: string };
+        Insert: { nivel?: string; receta_id: string; tipo_evento_id: string };
+        Update: { nivel?: string; receta_id?: string; tipo_evento_id?: string };
         Relationships: [
           { foreignKeyName: "tipo_evento_recetas_receta_id_fkey"; columns: ["receta_id"]; isOneToOne: false; referencedRelation: "recetas"; referencedColumns: ["id"] },
           { foreignKeyName: "tipo_evento_recetas_tipo_evento_id_fkey"; columns: ["tipo_evento_id"]; isOneToOne: false; referencedRelation: "tipos_evento"; referencedColumns: ["id"] },
@@ -216,12 +216,12 @@ export type Database = {
       };
       tipos_evento: {
         Row: {
-          activo: boolean; id: string; nombre: string; orden: number; tragos_hora_siguiente: number; tragos_primera_hora: number;
+          activo: boolean; id: string; nombre: string; orden: number;
           horas: number; perfil: string; bienvenida: boolean; bienvenida_horas: number; bienvenida_receta_id: string | null;
           brindis: boolean; cena: boolean; cena_horas: number;
         };
-        Insert: { activo?: boolean; id?: string; nombre: string; orden?: number; tragos_hora_siguiente: number; tragos_primera_hora: number };
-        Update: { activo?: boolean; id?: string; nombre?: string; orden?: number; tragos_hora_siguiente?: number; tragos_primera_hora?: number };
+        Insert: { activo?: boolean; id?: string; nombre: string; orden?: number };
+        Update: { activo?: boolean; id?: string; nombre?: string; orden?: number };
         Relationships: [];
       };
     };

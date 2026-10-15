@@ -106,29 +106,32 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - **Primeros 3 pedidos sin comisión:** los primeros 3 subpedidos *entregados* de cada marca llevan comisión 0. Se cuenta por marca.
 - La app solo calcula y muestra la comisión. Cobrarla y pagarle a la marca se hace por fuera.
 
-### Cotizador de evento
-1. El comprador ingresa: tipo de evento, número de invitados y duración en horas.
-2. Elige qué bebidas quiere (productos del catálogo) y qué parte del consumo va a cada una (ej.: 60% pisco, 40% ron).
-3. La app calcula:
-   - tragos totales = invitados × tragos por persona según las horas
-   - botellas = tragos × ml por trago ÷ ml de la botella
-   - cajas = botellas ÷ unidades por caja, **redondeado hacia arriba**
-4. Muestra el resultado con el precio de la escala, y un botón "Agregar al carrito".
-   - Si las cajas sugeridas de una marca no llegan a su pedido mínimo, el cotizador lo avisa **en ese momento**, sin esperar al carrito ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.") y ofrece subir al mínimo o cambiar de producto.
-5. Los parámetros (tragos por persona en la primera hora, tragos por hora siguiente, ml por trago) **los configura el admin**. Los valores iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
+### Cotizador de evento (versión completa, decidida el 14-oct-2026)
+**Solo con cuenta** (comprador; el admin también lo ve). Sin sesión, `/cotizador` explica qué hace con un ejemplo y pide crear cuenta.
 
-### Decisiones de la fase 6 (aprobadas por Mathias el 14-oct-2026)
-- Parámetros según el **tipo de evento** (Boda, Evento corporativo, Cumpleaños o fiesta, Cóctel o lanzamiento), cada uno con su **mezcla sugerida** de tragos en %.
-- Se calcula con **recetas**: qué trago se sirve, con qué licor y cuántos ml (ej.: Pisco sour → pisco, 90 ml).
-- El cotizador **recomienda un producto de Surtiba por cada trago** (con stock y buen precio); el comprador lo puede cambiar.
-- **Abierto a todos:** cualquiera calcula las cajas. Los precios completos, agregar al carrito y el PDF piden ingresar.
-- **PDF real** (archivo descargable), también desde el carrito. Cada cotización se guarda (COT-0001) para medir cuántas terminan en pedido.
-- Valores iniciales: **supuestos de Claude por validar con caterings**, editables por el admin.
+Asistente en 4 pasos:
+1. **Evento:** tipo (llena los valores típicos), nombre y fecha (opcionales), invitados, **cuántos no toman alcohol** (sugerido: 20 %), hora de inicio, duración y lugar (interior / aire libre o verano).
+2. **Momentos**, uno tras otro: **bienvenida** (con su trago o los de la barra), **cena con vino**, **brindis** (espumante) y **fiesta**, que ocupa las horas que quedan.
+3. **Barra:** el comprador elige los tragos y marca cada uno como **principal (3), secundario (2) u ocasional (1)**; no se usan porcentajes. Además elige cuánto toma el público (tranquilo / normal / fuerte) y el margen de seguridad.
+4. **Resultado:** tragos por momento, costo total y por invitado, el producto de Surtiba de cada trago (recomendado o elegido), las cajas por producto (editables), el aviso de pedido mínimo ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.", con *Subir a X* o *Cambiar de producto*) y la **lista de lo que Surtiba no vende**: hielo, agua y gaseosas, mezcladores, limones y jarabe.
+
+Cálculo (solo cuentan los que toman; factor = público × horario, de día se toma menos):
+- bienvenida = toman × tragos por hora × horas × factor
+- cena = toman × copas por hora × horas × factor
+- brindis = toman × copas de brindis
+- fiesta = toman × factor × tragos por hora (la 1.ª hora más fuerte solo si la fiesta es lo primero)
+- todo × (1 + margen). Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
+
+Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
+
+Se guarda (COT-0001) con "Guardar y descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Pasar todo al carrito" reemplaza las cajas de esos productos en el carrito.
+
+Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 
 ### Cotización en PDF
 - Se genera desde el carrito: logo, fecha, código (COT-0001), productos por marca, cajas, precio por caja y totales.
 - **Cada cotización se guarda** en una tabla simple (comprador, fecha, ítems y total) para medir cuántas terminan en pedido.
-- También se descarga desde el cotizador (con los datos del evento). Solo compradores con sesión.
+- También se descarga desde el cotizador (con el evento, sus momentos y la lista de insumos). Solo compradores con sesión.
 - "Terminó en pedido": cuando el comprador envía un pedido, su última cotización sin pedido de los últimos 30 días queda vinculada a ese pedido.
 - Pie: "Precios válidos sujetos a stock al momento de pedir." No promete fechas de entrega.
 
