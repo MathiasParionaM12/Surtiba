@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContadorCarrito } from "@/components/ContadorCarrito";
 import { salir } from "@/lib/acciones-auth";
 import { botonPrimario, botonSecundario } from "@/lib/estilos";
 import { NOMBRE_ROL } from "@/lib/roles";
@@ -39,7 +40,7 @@ export async function MenuSesion() {
       {usuario.rol === "comprador" && (
         <Link href="/carrito" className={`${botonPrimario} h-10 px-3 sm:px-4`}>
           Carrito
-          <span className="rounded-sm bg-blanco/15 px-1.5 font-mono text-xs tabular-nums">{enCarrito}</span>
+          <ContadorCarrito cantidad={enCarrito} />
         </Link>
       )}
       <form action={salir}>

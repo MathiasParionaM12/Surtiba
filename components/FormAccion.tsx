@@ -42,7 +42,7 @@ export function FormAccion({
         </button>
       </div>
       <div className="empty:hidden">
-        <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+        <AvisoForm estado={estado} />
       </div>
     </form>
   );

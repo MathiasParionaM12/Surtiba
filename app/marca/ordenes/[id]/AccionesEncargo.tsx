@@ -78,7 +78,7 @@ export function AccionesEncargo({
         </label>
       )}
 
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
       <button type="submit" disabled={enviando} className={`${botonPrimario} self-start`}>
         {enviando ? "Enviando…" : respuesta === "acepto" ? "Confirmar encargo" : "Enviar respuesta"}
       </button>

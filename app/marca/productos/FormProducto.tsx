@@ -193,7 +193,7 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
         )}
       </fieldset>
 
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
 
       <div className="border-t border-linea pt-6">
         <button type="submit" disabled={enviando} className={botonPrimario}>

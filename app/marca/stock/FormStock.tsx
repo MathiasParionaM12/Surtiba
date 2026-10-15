@@ -55,7 +55,7 @@ export function FormStock({ productos }: { productos: ProductoStock[] }) {
         <button type="submit" disabled={enviando} className={botonPrimario}>
           {enviando ? "Guardando…" : "Guardar stock"}
         </button>
-        <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+        <AvisoForm estado={estado} />
       </div>
     </form>
   );

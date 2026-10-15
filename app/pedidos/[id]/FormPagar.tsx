@@ -32,7 +32,7 @@ export function FormPagar({ pedidoId, monto }: { pedidoId: string; monto: number
         </button>
         <span className="text-xs text-gris">Pago simulado: no se cobra dinero real.</span>
       </div>
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
     </form>
   );
 }

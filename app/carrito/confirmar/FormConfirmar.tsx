@@ -268,7 +268,7 @@ export function FormConfirmar({
         </fieldset>
       )}
 
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
 
       <div className="flex flex-col gap-3 border-t border-linea pt-6 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gris">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { AvisoForm } from "@/components/AvisoForm";
 import type { RespuestaPdf } from "@/lib/acciones-cotizador";
 import { botonSecundario } from "@/lib/estilos";
@@ -29,6 +30,7 @@ export function BotonPdf({
             setError(r.error);
             // Un enlace de descarga: el navegador baja el archivo y te quedas en esta página
             if (r.id) {
+              toast.success("Cotización guardada. Se está descargando el PDF.");
               const enlace = document.createElement("a");
               enlace.href = `/cotizaciones/${r.id}/pdf`;
               enlace.download = "";

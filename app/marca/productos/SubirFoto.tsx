@@ -59,7 +59,7 @@ export function SubirFoto({ productoId, marcaId, fotoActual }: { productoId: str
       </label>
       <p className="mt-2 text-xs text-gris">JPG, PNG o WebP de hasta 2 MB. Mejor con fondo claro.</p>
       <div className="mt-3 empty:hidden">
-        <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+        <AvisoForm estado={estado} />
       </div>
     </div>
   );

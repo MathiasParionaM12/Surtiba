@@ -155,7 +155,7 @@ export function FormTipo({ tipo, recetas }: { tipo: TipoForm | null; recetas: Re
         ))}
       </fieldset>
 
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
       <button type="submit" disabled={enviando} className={`${botonPrimario} self-start`}>
         {enviando ? "Guardando…" : tipo ? "Guardar cambios" : "Crear tipo de evento"}
       </button>

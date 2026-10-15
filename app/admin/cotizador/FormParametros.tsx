@@ -100,7 +100,7 @@ export function FormParametros({ parametros, recetas }: { parametros: Parametros
           </select>
         </label>
       </fieldset>
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} />
       <button type="submit" disabled={enviando} className={`${botonPrimario} self-start`}>
         {enviando ? "Guardando…" : "Guardar supuestos"}
       </button>

@@ -22,7 +22,7 @@ export function FormIngresar() {
         <input name="password" type="password" autoComplete="current-password" required className={campo} />
       </label>
 
-      <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+      <AvisoForm estado={estado} fijo />
 
       <button type="submit" disabled={enviando} className={botonPrimario}>
         {enviando ? "Ingresando…" : "Ingresar"}

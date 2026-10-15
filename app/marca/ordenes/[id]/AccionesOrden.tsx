@@ -30,7 +30,7 @@ export function AccionesOrden({ subpedidoId }: { subpedidoId: string }) {
         )}
       </div>
       <div className="mt-3 empty:hidden">
-        <AvisoForm error={listo.error} mensaje={listo.mensaje} />
+        <AvisoForm estado={listo} />
       </div>
 
       {mostrarRechazo && (
@@ -49,7 +49,7 @@ export function AccionesOrden({ subpedidoId }: { subpedidoId: string }) {
             />
           </label>
           <p className="text-xs text-gris">Surtiba usará este motivo para avisarle al cliente. El stock vuelve a tu inventario.</p>
-          <AvisoForm error={rechazo.error} mensaje={rechazo.mensaje} />
+          <AvisoForm estado={rechazo} />
           <div className="flex gap-2">
             <button type="submit" disabled={enviandoRechazo} className={botonSecundario}>
               {enviandoRechazo ? "Guardando…" : "Confirmar: no puedo atenderla"}

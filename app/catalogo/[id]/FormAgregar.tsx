@@ -41,7 +41,7 @@ export function FormAgregar({ productoId, stock, enCarrito }: { productoId: stri
         <p className="mt-3 text-xs text-gris">Ya tienes {enCarrito} en tu carrito. Lo que agregues se suma.</p>
       )}
       <div className="mt-3 empty:hidden">
-        <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+        <AvisoForm estado={estado} />
       </div>
       {estado.mensaje && (
         <Link href="/carrito" className="mt-2 inline-block text-sm font-medium text-verde underline underline-offset-4 hover:text-tinta">

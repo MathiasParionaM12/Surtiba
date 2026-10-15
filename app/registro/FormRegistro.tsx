@@ -101,7 +101,7 @@ export function FormRegistro() {
       </label>
 
       <div className="sm:col-span-2">
-        <AvisoForm error={estado.error} mensaje={estado.mensaje} />
+        <AvisoForm estado={estado} fijo />
       </div>
 
       <button type="submit" disabled={enviando} className={`${botonPrimario} sm:col-span-2 sm:justify-self-start`}>
