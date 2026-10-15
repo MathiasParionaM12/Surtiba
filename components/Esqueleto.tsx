@@ -1,8 +1,8 @@
 // "Esqueletos" de carga: la forma gris de lo que va a aparecer mientras llegan los datos.
-// motion-safe: si la persona pidió menos animaciones en su sistema, no parpadean.
+// Tienen un brillo que las recorre; si la persona pidió menos movimiento, se quedan quietas (globals.css).
 
 function Bloque({ className = "" }: { className?: string }) {
-  return <div className={`rounded-md bg-linea/60 motion-safe:animate-pulse ${className}`} />;
+  return <div className={`brillo rounded-md ${className}`} />;
 }
 
 export function EsqueletoTarjetas({ cantidad = 8 }: { cantidad?: number }) {
