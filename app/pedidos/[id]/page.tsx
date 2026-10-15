@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { repetirPedido } from "@/lib/acciones-pedidos";
@@ -41,9 +41,9 @@ export default function PaginaPedido({ params, searchParams }: PageProps<"/pedid
         ← Mis pedidos
       </Link>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <DetallePedido params={params} searchParams={searchParams as Promise<{ nuevo?: string; encargo?: string }>} />
-        </Suspense>
+        </Carga>
       </div>
     </main>
   );

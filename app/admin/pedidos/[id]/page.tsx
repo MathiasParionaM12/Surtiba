@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { FormAccion } from "@/components/FormAccion";
@@ -38,9 +38,9 @@ export default function PaginaPedidoAdmin({ params }: PageProps<"/admin/pedidos/
         ← Pedidos
       </Link>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <Detalle params={params} />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

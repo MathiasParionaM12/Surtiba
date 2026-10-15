@@ -3,7 +3,7 @@
 // Acciones del panel de la marca. Los cambios de estado pasan por funciones de la base
 // de datos que revisan que la orden sea de esta marca y que el cambio sea válido.
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { CATEGORIAS, esUuid } from "@/lib/catalogo";
@@ -17,6 +17,12 @@ function mensaje(error: { code?: string; message: string }) {
 
 function actualizarPantallas() {
   revalidatePath("/", "layout");
+}
+
+// Cambió algo que ve un visitante (producto o foto): también se renueva la caché del catálogo público
+function actualizarCatalogo() {
+  updateTag("catalogo");
+  actualizarPantallas();
 }
 
 export async function marcarListo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
@@ -144,7 +150,7 @@ export async function guardarProducto(_estado: EstadoForm, form: FormData): Prom
   });
   if (error) return { error: mensaje(error), valores };
 
-  actualizarPantallas();
+  actualizarCatalogo();
   const base = esAdmin ? "/admin/productos" : "/marca/productos";
   redirect(`${base}/${nuevoId}?${esUuid(id) ? "guardado" : "creado"}=1`);
 }
@@ -161,7 +167,7 @@ export async function guardarFoto(productoId: string, ruta: string): Promise<Est
   const { data, error } = await supabase.from("productos").update({ foto_url: ruta }).eq("id", productoId).select("id");
   if (error || !data?.length) return { error: "No pudimos guardar la foto. Intenta de nuevo." };
 
-  actualizarPantallas();
+  actualizarCatalogo();
   return { mensaje: "Foto actualizada." };
 }
 

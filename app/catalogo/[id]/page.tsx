@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
 import { CATEGORIAS, esUuid, ordenarTramos, textoTramo, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
+import { catalogoPublico } from "@/lib/catalogo-publico";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { FormAgregar } from "./FormAgregar";
@@ -20,9 +21,9 @@ export default function PaginaProducto({ params }: PageProps<"/catalogo/[id]">) 
       <Link href="/catalogo" className="text-sm font-medium text-verde hover:text-tinta">
         ← Volver al catálogo
       </Link>
-      <Suspense fallback={<EsqueletoDetalle />}>
+      <Carga fallback={<EsqueletoDetalle />}>
         <Detalle params={params} />
-      </Suspense>
+      </Carga>
     </main>
   );
 }
@@ -35,7 +36,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
 
   // Visitante: datos públicos y precio del primer tramo
   if (!usuario) {
-    const { data: p } = await supabase.from("catalogo_publico").select("*").eq("id", id).maybeSingle();
+    const p = (await catalogoPublico()).find((c) => c.id === id);
     if (!p) notFound();
     return (
       <Ficha

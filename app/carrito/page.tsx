@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { BotonPdf } from "@/components/BotonPdf";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { cotizacionDelCarrito } from "@/lib/acciones-cotizador";
@@ -22,9 +22,9 @@ export default function PaginaCarrito({ searchParams }: PageProps<"/carrito">) {
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
       <p className={sello}>Tu pedido</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Carrito</h1>
-      <Suspense fallback={<EsqueletoTabla filas={5} />}>
+      <Carga fallback={<EsqueletoTabla filas={5} />}>
         <Carrito searchParams={searchParams as Promise<Avisos>} />
-      </Suspense>
+      </Carga>
     </main>
   );
 }

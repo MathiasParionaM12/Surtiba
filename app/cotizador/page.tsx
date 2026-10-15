@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { esUuid } from "@/lib/catalogo";
 import { calcular, entradaDesdeTipo, type EntradaCotizador } from "@/lib/cotizador";
@@ -25,9 +25,9 @@ export default function PaginaCotizador({ searchParams }: PageProps<"/cotizador"
         Cuéntanos cómo es tu evento y calculamos los tragos, las cajas de cada producto y todo lo demás que vas a necesitar.
       </p>
       <div className="mt-8">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <Contenido searchParams={searchParams as Promise<{ desde?: string }>} />
-        </Suspense>
+        </Carga>
       </div>
     </main>
   );

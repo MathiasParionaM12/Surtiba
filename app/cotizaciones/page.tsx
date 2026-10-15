@@ -2,7 +2,7 @@ import { Calculator } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonPrimario, sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
@@ -19,9 +19,9 @@ export default function PaginaCotizaciones() {
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
       <p className={sello}>Cotizador de evento</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Mis cotizaciones</h1>
-      <Suspense fallback={<EsqueletoTabla filas={4} />}>
+      <Carga fallback={<EsqueletoTabla filas={4} />}>
         <Lista />
-      </Suspense>
+      </Carga>
     </main>
   );
 }

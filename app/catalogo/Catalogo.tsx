@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { TarjetaProducto, type ProductoTarjeta } from "@/components/TarjetaProducto";
 import { aTarjeta, CATEGORIAS, esUuid, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
+import { catalogoPublico } from "@/lib/catalogo-publico";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,10 +19,10 @@ export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros
 
 // ── Visitante: solo el precio del primer tramo, sin stock ──
 async function CatalogoPublico() {
-  const supabase = await createClient();
-  const { data } = await supabase.from("catalogo_publico").select("*").order("nombre");
+  // Igual para todos los visitantes: viene de la caché (lib/catalogo-publico.ts)
+  const data = await catalogoPublico();
 
-  const productos: ProductoTarjeta[] = (data ?? []).map((p) => ({
+  const productos: ProductoTarjeta[] = data.map((p) => ({
     id: p.id!,
     nombre: p.nombre!,
     marca: p.marca!,

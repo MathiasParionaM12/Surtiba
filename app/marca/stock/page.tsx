@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -15,9 +15,9 @@ export default function PaginaStock() {
         Cajas que tienes disponibles para vender. Cuando llega un pedido, sus cajas se descuentan solas.
       </p>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoTabla filas={4} />}>
+        <Carga fallback={<EsqueletoTabla filas={4} />}>
           <Stock />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

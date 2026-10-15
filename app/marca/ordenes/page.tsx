@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { sello } from "@/lib/estilos";
@@ -17,9 +17,9 @@ export default function PaginaOrdenes() {
       <p className="mt-2 max-w-2xl text-gris">
         Surtiba recoge en tu local y entrega al cliente. Por eso aquí no ves datos del comprador.
       </p>
-      <Suspense fallback={<EsqueletoTabla filas={4} />}>
+      <Carga fallback={<EsqueletoTabla filas={4} />}>
         <ListaOrdenes />
-      </Suspense>
+      </Carga>
     </>
   );
 }

@@ -234,5 +234,15 @@ La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los d
 
 **Entregar un pedido:** se calcula la comisión de cada subpedido, con exención si la marca tiene menos de 3 subpedidos entregados antes.
 
+## Caché de datos públicos (fase 8, parte D)
+Lo que es igual para todos los visitantes se guarda en caché (`"use cache"`, se renueva cada hora y al instante con `updateTag`). Se lee con `clientePublico()` (sin sesión), así RLS solo entrega lo público. **Nada que dependa de la sesión va en caché.**
+
+| Qué | Dónde | Etiqueta | Se renueva al instante cuando… |
+|---|---|---|---|
+| Catálogo del visitante (`catalogo_publico`) | `lib/catalogo-publico.ts` | `catalogo` | una marca o el admin guardan un producto o una foto, o el admin edita una marca |
+| Supuestos, tipos de evento y tragos activos | `supuestosCotizador()` en `lib/cotizador-datos.ts` | `cotizador` | el admin guarda supuestos, un tipo de evento o un trago |
+
+Si se agrega una acción que cambia esos datos, debe llamar a `updateTag` con su etiqueta.
+
 ## Métrica principal
 **Cajas vendidas del mes** = suma de `total_cajas` de los subpedidos `entregado` cuyo `entregado_en` cae en el mes.

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { esUuid } from "@/lib/catalogo";
@@ -26,9 +26,9 @@ export default function PaginaPedidosAdmin({ searchParams }: PageProps<"/admin/p
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Pedidos</h1>
-      <Suspense fallback={<EsqueletoTabla filas={5} />}>
+      <Carga fallback={<EsqueletoTabla filas={5} />}>
         <Lista searchParams={searchParams as Promise<Filtros>} />
-      </Suspense>
+      </Carga>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarReceta } from "@/lib/acciones-admin";
@@ -31,9 +31,9 @@ export default function PaginaCotizadorAdmin() {
         Los valores iniciales son supuestos por validar con caterings. Cámbialos aquí cuando tengas datos reales: el cotizador
         los usa al instante.
       </p>
-      <Suspense fallback={<EsqueletoTabla filas={6} />}>
+      <Carga fallback={<EsqueletoTabla filas={6} />}>
         <Contenido />
-      </Suspense>
+      </Carga>
     </>
   );
 }

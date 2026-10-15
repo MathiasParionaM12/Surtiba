@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { esUuid } from "@/lib/catalogo";
@@ -21,9 +21,9 @@ export default function PaginaOrden({ params }: PageProps<"/marca/ordenes/[id]">
         ← Órdenes
       </Link>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <DetalleOrden params={params} />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

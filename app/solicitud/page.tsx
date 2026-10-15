@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
@@ -12,9 +12,9 @@ export default function PaginaSolicitud() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
       <p className={sello}>Vender en Surtiba</p>
-      <Suspense fallback={<EsqueletoPagina />}>
+      <Carga fallback={<EsqueletoPagina />}>
         <Solicitud />
-      </Suspense>
+      </Carga>
     </main>
   );
 }

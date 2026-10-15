@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { esUuid } from "@/lib/catalogo";
 import { exigirRol } from "@/lib/sesion";
@@ -17,9 +17,9 @@ export default function PaginaTipoEvento({ params, searchParams }: PageProps<"/a
         ← Cotizador
       </Link>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <Contenido params={params} searchParams={searchParams as Promise<{ creado?: string }>} />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

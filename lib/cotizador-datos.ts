@@ -13,15 +13,28 @@ import {
   type Receta,
   type TipoEvento,
 } from "@/lib/cotizador";
+import { cacheLife, cacheTag } from "next/cache";
 import { obtenerUsuario } from "@/lib/sesion";
+import { clientePublico } from "@/lib/supabase/publico";
 import { createClient } from "@/lib/supabase/server";
 
 export async function datosCotizador({ conProductos = true } = {}) {
-  const usuario = await obtenerUsuario();
+  const [usuario, supuestos] = await Promise.all([obtenerUsuario(), supuestosCotizador()]);
   const puedeUsar = usuario?.rol === "comprador" || usuario?.rol === "admin";
-  const supabase = await createClient();
+  const catalogo = puedeUsar && conProductos ? await catalogoConSesion() : [];
+  return { usuario, puedeUsar, ...supuestos, catalogo };
+}
 
-  const [{ data: par }, { data: tiposData }, { data: recetasData }, catalogo] = await Promise.all([
+// Supuestos, tipos de evento y tragos activos: son públicos e iguales para todos, así que se
+// guardan en caché (sin sesión). Se actualizan al instante cuando el admin guarda un cambio
+// (updateTag("cotizador") en acciones-admin.ts) y, por si acaso, cada hora.
+export async function supuestosCotizador() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("cotizador");
+  const supabase = clientePublico();
+
+  const [{ data: par }, { data: tiposData }, { data: recetasData }] = await Promise.all([
     supabase.from("parametros_cotizador").select("*").maybeSingle(),
     supabase
       .from("tipos_evento")
@@ -35,7 +48,6 @@ export async function datosCotizador({ conProductos = true } = {}) {
       .select("id, nombre, categoria, ml_por_trago, mezclador, mezclador_ml, limones, jarabe_ml")
       .eq("activo", true)
       .order("orden"),
-    puedeUsar && conProductos ? catalogoConSesion() : Promise.resolve([] as ProductoCotizable[]),
   ]);
 
   const recetas: Receta[] = (recetasData ?? []).map((r) => ({ ...r, limones: Number(r.limones) }));
@@ -57,7 +69,7 @@ export async function datosCotizador({ conProductos = true } = {}) {
   }));
   const parametros = par ? aParametros(par) : null;
 
-  return { usuario, puedeUsar, parametros, tipos, recetas, catalogo };
+  return { parametros, tipos, recetas };
 }
 
 function aParametros(p: Record<string, unknown>): Parametros {

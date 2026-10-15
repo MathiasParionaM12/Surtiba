@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { exigirRol } from "@/lib/sesion";
 import { FormProducto } from "../FormProducto";
@@ -16,9 +16,9 @@ export default function PaginaNuevoProducto() {
       <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">Nuevo producto</h1>
       <p className="mt-2 text-gris">Después de crearlo podrás subir su foto.</p>
       <div className="mt-6 max-w-3xl rounded-md border border-linea bg-blanco p-5 sm:p-8">
-        <Suspense fallback={<EsqueletoTabla filas={3} />}>
+        <Carga fallback={<EsqueletoTabla filas={3} />}>
           <Formulario />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

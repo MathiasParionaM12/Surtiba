@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cache } from "react";
 import type { Rol } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -23,15 +24,16 @@ function enlacesPara(rol: Rol | null, porPagar = 0): Enlace[] {
   return [catalogo, cotizador];
 }
 
-// Pedidos del comprador con algo por pagar (encargo confirmado o diferencia pendiente)
-async function contarPorPagar() {
+// Pedidos del comprador con algo por pagar (encargo confirmado o diferencia pendiente).
+// cache(): el menú de computadora y el de celular lo piden; se consulta una sola vez por visita.
+const contarPorPagar = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("pedidos")
     .select("estado, total_centimos, pagado_centimos")
     .not("estado", "in", "(cancelado,por_confirmar)");
   return (data ?? []).filter((p) => p.total_centimos > p.pagado_centimos).length;
-}
+});
 
 async function enlacesDelUsuario() {
   const usuario = await obtenerUsuario();

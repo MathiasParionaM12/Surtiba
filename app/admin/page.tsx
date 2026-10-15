@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
 import { inicioMesLima, mesActual, soles } from "@/lib/formato";
@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: "Inicio · Panel Surtiba" };
 
 export default function PaginaInicioAdmin() {
   return (
-    <Suspense fallback={<EsqueletoPagina />}>
+    <Carga fallback={<EsqueletoPagina />}>
       <Inicio />
-    </Suspense>
+    </Carga>
   );
 }
 
@@ -108,9 +108,9 @@ async function Inicio() {
         </ul>
       </section>
 
-      <Suspense fallback={<EsqueletoPagina />}>
+      <Carga fallback={<EsqueletoPagina />}>
         <MetricasCompletas />
-      </Suspense>
+      </Carga>
     </>
   );
 }

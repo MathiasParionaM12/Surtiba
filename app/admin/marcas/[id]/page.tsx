@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarMarca } from "@/lib/acciones-admin";
@@ -20,9 +20,9 @@ export default function PaginaMarcaAdmin({ params }: PageProps<"/admin/marcas/[i
         ← Marcas
       </Link>
       <div className="mt-6">
-        <Suspense fallback={<EsqueletoPagina />}>
+        <Carga fallback={<EsqueletoPagina />}>
           <Marca params={params} />
-        </Suspense>
+        </Carga>
       </div>
     </>
   );

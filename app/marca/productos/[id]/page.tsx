@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { esUuid, ordenarTramos, urlFoto } from "@/lib/catalogo";
 import { exigirRol } from "@/lib/sesion";
@@ -17,9 +17,9 @@ export default function PaginaEditarProducto({ params, searchParams }: PageProps
       <Link href="/marca/productos" className="text-sm font-medium text-verde hover:text-tinta">
         ← Productos
       </Link>
-      <Suspense fallback={<EsqueletoDetalle />}>
+      <Carga fallback={<EsqueletoDetalle />}>
         <Editar params={params} searchParams={searchParams as Promise<{ creado?: string; guardado?: string }>} />
-      </Suspense>
+      </Carga>
     </>
   );
 }

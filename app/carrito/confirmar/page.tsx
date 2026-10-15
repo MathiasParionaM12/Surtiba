@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
 import { mananaEnLima, soles } from "@/lib/formato";
@@ -21,9 +21,9 @@ export default function PaginaConfirmar() {
       </Link>
       <p className={`${sello} mt-6`}>Último paso</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Confirmar pedido</h1>
-      <Suspense fallback={<EsqueletoTabla filas={6} />}>
+      <Carga fallback={<EsqueletoTabla filas={6} />}>
         <Confirmar />
-      </Suspense>
+      </Carga>
     </main>
   );
 }

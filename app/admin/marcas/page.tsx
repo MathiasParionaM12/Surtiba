@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { aprobarSolicitud, rechazarSolicitud } from "@/lib/acciones-admin";
@@ -15,9 +15,9 @@ export default function PaginaMarcasAdmin() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Marcas</h1>
-      <Suspense fallback={<EsqueletoTabla filas={5} />}>
+      <Carga fallback={<EsqueletoTabla filas={5} />}>
         <Marcas />
-      </Suspense>
+      </Carga>
     </>
   );
 }

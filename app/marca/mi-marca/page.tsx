@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarMinimo } from "@/lib/acciones-marca";
@@ -11,9 +11,9 @@ export const metadata: Metadata = { title: "Mi marca · Panel de marca · Surtib
 
 export default function PaginaMiMarca() {
   return (
-    <Suspense fallback={<EsqueletoPagina />}>
+    <Carga fallback={<EsqueletoPagina />}>
       <MiMarca />
-    </Suspense>
+    </Carga>
   );
 }
 

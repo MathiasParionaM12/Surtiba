@@ -117,3 +117,28 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* View Transitions (components/Carga.tsx): el esqueleto se va rápido y el contenido llega suave */
+::view-transition-old(.salida-carga) {
+  animation: 120ms ease-out both vt-desvanecer;
+}
+::view-transition-new(.entrada-carga) {
+  animation: 200ms ease-out 80ms both vt-aparecer;
+}
+@keyframes vt-desvanecer {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-aparecer {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

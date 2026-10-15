@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTarjetas } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
 import { Catalogo, type Filtros } from "./Catalogo";
@@ -13,9 +13,9 @@ export default function PaginaCatalogo({ searchParams }: PageProps<"/catalogo">)
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Licores y cócteles por caja</h1>
 
       {/* Lo que se muestra depende de la sesión y de los filtros: se carga dentro de Suspense */}
-      <Suspense fallback={<EsqueletoTarjetas />}>
+      <Carga fallback={<EsqueletoTarjetas />}>
         <Catalogo searchParams={searchParams as Promise<Filtros>} />
-      </Suspense>
+      </Carga>
     </main>
   );
 }

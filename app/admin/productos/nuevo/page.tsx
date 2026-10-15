@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { esUuid } from "@/lib/catalogo";
 import { exigirRol } from "@/lib/sesion";
@@ -12,9 +12,9 @@ export const metadata: Metadata = { title: "Nuevo producto · Panel Surtiba" };
 
 export default function PaginaNuevoProductoAdmin({ searchParams }: PageProps<"/admin/productos/nuevo">) {
   return (
-    <Suspense fallback={<EsqueletoTabla filas={3} />}>
+    <Carga fallback={<EsqueletoTabla filas={3} />}>
       <Nuevo searchParams={searchParams as Promise<{ marca?: string }>} />
-    </Suspense>
+    </Carga>
   );
 }
 

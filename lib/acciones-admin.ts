@@ -3,7 +3,7 @@
 // Acciones del panel del admin (equipo Surtiba). Cada una llama a una función de la base de
 // datos que revisa que quien la usa sea admin y que el cambio de estado sea válido.
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
@@ -13,11 +13,13 @@ import { createClient } from "@/lib/supabase/server";
 type Resultado = { error: { code?: string; message: string } | null };
 
 // Llama a la función, traduce el error y refresca las pantallas
-async function ejecutar(llamada: PromiseLike<Resultado>, exito: string): Promise<EstadoForm> {
+// etiqueta: caché pública que también hay que renovar ("catalogo" o "cotizador")
+async function ejecutar(llamada: PromiseLike<Resultado>, exito: string, etiqueta?: "catalogo" | "cotizador"): Promise<EstadoForm> {
   const { error } = await llamada;
   if (error) {
     return { error: error.code === "P0001" ? error.message : "No pudimos guardar el cambio. Intenta de nuevo." };
   }
+  if (etiqueta) updateTag(etiqueta);
   revalidatePath("/", "layout");
   return { mensaje: exito };
 }
@@ -75,6 +77,7 @@ export async function guardarMarca(_e: EstadoForm, form: FormData): Promise<Esta
       p_direccion_recojo: texto(form, "direccion_recojo"),
     }),
     "Marca guardada.",
+    "catalogo", // nombre o activa: cambia lo que ve el visitante
   );
 }
 
@@ -172,7 +175,7 @@ export async function guardarParametros(_e: EstadoForm, form: FormData): Promise
   p.cena_receta_id = id(form, "cena_receta_id");
   p.brindis_receta_id = id(form, "brindis_receta_id");
   const supabase = await createClient();
-  return ejecutar(supabase.rpc("admin_guardar_parametros", { p }), "Guardado. El cotizador ya usa estos valores.");
+  return ejecutar(supabase.rpc("admin_guardar_parametros", { p }), "Guardado. El cotizador ya usa estos valores.", "cotizador");
 }
 
 // Tipo de evento: momentos por defecto y la barra (campos "nivel_<receta_id>")
@@ -200,6 +203,7 @@ export async function guardarTipoEvento(_e: EstadoForm, form: FormData): Promise
   if (error) {
     return { error: error.code === "P0001" ? error.message : "No pudimos guardar el tipo de evento. Revisa los valores." };
   }
+  updateTag("cotizador");
   revalidatePath("/", "layout");
   if (!id(form, "tipo_id")) redirect(`/admin/cotizador/tipos/${data}?creado=1`);
   return { mensaje: "Guardado. El cotizador ya usa estos valores." };
@@ -221,5 +225,6 @@ export async function guardarReceta(_e: EstadoForm, form: FormData): Promise<Est
       p_jarabe_ml: Math.trunc(Number(texto(form, "jarabe_ml"))) || 0,
     }),
     "Trago guardado.",
+    "cotizador",
   );
 }

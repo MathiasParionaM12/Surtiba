@@ -13,10 +13,10 @@ import {
   Warehouse,
 } from "lucide-react";
 import Link from "next/link";
-import { Suspense } from "react";
 import { LineaTiempo } from "@/app/cotizador/ui";
+import { Carga } from "@/components/Carga";
 import { calcular, entradaDesdeTipo } from "@/lib/cotizador";
-import { datosCotizador } from "@/lib/cotizador-datos";
+import { supuestosCotizador } from "@/lib/cotizador-datos";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -82,7 +82,7 @@ async function Acciones() {
 
 // Un ejemplo real del cotizador, calculado con los supuestos que hoy tiene guardados
 async function EjemploCotizador() {
-  const { parametros, tipos, recetas } = await datosCotizador({ conProductos: false });
+  const { parametros, tipos, recetas } = await supuestosCotizador();
   if (!parametros || tipos.length === 0) return null;
   const entrada = entradaDesdeTipo(tipos[0], parametros, 100);
   const r = calcular(entrada, parametros, recetas, []);
@@ -138,7 +138,7 @@ export default function Home() {
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
           {/* Los botones dependen de quién ingresó; mientras se sabe, solo el catálogo */}
-          <Suspense
+          <Carga
             fallback={
               <Link href="/catalogo" className={botonPrimario}>
                 Ver catálogo
@@ -146,7 +146,7 @@ export default function Home() {
             }
           >
             <Acciones />
-          </Suspense>
+          </Carga>
         </div>
       </section>
 
@@ -200,9 +200,9 @@ export default function Home() {
             </Link>
           </div>
           <div className="aparecer">
-            <Suspense fallback={<div className="brillo h-64 rounded-md" />}>
+            <Carga fallback={<div className="brillo h-64 rounded-md" />}>
               <EjemploCotizador />
-            </Suspense>
+            </Carga>
           </div>
         </div>
       </section>

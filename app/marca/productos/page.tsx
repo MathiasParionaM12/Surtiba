@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { CATEGORIAS, ordenarTramos, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, sello } from "@/lib/estilos";
@@ -23,9 +23,9 @@ export default function PaginaProductos() {
           Nuevo producto
         </Link>
       </div>
-      <Suspense fallback={<EsqueletoTabla filas={4} />}>
+      <Carga fallback={<EsqueletoTabla filas={4} />}>
         <ListaProductos />
-      </Suspense>
+      </Carga>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { FormAccion } from "@/components/FormAccion";
@@ -17,9 +17,9 @@ export default function PaginaLogistica() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Logística</h1>
       <p className="mt-2 text-gris">Recoger en cada marca, y entregar el pedido completo al comprador.</p>
-      <Suspense fallback={<EsqueletoTabla filas={5} />}>
+      <Carga fallback={<EsqueletoTabla filas={5} />}>
         <Logistica />
-      </Suspense>
+      </Carga>
     </>
   );
 }

@@ -2,7 +2,7 @@ import { Heart } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Carga } from "@/components/Carga";
 import { EsqueletoTarjetas } from "@/components/Esqueleto";
 import { TarjetaProducto } from "@/components/TarjetaProducto";
 import { aTarjeta, type ProductoTarjeta } from "@/lib/catalogo";
@@ -18,9 +18,9 @@ export default function PaginaFavoritos() {
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
       <p className={sello}>Para volver a pedir rápido</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Favoritos</h1>
-      <Suspense fallback={<EsqueletoTarjetas cantidad={4} />}>
+      <Carga fallback={<EsqueletoTarjetas cantidad={4} />}>
         <ListaFavoritos />
-      </Suspense>
+      </Carga>
     </main>
   );
 }
