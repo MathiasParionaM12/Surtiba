@@ -2,6 +2,7 @@
 // Colores de docs/marca.md. Fuentes incluidas en el PDF: Helvetica (texto) y Courier (códigos y sellos).
 
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import type { Insumo, Momento } from "@/lib/cotizador";
 import { fecha, soles } from "@/lib/formato";
 
 const C = { papel: "#F5F3EE", tinta: "#121212", gris: "#5C5A55", linea: "#DCD8CF", verde: "#14432F", resaltador: "#E8FF00" };
@@ -19,7 +20,9 @@ export type ItemCotizacion = {
   subtotal_centimos: number;
 };
 
-export type EventoCotizacion = {
+// Primera versión del cotizador (con %): se sigue leyendo para las cotizaciones viejas
+type EventoV1 = {
+  version?: undefined;
   tipo: string;
   invitados: number;
   horas: number;
@@ -27,6 +30,27 @@ export type EventoCotizacion = {
   tragos_totales: number;
   tragos: { receta: string; porcentaje: number; tragos: number }[];
 };
+
+// Cotizador por momentos
+type EventoV2 = {
+  version: 2;
+  resumen: {
+    nombre: string;
+    tipo: string;
+    fecha: string;
+    invitados: number;
+    no_toman: number;
+    hora_inicio: string;
+    horas: number;
+    margen: number;
+    aire_libre: boolean;
+    tragos_totales: number;
+    momentos: Momento[];
+    insumos: Insumo[];
+  };
+};
+
+export type EventoCotizacion = EventoV1 | EventoV2;
 
 const s = StyleSheet.create({
   pagina: { padding: 40, paddingBottom: 70, fontFamily: "Helvetica", fontSize: 10, color: C.tinta },
@@ -87,8 +111,11 @@ export function PdfCotizacion({
           <Text style={{ marginTop: 4, fontSize: 11 }}>{para}</Text>
         </View>
 
-        {/* Evento (si vino del cotizador) */}
-        {evento && (
+        {/* Evento del cotizador por momentos */}
+        {evento?.version === 2 && <EventoPorMomentos e={evento.resumen} />}
+
+        {/* Evento de la primera versión del cotizador */}
+        {evento && evento.version !== 2 && (
           <View style={{ marginTop: 14, padding: 10, backgroundColor: C.papel, borderRadius: 4 }}>
             <Text style={s.sello}>Evento</Text>
             <Text style={{ marginTop: 4, fontSize: 11 }}>
@@ -162,13 +189,29 @@ export function PdfCotizacion({
           </View>
         </View>
 
+        {/* Lo que Surtiba no vende (cotizador por momentos) */}
+        {evento?.version === 2 && evento.resumen.insumos.length > 0 && (
+          <View wrap={false} style={{ marginTop: 24 }}>
+            <Text style={s.sello}>También vas a necesitar (Surtiba no lo vende)</Text>
+            <View style={[s.fila, { flexWrap: "wrap", marginTop: 6 }]}>
+              {evento.resumen.insumos.map((i) => (
+                <View key={i.nombre} style={[s.fila, { width: "50%", paddingVertical: 3, paddingRight: 16, justifyContent: "space-between" }]}>
+                  <Text>{i.nombre}</Text>
+                  <Text>
+                    {decimal.format(i.cantidad)} {i.unidad}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Notas */}
         <View wrap={false} style={{ marginTop: 24, gap: 3 }}>
           <Text style={s.gris}>Precios válidos sujetos a stock al momento de pedir.</Text>
           {evento && (
             <Text style={s.gris}>
-              Estimación referencial: ajusta las cantidades antes de pedir. Solo incluye el licor (no hielo, gaseosas ni
-              insumos).
+              Estimación referencial con supuestos por validar con caterings: ajusta las cantidades antes de pedir.
             </Text>
           )}
           <Text style={s.gris}>Lo que supere el stock de una marca se pide por encargo y la marca lo confirma.</Text>
@@ -197,5 +240,43 @@ export function PdfCotizacion({
         </View>
       </Page>
     </Document>
+  );
+}
+
+// Recuadro del evento y sus momentos (cotizador por momentos)
+function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
+  const fin = e.momentos.at(-1)?.hasta ?? e.momentos.at(-1)?.desde ?? e.hora_inicio;
+  return (
+    <View wrap={false} style={{ marginTop: 14, padding: 10, backgroundColor: C.papel, borderRadius: 4 }}>
+      <Text style={s.sello}>Evento</Text>
+      <Text style={{ marginTop: 4, fontSize: 12, fontFamily: "Helvetica-Bold" }}>{e.nombre || e.tipo}</Text>
+      <Text style={[s.gris, { marginTop: 2 }]}>
+        {[e.nombre && e.tipo, e.fecha && fecha(e.fecha), `${entero.format(e.invitados)} invitados (${entero.format(e.invitados - e.no_toman)} toman alcohol)`, `${e.hora_inicio}–${fin}`, e.aire_libre ? "aire libre o verano" : "interior"]
+          .filter(Boolean)
+          .join(" · ")}
+      </Text>
+      <Text style={[s.gris, { marginTop: 2 }]}>
+        {entero.format(e.tragos_totales)} tragos con alcohol · incluye +{e.margen} % de margen
+      </Text>
+      <View style={{ marginTop: 8 }}>
+        {e.momentos.map((m) => (
+          <View key={m.clave} style={[s.fila, { paddingVertical: 3, borderTopWidth: 1, borderTopColor: C.linea }]}>
+            <Text style={{ width: 70, fontFamily: "Courier", fontSize: 9, color: C.gris }}>
+              {m.desde}
+              {m.hasta ? `–${m.hasta}` : ""}
+            </Text>
+            <View style={{ flex: 1 }}>
+              <Text>{m.nombre}</Text>
+              {m.detalle.length > 0 && (
+                <Text style={[s.gris, { fontSize: 8, marginTop: 1 }]}>
+                  {m.detalle.map((d) => `${d.receta} ${entero.format(d.tragos)}`).join(" · ")}
+                </Text>
+              )}
+            </View>
+            <Text style={{ width: 70, textAlign: "right" }}>{entero.format(m.tragos)} tragos</Text>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }

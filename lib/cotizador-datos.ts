@@ -1,40 +1,86 @@
-// Datos del cotizador leídos en el servidor. RLS decide qué llega:
-// visitante (y marca) = catálogo público con el precio del primer tramo y sin stock;
-// comprador y admin = productos activos con su escala completa y stock.
+// Datos del cotizador leídos en el servidor. El cotizador es solo para quien tiene cuenta:
+// comprador y admin reciben los productos activos con su escala completa y stock (RLS decide).
 
 import { esUuid, ordenarTramos } from "@/lib/catalogo";
-import { calcular, LIMITES, type EntradaCotizador, type ProductoCotizable, type Receta, type TipoEvento } from "@/lib/cotizador";
+import {
+  calcular,
+  LIMITES,
+  type EntradaCotizador,
+  type Nivel,
+  type Parametros,
+  type Perfil,
+  type ProductoCotizable,
+  type Receta,
+  type TipoEvento,
+} from "@/lib/cotizador";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
-export async function datosCotizador() {
+export async function datosCotizador({ conProductos = true } = {}) {
   const usuario = await obtenerUsuario();
-  const conSesion = usuario?.rol === "comprador" || usuario?.rol === "admin";
+  const puedeUsar = usuario?.rol === "comprador" || usuario?.rol === "admin";
   const supabase = await createClient();
 
-  const [{ data: tiposData }, { data: recetasData }, catalogo] = await Promise.all([
+  const [{ data: par }, { data: tiposData }, { data: recetasData }, catalogo] = await Promise.all([
+    supabase.from("parametros_cotizador").select("*").maybeSingle(),
     supabase
       .from("tipos_evento")
-      .select("id, nombre, tragos_primera_hora, tragos_hora_siguiente, tipo_evento_recetas(receta_id, porcentaje)")
+      .select(
+        "id, nombre, horas, perfil, bienvenida, bienvenida_horas, bienvenida_receta_id, brindis, cena, cena_horas, tipo_evento_recetas(receta_id, nivel)",
+      )
       .eq("activo", true)
       .order("orden"),
-    supabase.from("recetas").select("id, nombre, categoria, ml_por_trago").eq("activo", true).order("orden"),
-    conSesion ? catalogoConSesion() : catalogoPublico(),
+    supabase
+      .from("recetas")
+      .select("id, nombre, categoria, ml_por_trago, mezclador, mezclador_ml, limones, jarabe_ml")
+      .eq("activo", true)
+      .order("orden"),
+    puedeUsar && conProductos ? catalogoConSesion() : Promise.resolve([] as ProductoCotizable[]),
   ]);
 
-  const recetas: Receta[] = recetasData ?? [];
+  const recetas: Receta[] = (recetasData ?? []).map((r) => ({ ...r, limones: Number(r.limones) }));
   const idsRecetas = new Set(recetas.map((r) => r.id));
   const tipos: TipoEvento[] = (tiposData ?? []).map((t) => ({
     id: t.id,
     nombre: t.nombre,
-    tragos_primera_hora: Number(t.tragos_primera_hora),
-    tragos_hora_siguiente: Number(t.tragos_hora_siguiente),
-    mezcla: t.tipo_evento_recetas
+    horas: t.horas,
+    perfil: t.perfil as Perfil,
+    bienvenida: t.bienvenida,
+    bienvenida_horas: Number(t.bienvenida_horas),
+    bienvenida_receta_id: t.bienvenida_receta_id && idsRecetas.has(t.bienvenida_receta_id) ? t.bienvenida_receta_id : null,
+    brindis: t.brindis,
+    cena: t.cena,
+    cena_horas: Number(t.cena_horas),
+    barra: t.tipo_evento_recetas
       .filter((m) => idsRecetas.has(m.receta_id))
-      .sort((a, b) => b.porcentaje - a.porcentaje),
+      .map((m) => ({ receta_id: m.receta_id, nivel: m.nivel as Nivel })),
   }));
+  const parametros = par ? aParametros(par) : null;
 
-  return { usuario, conSesion, tipos, recetas, catalogo };
+  return { usuario, puedeUsar, parametros, tipos, recetas, catalogo };
+}
+
+function aParametros(p: Record<string, unknown>): Parametros {
+  const n = (k: string) => Number(p[k]);
+  return {
+    no_toman_pct: n("no_toman_pct"),
+    factor_tranquilo: n("factor_tranquilo"),
+    factor_normal: n("factor_normal"),
+    factor_fuerte: n("factor_fuerte"),
+    factor_dia: n("factor_dia"),
+    bienvenida_tragos_hora: n("bienvenida_tragos_hora"),
+    fiesta_primera_hora: n("fiesta_primera_hora"),
+    fiesta_tragos_hora: n("fiesta_tragos_hora"),
+    cena_copas_hora: n("cena_copas_hora"),
+    brindis_copas: n("brindis_copas"),
+    cena_receta_id: (p.cena_receta_id as string | null) ?? null,
+    brindis_receta_id: (p.brindis_receta_id as string | null) ?? null,
+    hielo_kg_persona_hora: n("hielo_kg_persona_hora"),
+    factor_calor: n("factor_calor"),
+    sin_alcohol_l_hora_toma: n("sin_alcohol_l_hora_toma"),
+    sin_alcohol_l_hora_no_toma: n("sin_alcohol_l_hora_no_toma"),
+    margen_pct: n("margen_pct"),
+  };
 }
 
 async function catalogoConSesion(): Promise<ProductoCotizable[]> {
@@ -61,60 +107,73 @@ async function catalogoConSesion(): Promise<ProductoCotizable[]> {
     }));
 }
 
-async function catalogoPublico(): Promise<ProductoCotizable[]> {
-  const supabase = await createClient();
-  const [{ data }, { data: marcas }] = await Promise.all([
-    supabase.from("catalogo_publico").select("*"),
-    supabase.from("marcas").select("id, pedido_minimo_cajas"),
-  ]);
-  const minimo = new Map((marcas ?? []).map((m) => [m.id, m.pedido_minimo_cajas]));
-  return (data ?? []).map((p) => ({
-    id: p.id!,
-    nombre: p.nombre!,
-    marca: p.marca!,
-    marcaId: p.marca_id!,
-    categoria: p.categoria!,
-    ml: p.ml!,
-    unidades: p.unidades_por_caja!,
-    tramos: [{ desde_cajas: 1, hasta_cajas: null, precio_caja_centimos: p.precio_caja_centimos! }],
-    stock: null,
-    pedidoMinimo: minimo.get(p.marca_id!) ?? 1,
-  }));
-}
+const PERFILES_VALIDOS = new Set(["tranquilo", "normal", "fuerte"]);
+const NIVELES_VALIDOS = new Set(["principal", "secundario", "ocasional"]);
+const entero = (v: unknown) => Math.trunc(Number(v));
+const mediaHora = (v: unknown) => Math.round(Number(v) * 2) / 2; // 0.5, 1, 1.5…
 
 // Lo que llega del navegador no es confiable: se limpia antes de calcular
 export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas: Receta[]): EntradaCotizador | string {
   const tipo = tipos.find((t) => t.id === e?.tipoEventoId);
   if (!tipo) return "Elige el tipo de evento.";
-  const invitados = Math.trunc(Number(e.invitados));
+  const invitados = entero(e.invitados);
   if (!(invitados >= 1 && invitados <= LIMITES.invitadosMax)) return `Los invitados van de 1 a ${LIMITES.invitadosMax}.`;
-  const horas = Math.trunc(Number(e.horas));
-  if (!(horas >= 1 && horas <= LIMITES.horasMax)) return `Las horas van de 1 a ${LIMITES.horasMax}.`;
+  const noToman = entero(e.noToman);
+  if (!(noToman >= 0 && noToman <= invitados)) return "Los que no toman alcohol van de 0 al total de invitados.";
+  const horas = entero(e.horas);
+  if (!(horas >= 1 && horas <= LIMITES.horasMax)) return `La duración va de 1 a ${LIMITES.horasMax} horas.`;
+  const horaInicio = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(e.horaInicio)) ? String(e.horaInicio) : "19:00";
+  const margen = Math.min(50, Math.max(0, entero(e.margen) || 0));
 
   const idsRecetas = new Set(recetas.map((r) => r.id));
   const vistos = new Set<string>();
-  const tragos = (Array.isArray(e.tragos) ? e.tragos : [])
-    .filter((t) => idsRecetas.has(t?.recetaId) && !vistos.has(t.recetaId) && vistos.add(t.recetaId))
-    .slice(0, LIMITES.tragosMax)
-    .map((t) => ({
-      recetaId: t.recetaId,
-      porcentaje: Math.min(100, Math.max(0, Math.trunc(Number(t.porcentaje)) || 0)),
-      productoId: esUuid(t.productoId) ? t.productoId : undefined,
-    }));
+  const barra = (Array.isArray(e.barra) ? e.barra : [])
+    .filter((b) => idsRecetas.has(b?.recetaId) && NIVELES_VALIDOS.has(b.nivel) && !vistos.has(b.recetaId) && vistos.add(b.recetaId))
+    .slice(0, LIMITES.barraMax)
+    .map((b) => ({ recetaId: b.recetaId, nivel: b.nivel }));
 
+  const bienvenidaHoras = Math.min(4, Math.max(0.5, mediaHora(e.bienvenida?.horas) || 1));
+  const cenaHoras = Math.min(4, Math.max(0.5, mediaHora(e.cena?.horas) || 1.5));
+
+  const productos: Record<string, string> = {};
+  for (const [receta, producto] of Object.entries(e.productos ?? {})) {
+    if (idsRecetas.has(receta) && esUuid(producto)) productos[receta] = producto;
+  }
   const cajasManual: Record<string, number> = {};
   for (const [id, cajas] of Object.entries(e.cajasManual ?? {})) {
-    const n = Math.trunc(Number(cajas));
+    const n = entero(cajas);
     if (esUuid(id) && n >= 1 && n <= LIMITES.cajasMax) cajasManual[id] = n;
   }
 
-  return { tipoEventoId: tipo.id, invitados, horas, tragos, cajasManual };
+  return {
+    nombre: String(e.nombre ?? "").trim().slice(0, 80),
+    fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(e.fecha ?? "")) ? String(e.fecha) : "",
+    tipoEventoId: tipo.id,
+    invitados,
+    noToman,
+    horaInicio,
+    horas,
+    aireLibre: e.aireLibre === true,
+    perfil: PERFILES_VALIDOS.has(e.perfil) ? e.perfil : "normal",
+    margen,
+    bienvenida: {
+      activo: e.bienvenida?.activo === true,
+      horas: bienvenidaHoras,
+      recetaId: e.bienvenida?.recetaId && idsRecetas.has(e.bienvenida.recetaId) ? e.bienvenida.recetaId : null,
+    },
+    cena: { activo: e.cena?.activo === true, horas: cenaHoras },
+    brindis: { activo: e.brindis?.activo === true },
+    barra,
+    productos,
+    cajasManual,
+  };
 }
 
 export async function cotizarEvento(entrada: EntradaCotizador) {
-  const { tipos, recetas, catalogo, conSesion } = await datosCotizador();
+  const { puedeUsar, parametros, tipos, recetas, catalogo } = await datosCotizador();
+  if (!puedeUsar) return { error: "Ingresa con tu cuenta de comprador para usar el cotizador." };
+  if (!parametros) return { error: "El cotizador no está disponible por ahora." };
   const limpia = limpiarEntrada(entrada, tipos, recetas);
   if (typeof limpia === "string") return { error: limpia };
-  const tipo = tipos.find((t) => t.id === limpia.tipoEventoId)!;
-  return { resultado: calcular(limpia, tipo, recetas, catalogo, conSesion) };
+  return { entrada: limpia, resultado: calcular(limpia, parametros, recetas, catalogo) };
 }

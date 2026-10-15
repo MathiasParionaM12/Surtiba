@@ -6,6 +6,7 @@ export const CATEGORIAS: Record<string, string> = {
   gin: "Gin",
   vodka: "Vodka",
   vino: "Vino",
+  espumante: "Espumante",
   licor: "Licor",
   coctel_listo: "Cóctel listo",
   otro: "Otro",

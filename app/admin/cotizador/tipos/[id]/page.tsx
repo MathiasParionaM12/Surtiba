@@ -32,12 +32,14 @@ async function Contenido({ params, searchParams }: { params: Promise<{ id: strin
 
   const supabase = await createClient();
   const [{ data: recetas }, { data: tipo }] = await Promise.all([
-    supabase.from("recetas").select("id, nombre, categoria, ml_por_trago, activo").order("orden"),
+    supabase.from("recetas").select("id, nombre, categoria, activo").order("orden"),
     nuevo
       ? Promise.resolve({ data: null })
       : supabase
           .from("tipos_evento")
-          .select("id, nombre, tragos_primera_hora, tragos_hora_siguiente, activo, tipo_evento_recetas(receta_id, porcentaje)")
+          .select(
+            "id, nombre, activo, horas, perfil, bienvenida, bienvenida_horas, bienvenida_receta_id, brindis, cena, cena_horas, tipo_evento_recetas(receta_id, nivel)",
+          )
           .eq("id", id)
           .maybeSingle(),
   ]);
@@ -53,10 +55,16 @@ async function Contenido({ params, searchParams }: { params: Promise<{ id: strin
             ? {
                 id: tipo.id,
                 nombre: tipo.nombre,
-                primera: Number(tipo.tragos_primera_hora),
-                siguiente: Number(tipo.tragos_hora_siguiente),
                 activo: tipo.activo,
-                mezcla: Object.fromEntries(tipo.tipo_evento_recetas.map((m) => [m.receta_id, m.porcentaje])),
+                horas: tipo.horas,
+                perfil: tipo.perfil,
+                bienvenida: tipo.bienvenida,
+                bienvenida_horas: Number(tipo.bienvenida_horas),
+                bienvenida_receta_id: tipo.bienvenida_receta_id,
+                brindis: tipo.brindis,
+                cena: tipo.cena,
+                cena_horas: Number(tipo.cena_horas),
+                barra: Object.fromEntries(tipo.tipo_evento_recetas.map((m) => [m.receta_id, m.nivel])),
               }
             : null
         }

@@ -150,29 +150,55 @@ export async function marcarPagado(_e: EstadoForm, form: FormData): Promise<Esta
 // ── Cotizador ──
 // Acepta "1.5" o "1,5"
 function decimal(form: FormData, campo: string) {
-  const n = Number(texto(form, campo).replace(",", "."));
-  return Number.isFinite(n) ? n : NaN;
+  const valor = texto(form, campo).replace(",", ".");
+  return valor === "" ? NaN : Number(valor);
 }
 
-// Tipo de evento + su mezcla de tragos (campos "pct_<receta_id>"). La base de datos valida que sume 100 %.
+const CAMPOS_PARAMETROS = [
+  "no_toman_pct", "factor_tranquilo", "factor_normal", "factor_fuerte", "factor_dia", "bienvenida_tragos_hora",
+  "fiesta_primera_hora", "fiesta_tragos_hora", "cena_copas_hora", "brindis_copas", "hielo_kg_persona_hora",
+  "factor_calor", "sin_alcohol_l_hora_toma", "sin_alcohol_l_hora_no_toma", "margen_pct",
+];
+
+// Supuestos generales del cotizador. La base de datos revisa que cada valor esté en su rango.
+export async function guardarParametros(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const p: Record<string, number | string | null> = {};
+  for (const campo of CAMPOS_PARAMETROS) {
+    const n = decimal(form, campo);
+    if (!Number.isFinite(n)) return { error: "Revisa los valores: hay uno vacío o que no es un número." };
+    p[campo] = n;
+  }
+  p.cena_receta_id = id(form, "cena_receta_id");
+  p.brindis_receta_id = id(form, "brindis_receta_id");
+  const supabase = await createClient();
+  return ejecutar(supabase.rpc("admin_guardar_parametros", { p }), "Guardado. El cotizador ya usa estos valores.");
+}
+
+// Tipo de evento: momentos por defecto y la barra (campos "nivel_<receta_id>")
 export async function guardarTipoEvento(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("admin");
-  const mezcla = [...form.entries()]
-    .filter(([campo]) => campo.startsWith("pct_") && esUuid(campo.slice(4)))
-    .map(([campo, valor]) => ({ receta_id: campo.slice(4), porcentaje: Math.trunc(Number(valor)) || 0 }))
-    .filter((m) => m.porcentaje > 0);
+  const barra = [...form.entries()]
+    .filter(([campo, valor]) => campo.startsWith("nivel_") && esUuid(campo.slice(6)) && valor !== "")
+    .map(([campo, valor]) => ({ receta_id: campo.slice(6), nivel: String(valor) }));
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_guardar_tipo_evento", {
     p_id: id(form, "tipo_id"),
     p_nombre: texto(form, "nombre"),
-    p_primera: decimal(form, "primera"),
-    p_siguiente: decimal(form, "siguiente"),
     p_activo: form.get("activo") === "on",
-    p_mezcla: mezcla,
+    p_horas: Math.trunc(Number(texto(form, "horas"))),
+    p_perfil: texto(form, "perfil"),
+    p_bienvenida: form.get("bienvenida") === "on",
+    p_bienvenida_horas: decimal(form, "bienvenida_horas"),
+    p_bienvenida_receta: id(form, "bienvenida_receta"),
+    p_brindis: form.get("brindis") === "on",
+    p_cena: form.get("cena") === "on",
+    p_cena_horas: decimal(form, "cena_horas"),
+    p_barra: barra,
   });
   if (error) {
-    return { error: error.code === "P0001" ? error.message : "No pudimos guardar el tipo de evento. Revisa los números." };
+    return { error: error.code === "P0001" ? error.message : "No pudimos guardar el tipo de evento. Revisa los valores." };
   }
   revalidatePath("/", "layout");
   if (!id(form, "tipo_id")) redirect(`/admin/cotizador/tipos/${data}?creado=1`);
@@ -189,6 +215,10 @@ export async function guardarReceta(_e: EstadoForm, form: FormData): Promise<Est
       p_categoria: texto(form, "categoria"),
       p_ml: Math.trunc(Number(texto(form, "ml"))),
       p_activo: form.get("activo") === "on",
+      p_mezclador: texto(form, "mezclador") || null,
+      p_mezclador_ml: Math.trunc(Number(texto(form, "mezclador_ml"))) || 0,
+      p_limones: decimal(form, "limones") || 0,
+      p_jarabe_ml: Math.trunc(Number(texto(form, "jarabe_ml"))) || 0,
     }),
     "Trago guardado.",
   );

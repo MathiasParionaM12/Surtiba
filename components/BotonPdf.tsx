@@ -6,7 +6,15 @@ import type { RespuestaPdf } from "@/lib/acciones-cotizador";
 import { botonSecundario } from "@/lib/estilos";
 
 // Guarda la cotización en el servidor (COT-0001) y luego descarga su PDF
-export function BotonPdf({ preparar, className = "" }: { preparar: () => Promise<RespuestaPdf>; className?: string }) {
+export function BotonPdf({
+  preparar,
+  className = "",
+  texto = "Descargar cotización (PDF)",
+}: {
+  preparar: () => Promise<RespuestaPdf>;
+  className?: string;
+  texto?: string;
+}) {
   const [error, setError] = useState<string>();
   const [preparando, iniciar] = useTransition();
 
@@ -30,7 +38,7 @@ export function BotonPdf({ preparar, className = "" }: { preparar: () => Promise
         }
         className={`${botonSecundario} w-full`}
       >
-        {preparando ? "Preparando PDF…" : "Descargar cotización (PDF)"}
+        {preparando ? "Preparando PDF…" : texto}
       </button>
       <AvisoForm error={error} />
     </div>

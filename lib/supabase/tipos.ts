@@ -142,8 +142,22 @@ export type Database = {
           { foreignKeyName: "productos_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
         ];
       };
+      parametros_cotizador: {
+        Row: {
+          id: boolean; no_toman_pct: number; factor_tranquilo: number; factor_normal: number; factor_fuerte: number; factor_dia: number;
+          bienvenida_tragos_hora: number; fiesta_primera_hora: number; fiesta_tragos_hora: number; cena_copas_hora: number;
+          brindis_copas: number; cena_receta_id: string | null; brindis_receta_id: string | null; hielo_kg_persona_hora: number;
+          factor_calor: number; sin_alcohol_l_hora_toma: number; sin_alcohol_l_hora_no_toma: number; margen_pct: number;
+        };
+        Insert: { id?: boolean };
+        Update: { id?: boolean };
+        Relationships: [];
+      };
       recetas: {
-        Row: { activo: boolean; categoria: string; id: string; ml_por_trago: number; nombre: string; orden: number };
+        Row: {
+          activo: boolean; categoria: string; id: string; ml_por_trago: number; nombre: string; orden: number;
+          mezclador: string | null; mezclador_ml: number; limones: number; jarabe_ml: number;
+        };
         Insert: { activo?: boolean; categoria: string; id?: string; ml_por_trago: number; nombre: string; orden?: number };
         Update: { activo?: boolean; categoria?: string; id?: string; ml_por_trago?: number; nombre?: string; orden?: number };
         Relationships: [];
@@ -192,16 +206,20 @@ export type Database = {
         ];
       };
       tipo_evento_recetas: {
-        Row: { porcentaje: number; receta_id: string; tipo_evento_id: string };
-        Insert: { porcentaje: number; receta_id: string; tipo_evento_id: string };
-        Update: { porcentaje?: number; receta_id?: string; tipo_evento_id?: string };
+        Row: { nivel: string; porcentaje: number | null; receta_id: string; tipo_evento_id: string };
+        Insert: { nivel?: string; porcentaje?: number | null; receta_id: string; tipo_evento_id: string };
+        Update: { nivel?: string; porcentaje?: number | null; receta_id?: string; tipo_evento_id?: string };
         Relationships: [
           { foreignKeyName: "tipo_evento_recetas_receta_id_fkey"; columns: ["receta_id"]; isOneToOne: false; referencedRelation: "recetas"; referencedColumns: ["id"] },
           { foreignKeyName: "tipo_evento_recetas_tipo_evento_id_fkey"; columns: ["tipo_evento_id"]; isOneToOne: false; referencedRelation: "tipos_evento"; referencedColumns: ["id"] },
         ];
       };
       tipos_evento: {
-        Row: { activo: boolean; id: string; nombre: string; orden: number; tragos_hora_siguiente: number; tragos_primera_hora: number };
+        Row: {
+          activo: boolean; id: string; nombre: string; orden: number; tragos_hora_siguiente: number; tragos_primera_hora: number;
+          horas: number; perfil: string; bienvenida: boolean; bienvenida_horas: number; bienvenida_receta_id: string | null;
+          brindis: boolean; cena: boolean; cena_horas: number;
+        };
         Insert: { activo?: boolean; id?: string; nombre: string; orden?: number; tragos_hora_siguiente: number; tragos_primera_hora: number };
         Update: { activo?: boolean; id?: string; nombre?: string; orden?: number; tragos_hora_siguiente?: number; tragos_primera_hora?: number };
         Relationships: [];
@@ -270,12 +288,22 @@ export type Database = {
         };
         Returns: string;
       };
+      admin_guardar_parametros: {
+        Args: { p: Json };
+        Returns: undefined;
+      };
       admin_guardar_tipo_evento: {
-        Args: { p_id: string | null; p_nombre: string; p_primera: number; p_siguiente: number; p_activo: boolean; p_mezcla: Json };
+        Args: {
+          p_id: string | null; p_nombre: string; p_activo: boolean; p_horas: number; p_perfil: string; p_bienvenida: boolean;
+          p_bienvenida_horas: number; p_bienvenida_receta: string | null; p_brindis: boolean; p_cena: boolean; p_cena_horas: number; p_barra: Json;
+        };
         Returns: string;
       };
       admin_guardar_receta: {
-        Args: { p_id: string | null; p_nombre: string; p_categoria: string; p_ml: number; p_activo: boolean };
+        Args: {
+          p_id: string | null; p_nombre: string; p_categoria: string; p_ml: number; p_activo: boolean;
+          p_mezclador: string | null; p_mezclador_ml: number; p_limones: number; p_jarabe_ml: number;
+        };
         Returns: string;
       };
       crear_cotizacion: {
