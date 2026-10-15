@@ -100,7 +100,7 @@ export function Cotizador({
   const esComprador = rol === "comprador";
 
   return (
-    <div ref={arriba} className="scroll-mt-24 pb-24 lg:pb-0">
+    <div ref={arriba} className="scroll-mt-24">
       {abierta && (
         <p role="status" className="mb-6 border-l-2 border-verde pl-3 text-sm">
           Abriste la cotización <span className="font-mono">{abierta}</span>. Si cambias algo y la guardas, se crea una nueva.
@@ -246,8 +246,8 @@ export function Cotizador({
         </aside>
       </div>
 
-      {/* Resumen en vivo (celular): barra fija abajo */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-linea bg-blanco/95 px-4 py-3 backdrop-blur lg:hidden">
+      {/* Resumen en vivo (celular): pegado abajo mientras estás en el cotizador (no tapa el pie) */}
+      <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-linea bg-blanco/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <div className={`text-sm transition-opacity ${calculando ? "opacity-60" : ""}`}>
             <p className="font-mono font-semibold">{soles(resultado.total)}</p>

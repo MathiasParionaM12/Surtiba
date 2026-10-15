@@ -87,3 +87,21 @@ body {
     transition: none;
   }
 }
+
+/* Al bajar por la portada, cada bloque aparece suave al entrar en pantalla.
+   Solo en navegadores que lo soportan (sin JavaScript) y si no se pidió reducir movimiento. */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .aparecer {
+      animation: aparecer linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}

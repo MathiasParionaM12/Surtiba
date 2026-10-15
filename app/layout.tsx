@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Avisos } from "@/components/Avisos";
 import { BarraCarga } from "@/components/BarraCarga";
 import { Encabezado } from "@/components/Encabezado";
+import { Pie } from "@/components/Pie";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         <Encabezado />
         {children}
+        <Pie />
         <Avisos />
       </body>
     </html>
