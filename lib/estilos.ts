@@ -2,7 +2,7 @@
 // Botones: radio 6px. Primario = fondo tinta. Secundario = borde línea. Nunca el resaltador.
 
 const botonBase =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium whitespace-nowrap transition-colors " +
+  "inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,scale] duration-150 motion-safe:active:scale-[0.98] " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde disabled:cursor-not-allowed disabled:opacity-50";
 
 export const botonPrimario = `${botonBase} bg-tinta text-blanco hover:bg-tinta/85`;

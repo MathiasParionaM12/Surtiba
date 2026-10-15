@@ -23,10 +23,15 @@ export function FotoProducto({
           alt=""
           fill
           sizes={grande ? "(min-width: 768px) 50vw, 100vw" : "(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"}
-          className="object-contain p-4"
+          className="object-contain p-4 transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"
         />
       ) : (
-        <svg viewBox="0 0 40 100" className={grande ? "h-48" : "h-24"} fill="none" aria-hidden="true">
+        <svg
+          viewBox="0 0 40 100"
+          className={`transition-transform duration-300 motion-safe:group-hover:scale-[1.04] ${grande ? "h-48" : "h-24"}`}
+          fill="none"
+          aria-hidden="true"
+        >
           <path
             d="M16 4h8v18c0 4 8 8 8 18v52a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V40c0-10 8-14 8-18V4Z"
             stroke="var(--color-linea)"

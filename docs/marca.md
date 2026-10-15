@@ -28,6 +28,15 @@ Etiquetas de estado: pendiente / recibido = gris; listo para recojo / en prepara
 - Tablas densas y legibles: es una herramienta de compra por cajas
 - Debe funcionar bien en celular (los compradores piden desde el teléfono)
 
+## Movimiento (fase 8)
+Poco, corto y útil. Nunca para decorar.
+- **Avisos flotantes** (sonner, `components/Avisos.tsx`): los éxitos ("Stock guardado") salen abajo a la derecha y se van solos en 4 s. Los errores se quedan junto al formulario.
+- **Cambio de pantalla:** fundido de 220 ms (solo opacidad) y una barra verde fina arriba mientras carga.
+- **Carga:** esqueletos grises con un brillo que los recorre.
+- **Al pasar el mouse:** las tarjetas suben 2 px con una sombra suave; los botones se achican apenas al presionarlos.
+- **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).
+- **Reducir movimiento:** si la persona lo pidió en su sistema, todo se queda quieto.
+
 ## Logo
 "surtiba" en minúsculas, Geist semibold. El punto de la "i" es un cuadrado en `resaltador`. Mientras no haya archivo de logo, hacerlo con texto + un `span` cuadrado.
 

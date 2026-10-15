@@ -92,7 +92,8 @@ export function Cotizador({
   };
   const irA = (n: number) => {
     setPaso(n);
-    arriba.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    arriba.current?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
   };
 
   const tipo = tipos.find((t) => t.id === entrada.tipoEventoId)?.nombre ?? "";

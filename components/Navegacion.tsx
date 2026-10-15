@@ -69,10 +69,8 @@ export async function NavPrincipal() {
   );
 }
 
-// Celular: una segunda fila con los mismos enlaces (solo con sesión)
+// Celular: una segunda fila con los mismos enlaces (también para visitantes)
 export async function NavMovil() {
-  const usuario = await obtenerUsuario();
-  if (!usuario) return null;
   const enlaces = await enlacesDelUsuario();
   return (
     <nav className="flex gap-5 overflow-x-auto border-t border-linea px-4 py-2.5 sm:hidden">

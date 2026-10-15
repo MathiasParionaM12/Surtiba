@@ -18,7 +18,7 @@ export function TarjetaProducto({ p }: { p: ProductoTarjeta }) {
       )}
       <Link
         href={`/catalogo/${p.id}`}
-        className="group flex flex-1 flex-col overflow-hidden rounded-md border border-linea bg-blanco transition-colors hover:border-gris"
+        className="group flex flex-1 flex-col overflow-hidden rounded-md border border-linea bg-blanco transition-[border-color,box-shadow,translate] duration-200 hover:border-gris hover:shadow-md hover:shadow-tinta/5 motion-safe:hover:-translate-y-0.5"
       >
         <FotoProducto categoria={p.categoria} ml={p.ml} foto={p.foto} />
         <div className="flex flex-1 flex-col p-4">
