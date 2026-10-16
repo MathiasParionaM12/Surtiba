@@ -21,13 +21,26 @@ Hola, Adriano. Esta es una ruta para recorrer **todo** lo que tiene Surtiba, pas
 - **Es un prototipo.** No se cobra dinero ni se envía nada de verdad. El pago es simulado.
 - **Inventa todos los datos:** empresa, RUC, dirección, nombres. Por ejemplo: "Catering Prueba Adriano".
 - **No uses una contraseña que uses en otro lado.**
-- **Cuentas que vas a necesitar:**
 
-| Cuenta | Cómo la consigues |
-|---|---|
-| Comprador | La creas tú (parte 2) |
-| Marca | La creas tú con **otro correo** (parte 4) y Mathias la aprueba. Si usas Gmail, puedes poner `+marca` antes de la @ (ej. `tunombre+marca@gmail.com`): llega a la misma bandeja |
-| Admin | Mathias te da acceso por privado, o hacen esa parte juntos |
+## Cuentas para ver todo
+
+Ya hay cuentas creadas, una para cada tipo de usuario. **Mathias te pasa el correo y la clave de cada una por privado.**
+
+| Tipo | Cuenta (como aparece en la app) | Para qué partes |
+|---|---|---|
+| Admin | Admin Demo · Surtiba (demo) | 5 y 6 |
+| Comprador | Comprador Demo 1 · Catering Demo | 3 y 6 |
+| Comprador | Comprador Demo 2 · Bar Demo | 3 |
+| Comprador | Robertico · Robertico SAC | 3 |
+| Comprador | fraca · sado | 3 |
+| Marca | Marca Demo Pisco | 4 y 6 |
+| Marca | Marca Demo Cócteles | 4 |
+| Marca | Marca Demo Ron | 4 |
+| Marca | Raffo Mariaca (la tuya) | 4 y 6 |
+
+- Estas cuentas son **compartidas**: lo que hagas con ellas (pedidos, cambios de precio o stock) lo ve el resto.
+- Para probar el registro desde cero, crea además tu propia cuenta de comprador (parte 2).
+- Para ver lo mismo desde dos cuentas a la vez, abre una en una ventana normal y la otra en una de **incógnito**.
 
 - **Dispositivos:** haz la ruta en la computadora y repite al menos la parte del comprador en el **celular**, porque los compradores piden desde el teléfono.
 - Puedes hacerla por partes. No tiene que ser de una vez.
@@ -138,12 +151,14 @@ Vale todo: errores, cosas que no entendiste, textos raros, cosas que te gustaron
 
 ## Parte 4 · Como marca
 
-### 4.1 Pedir ser marca
-- [ ] Sal de tu cuenta. Entra a **Crear cuenta** → **Quiero vender** y usa **otro correo**. Inventa la marca, por ejemplo "Marca Prueba Adriano".
-- [ ] Mira **Mi solicitud**.
-- [ ] Avísale a Mathias para que la apruebe. Si quieren, primero pueden probar un rechazo con otra solicitud.
+Usa tu marca **Raffo Mariaca** o una de las marcas demo.
 
-### 4.2 Tu panel (ya aprobada)
+### 4.1 Pedir ser marca (desde cero)
+- [ ] Sal de tu cuenta. Entra a **Crear cuenta** → **Quiero vender** y usa **un correo que no tenga cuenta**. Si usas Gmail, puedes poner `+marca` antes de la @ (ej. `tunombre+marca@gmail.com`): llega a la misma bandeja. Inventa la marca, por ejemplo "Marca Prueba Adriano".
+- [ ] Mira **Mi solicitud**.
+- [ ] Con la cuenta **Admin Demo**, apruébala o recházala (parte 5) y vuelve a entrar con esa marca.
+
+### 4.2 El panel de la marca
 - [ ] Entra a **Mi panel** y revisa **Resumen**.
 - [ ] **Productos → Crear producto:**
   - llena los datos
@@ -166,7 +181,9 @@ Vale todo: errores, cosas que no entendiste, textos raros, cosas que te gustaron
 
 ---
 
-## Parte 5 · Como admin (con Mathias)
+## Parte 5 · Como admin
+
+Entra con la cuenta **Admin Demo**.
 
 - [ ] **Inicio:** revisa las métricas.
 - [ ] **Marcas:**
@@ -190,9 +207,9 @@ Vale todo: errores, cosas que no entendiste, textos raros, cosas que te gustaron
 
 ## Parte 6 · Un pedido de principio a fin
 
-Esto es el ciclo completo. Hazlo de corrido, con las tres cuentas.
+Esto es el ciclo completo. Hazlo de corrido, con una cuenta de cada tipo (comprador, marca y admin).
 
-1. [ ] **Comprador:** pide productos de 2 marcas (una puede ser la tuya) y paga.
+1. [ ] **Comprador:** pide productos de 2 marcas (una puede ser Raffo Mariaca) y paga.
 2. [ ] **Marca:** marca su orden como **Listo para recojo**.
 3. [ ] **Admin:** en Logística, lo marca **recogido**, luego **en camino** y luego **entregado**.
 4. [ ] **Comprador:** mira cómo cambió el estado en **Mis pedidos** en cada paso.
