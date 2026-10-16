@@ -7,6 +7,7 @@ import { ArrowRight, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { LineaTiempo } from "@/app/cotizador/ui";
+import { Cifra } from "@/components/Cifra";
 import { calcular, entradaDesdeTipo, type Parametros, type Receta, type TipoEvento } from "@/lib/cotizador";
 import { botonPrimario, sello } from "@/lib/estilos";
 
@@ -15,16 +16,6 @@ const MIN = 20;
 const MAX = 300;
 const PASO = 10;
 const HORAS = [4, 5, 6];
-
-// Un número que hace un fundido corto cuando cambia, para que se note qué se movió
-function Cifra({ valor, unidad }: { valor: number; unidad?: string }) {
-  return (
-    <span key={valor} className="cifra inline-block">
-      {entero.format(valor)}
-      {unidad && <span className="ml-1 text-sm font-normal text-gris">{unidad}</span>}
-    </span>
-  );
-}
 
 export function MiniCotizador({ tipo, parametros, recetas }: { tipo: TipoEvento; parametros: Parametros; recetas: Receta[] }) {
   const [invitados, setInvitados] = useState(100);
@@ -109,19 +100,20 @@ export function MiniCotizador({ tipo, parametros, recetas }: { tipo: TipoEvento;
           <div>
             <dt className="text-xs text-gris">Tragos</dt>
             <dd className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-              <Cifra valor={r.tragosTotales} />
+              <Cifra>{entero.format(r.tragosTotales)}</Cifra>
             </dd>
           </div>
           <div>
             <dt className="text-xs text-gris">Toman alcohol</dt>
             <dd className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-              <Cifra valor={r.toman} />
+              <Cifra>{entero.format(r.toman)}</Cifra>
             </dd>
           </div>
           <div>
             <dt className="text-xs text-gris">Hielo</dt>
             <dd className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-              <Cifra valor={hielo} unidad="kg" />
+              <Cifra>{entero.format(hielo)}</Cifra>
+              <span className="ml-1 text-sm font-normal text-gris">kg</span>
             </dd>
           </div>
         </dl>

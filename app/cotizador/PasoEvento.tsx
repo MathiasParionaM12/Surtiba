@@ -2,7 +2,7 @@
 
 import { Etiqueta } from "@/components/Etiqueta";
 import { LIMITES, type EntradaCotizador, type TipoEvento } from "@/lib/cotizador";
-import { campo } from "@/lib/estilos";
+import { areaToque, campo } from "@/lib/estilos";
 import { Segmentado } from "./ui";
 
 // Resumen de los momentos de un tipo de evento: "6 h · bienvenida, cena, brindis y fiesta"
@@ -94,7 +94,7 @@ export function PasoEvento({
           <span className="text-xs text-gris">
             Niños, conductores y quienes no toman. Sugerido: {sugeridoNoToman}.{" "}
             {entrada.noToman !== sugeridoNoToman && (
-              <button type="button" onClick={() => actualizar({ noToman: sugeridoNoToman })} className="font-medium text-verde hover:text-tinta">
+              <button type="button" onClick={() => actualizar({ noToman: sugeridoNoToman })} className={`${areaToque} font-medium text-verde hover:text-tinta`}>
                 Usar sugerido
               </button>
             )}

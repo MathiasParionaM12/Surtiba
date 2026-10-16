@@ -76,7 +76,7 @@ export function PasoMomentos({
           <select
             value={entrada.bienvenida.horas}
             onChange={(e) => actualizar({ bienvenida: { ...entrada.bienvenida, horas: Number(e.target.value) } })}
-            className={`${campo} h-10 w-36`}
+            className={`${campo} w-36 sm:h-10`}
           >
             {HORAS.filter((h) => h <= 3).map((h) => (
               <option key={h} value={h}>
@@ -90,7 +90,7 @@ export function PasoMomentos({
           <select
             value={entrada.bienvenida.recetaId ?? ""}
             onChange={(e) => actualizar({ bienvenida: { ...entrada.bienvenida, recetaId: e.target.value || null } })}
-            className={`${campo} h-10`}
+            className={`${campo} sm:h-10`}
           >
             <option value="">Los mismos tragos de la barra</option>
             {recetas.map((r) => (
@@ -114,7 +114,7 @@ export function PasoMomentos({
           <select
             value={entrada.cena.horas}
             onChange={(e) => actualizar({ cena: { ...entrada.cena, horas: Number(e.target.value) } })}
-            className={`${campo} h-10 w-36`}
+            className={`${campo} w-36 sm:h-10`}
           >
             {HORAS.map((h) => (
               <option key={h} value={h}>

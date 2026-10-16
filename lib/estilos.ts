@@ -16,3 +16,6 @@ export const etiqueta = "text-sm font-medium";
 
 // Texto pequeño en mayúsculas con Geist Mono (sellos, encabezados de tabla)
 export const sello = "font-mono text-xs font-medium tracking-[0.12em] text-gris uppercase";
+
+// Agranda la zona que se puede tocar de un botón de texto (unos 44 px de alto) sin mover el diseño
+export const areaToque = "relative before:absolute before:-inset-x-2 before:-inset-y-3.5";

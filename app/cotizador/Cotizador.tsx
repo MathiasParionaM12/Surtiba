@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, Check, ChevronUp, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
 import { BotonPdf } from "@/components/BotonPdf";
+import { Cifra } from "@/components/Cifra";
 import { cotizar, guardarCotizacion, pasarAlCarrito } from "@/lib/acciones-cotizador";
 import {
   entradaDesdeTipo,
@@ -47,6 +48,7 @@ export function Cotizador({
   const [entrada, setEntrada] = useState(entradaInicial);
   const [resultado, setResultado] = useState(resultadoInicial);
   const [error, setError] = useState<string>();
+  const [resumenAbierto, setResumenAbierto] = useState(false);
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();
   const ultimo = useRef(0);
@@ -110,21 +112,41 @@ export function Cotizador({
 
       {/* Pasos */}
       <ol className="grid grid-cols-4 gap-2" aria-label="Pasos del cotizador">
-        {PASOS.map((p, i) => (
-          <li key={p}>
-            <button
-              type="button"
-              onClick={() => irA(i)}
-              aria-current={i === paso ? "step" : undefined}
-              className="flex w-full flex-col gap-2 text-left"
-            >
-              <span className={`h-1.5 rounded-full transition-colors ${i <= paso ? "bg-verde" : "bg-linea"}`} />
-              <span className={`text-xs sm:text-sm ${i === paso ? "font-medium" : "text-gris"}`}>
-                <span className="font-mono">{i + 1}.</span> {p}
-              </span>
-            </button>
-          </li>
-        ))}
+        {PASOS.map((p, i) => {
+          // Paso actual en tinta, los ya hechos en verde, los que faltan en gris
+          const estado = i === paso ? "actual" : i < paso ? "hecho" : "falta";
+          return (
+            <li key={p}>
+              <button
+                type="button"
+                onClick={() => irA(i)}
+                aria-current={estado === "actual" ? "step" : undefined}
+                className="flex min-h-11 w-full flex-col gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde"
+              >
+                <span
+                  className={`h-1.5 rounded-full transition-colors duration-300 ${
+                    estado === "actual" ? "bg-tinta" : estado === "hecho" ? "bg-verde" : "bg-linea"
+                  }`}
+                />
+                <span
+                  className={`flex items-center gap-1 text-xs sm:text-sm ${
+                    estado === "actual" ? "font-medium text-tinta" : estado === "hecho" ? "text-verde" : "text-gris"
+                  }`}
+                >
+                  {estado === "hecho" ? (
+                    <>
+                      <Check className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+                      <span className="sr-only">Hecho:</span>
+                    </>
+                  ) : (
+                    <span className="font-mono">{i + 1}.</span>
+                  )}
+                  <span className="truncate">{p}</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ol>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -165,14 +187,14 @@ export function Cotizador({
                   className={`${botonPrimario} w-full`}
                 >
                   <ShoppingCart className="size-4" aria-hidden="true" />
-                  {pasando ? "Pasando al carrito…" : "Pasar todo al carrito"}
+                  {pasando ? "Agregando al carrito…" : "Agregar todo al carrito"}
                 </button>
-                <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Guardar y descargar PDF" />
+                <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Descargar PDF" />
               </div>
             )}
             {paso === 3 && esComprador && (
               <p className="text-xs text-gris">
-                Al pasarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Tus cotizaciones guardadas están en{" "}
+                Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Al descargar el PDF, la cotización se guarda en{" "}
                 <Link href="/cotizaciones" className="font-medium text-verde hover:text-tinta">
                   Mis cotizaciones
                 </Link>
@@ -180,7 +202,7 @@ export function Cotizador({
               </p>
             )}
             {paso === 3 && rol === "admin" && (
-              <p className="text-xs text-gris">Solo los compradores pueden pasarlo al carrito y guardar la cotización.</p>
+              <p className="text-xs text-gris">Solo los compradores pueden agregarlo al carrito y guardar la cotización.</p>
             )}
             <div className="flex justify-between gap-3">
               {paso > 0 ? (
@@ -209,36 +231,7 @@ export function Cotizador({
             <h2 className={sello}>Resumen</h2>
             <span className="text-xs text-gris">{calculando ? "Calculando…" : ""}</span>
           </div>
-          <dl className={`flex flex-col gap-3 text-sm transition-opacity ${calculando ? "opacity-60" : ""}`}>
-            <div className="flex justify-between">
-              <dt className="text-gris">Toman alcohol</dt>
-              <dd className="font-mono">
-                {entero.format(resultado.toman)} de {entero.format(entrada.invitados)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gris">Tragos con alcohol</dt>
-              <dd className="font-mono">{entero.format(resultado.tragosTotales)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gris">Cajas</dt>
-              <dd className="font-mono">{cajas}</dd>
-            </div>
-            <div className="flex justify-between border-t border-linea pt-3 text-base">
-              <dt className="font-medium">Total estimado</dt>
-              <dd className="font-mono font-semibold">{soles(resultado.total)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gris">Por invitado</dt>
-              <dd className="font-mono">{soles(resultado.porInvitado)}</dd>
-            </div>
-          </dl>
-          {resultado.minimos.length > 0 && (
-            <p className="border-l-2 border-tinta pl-3 text-xs">
-              {resultado.minimos.length === 1 ? "Una marca no llega" : `${resultado.minimos.length} marcas no llegan`} a su pedido mínimo.
-              Lo ves en el resultado.
-            </p>
-          )}
+          <ResumenDatos resultado={resultado} invitados={entrada.invitados} calculando={calculando} />
           {paso < 3 && (
             <button type="button" onClick={() => irA(3)} className={`${botonSecundario} w-full`}>
               Ver resultado
@@ -247,25 +240,107 @@ export function Cotizador({
         </aside>
       </div>
 
-      {/* Resumen en vivo (celular): pegado abajo mientras estás en el cotizador (no tapa el pie) */}
-      <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-linea bg-blanco/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:hidden">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-          <div className={`text-sm transition-opacity ${calculando ? "opacity-60" : ""}`}>
-            <p className="font-mono font-semibold">{soles(resultado.total)}</p>
-            <p className="text-xs text-gris">
-              {entero.format(resultado.tragosTotales)} tragos · {cajas} cajas
-            </p>
+      {/* Resumen en vivo (celular): pegado abajo mientras estás en el cotizador (no tapa el pie).
+          Al tocarlo se abre hacia arriba con el resumen completo. */}
+      <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-linea bg-blanco/95 px-4 py-2 backdrop-blur sm:-mx-8 sm:px-8 lg:hidden">
+        <div
+          id="resumen-celular"
+          inert={!resumenAbierto}
+          aria-hidden={!resumenAbierto}
+          className={`grid transition-[grid-template-rows] duration-200 ease-out ${resumenAbierto ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+        >
+          <div className="overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-linea pt-2 pb-4">
+              <ResumenDatos resultado={resultado} invitados={entrada.invitados} calculando={calculando} />
+            </div>
           </div>
+        </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 pt-1">
+          <button
+            type="button"
+            onClick={() => setResumenAbierto((a) => !a)}
+            aria-expanded={resumenAbierto}
+            aria-controls="resumen-celular"
+            className={`flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left text-sm transition-opacity ${calculando ? "opacity-60" : ""}`}
+          >
+            <span className="min-w-0">
+              <span className="block font-mono font-semibold">
+                <Cifra>{soles(resultado.total)}</Cifra>
+              </span>
+              <span className="block truncate text-xs text-gris">
+                {entero.format(resultado.tragosTotales)} tragos · {cajas} cajas · {resumenAbierto ? "ocultar" : "ver resumen"}
+              </span>
+            </span>
+            <ChevronUp
+              className={`size-4 shrink-0 text-gris transition-transform duration-200 ${resumenAbierto ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+          </button>
           {paso < 3 ? (
-            <button type="button" onClick={() => irA(paso + 1)} className={`${botonPrimario} h-10`}>
+            <button type="button" onClick={() => irA(paso + 1)} className={`${botonPrimario} shrink-0`}>
               {paso === 2 ? "Ver resultado" : "Siguiente"}
-                  <ArrowRight className="size-4" aria-hidden="true" />
+              <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           ) : (
-            <span className="text-xs text-gris">{soles(resultado.porInvitado)} por invitado</span>
+            <span className="shrink-0 text-xs text-gris">{soles(resultado.porInvitado)} por invitado</span>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// Las cifras del resumen (las mismas en computadora y en celular). Cada número hace un fundido corto al cambiar.
+function ResumenDatos({
+  resultado,
+  invitados,
+  calculando,
+}: {
+  resultado: ResultadoCotizacion;
+  invitados: number;
+  calculando: boolean;
+}) {
+  const cajas = resultado.productos.reduce((s, p) => s + p.cajas, 0);
+  return (
+    <>
+      <dl className={`flex flex-col gap-3 text-sm transition-opacity ${calculando ? "opacity-60" : ""}`}>
+        <div className="flex justify-between gap-3">
+          <dt className="text-gris">Toman alcohol</dt>
+          <dd className="font-mono">
+            <Cifra>{entero.format(resultado.toman)}</Cifra> de {entero.format(invitados)}
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-gris">Tragos con alcohol</dt>
+          <dd className="font-mono">
+            <Cifra>{entero.format(resultado.tragosTotales)}</Cifra>
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-gris">Cajas</dt>
+          <dd className="font-mono">
+            <Cifra>{entero.format(cajas)}</Cifra>
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3 border-t border-linea pt-3 text-base">
+          <dt className="font-medium">Total estimado</dt>
+          <dd className="font-mono font-semibold">
+            <Cifra>{soles(resultado.total)}</Cifra>
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-gris">Por invitado</dt>
+          <dd className="font-mono">
+            <Cifra>{soles(resultado.porInvitado)}</Cifra>
+          </dd>
+        </div>
+      </dl>
+      {resultado.minimos.length > 0 && (
+        <p className="border-l-2 border-tinta pl-3 text-xs">
+          {resultado.minimos.length === 1 ? "Una marca no llega" : `${resultado.minimos.length} marcas no llegan`} a su pedido mínimo.
+          Lo ves en el resultado.
+        </p>
+      )}
+    </>
   );
 }

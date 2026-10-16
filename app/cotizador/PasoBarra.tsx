@@ -1,7 +1,7 @@
 "use client";
 
 import { LIMITES, NIVELES, PERFILES, PESO, type EntradaCotizador, type Nivel, type Receta } from "@/lib/cotizador";
-import { campo } from "@/lib/estilos";
+import { areaToque, campo } from "@/lib/estilos";
 import { Segmentado } from "./ui";
 
 // "De cada 9 tragos: 3 chilcano…": cada trago cuenta según su peso (principal 3, secundario 2, ocasional 1).
@@ -48,7 +48,7 @@ export function PasoBarra({
                 <button
                   type="button"
                   onClick={() => quitar(b.recetaId)}
-                  className="text-sm text-gris hover:text-tinta sm:hidden"
+                  className={`${areaToque} text-sm text-gris hover:text-tinta sm:hidden`}
                   aria-label={`Quitar ${nombre(b.recetaId)}`}
                 >
                   Quitar
@@ -75,7 +75,7 @@ export function PasoBarra({
           ))}
         </ul>
         {sinUsar.length > 0 && entrada.barra.length < LIMITES.barraMax && (
-          <select value="" onChange={(e) => agregar(e.target.value)} className={`${campo} h-10 text-sm sm:w-72`} aria-label="Agregar un trago">
+          <select value="" onChange={(e) => agregar(e.target.value)} className={`${campo} text-sm sm:h-10 sm:w-72`} aria-label="Agregar un trago">
             <option value="">+ Agregar un trago</option>
             {sinUsar.map((r) => (
               <option key={r.id} value={r.id}>

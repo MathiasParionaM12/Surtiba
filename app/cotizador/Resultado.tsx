@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
-import { campo, sello } from "@/lib/estilos";
+import { areaToque, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { LineaTiempo } from "./ui";
 
@@ -31,7 +31,7 @@ function CampoCajas({ valor, onCambio, etiqueta }: { valor: number; onCambio: (v
         setTexto(e.target.value);
         onCambio(e.target.value);
       }}
-      className={`${campo} h-9 w-20 text-right font-mono text-sm`}
+      className={`${campo} w-20 text-right font-mono text-sm sm:h-9`}
     />
   );
 }
@@ -153,14 +153,14 @@ export function Resultado({
             <button
               type="button"
               onClick={() => subirAlMinimo(a)}
-              className="h-9 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris"
+              className="h-11 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris sm:h-9"
             >
               Subir a {a.minimo} cajas
             </button>
             <button
               type="button"
               onClick={() => cambiarProductoDe(a)}
-              className="h-9 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris"
+              className="h-11 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris sm:h-9"
             >
               Cambiar de producto
             </button>
@@ -187,7 +187,7 @@ export function Resultado({
                     aria-label={`Producto para ${t.receta}`}
                     value={entrada.productos[t.recetaId] ?? ""}
                     onChange={(e) => cambiarProducto(t.recetaId, e.target.value)}
-                    className={`${campo} h-9 text-sm sm:w-72`}
+                    className={`${campo} text-sm sm:h-9 sm:w-72`}
                   >
                     <option value="">Que Surtiba recomiende</option>
                     {t.opciones.map((o) => (
@@ -238,7 +238,7 @@ export function Resultado({
                   {p.cajas !== p.cajasSugeridas && (
                     <p className="text-xs text-gris">
                       Sugeridas: <span className="font-mono">{p.cajasSugeridas}</span> ·{" "}
-                      <button type="button" onClick={() => cambiarCajas(p.productoId, "")} className="font-medium text-verde hover:text-tinta">
+                      <button type="button" onClick={() => cambiarCajas(p.productoId, "")} className={`${areaToque} font-medium text-verde hover:text-tinta`}>
                         Volver a lo sugerido
                       </button>
                     </p>

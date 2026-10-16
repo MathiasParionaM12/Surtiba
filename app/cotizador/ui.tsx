@@ -33,7 +33,7 @@ export function Segmentado<T extends string | number>({
             role="radio"
             aria-checked={activo}
             onClick={() => onCambio(o.valor)}
-            className={`h-8 rounded-[5px] px-3 text-sm whitespace-nowrap transition-colors ${ancho ? "flex-1 sm:flex-none" : ""} ${
+            className={`h-11 rounded-[5px] px-3 text-sm sm:h-8 whitespace-nowrap transition-colors ${ancho ? "flex-1 sm:flex-none" : ""} ${
               activo ? "bg-blanco font-medium text-tinta shadow-sm" : "text-gris hover:text-tinta"
             }`}
           >
@@ -54,7 +54,7 @@ export function Interruptor({ activo, onCambio, etiqueta }: { activo: boolean; o
       aria-checked={activo}
       aria-label={etiqueta}
       onClick={() => onCambio(!activo)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${activo ? "bg-verde" : "bg-linea"}`}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors before:absolute before:-inset-2.5 ${activo ? "bg-verde" : "bg-linea"}`}
     >
       <span
         className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-blanco shadow-sm transition-transform ${activo ? "translate-x-5" : ""}`}

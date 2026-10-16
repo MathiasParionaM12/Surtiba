@@ -124,7 +124,7 @@ Cálculo (solo cuentan los que toman; factor = público × horario, de día se t
 
 Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
-Se guarda (COT-0001) con "Guardar y descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Pasar todo al carrito" reemplaza las cajas de esos productos en el carrito.
+Se guarda (COT-0001) con "Descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Agregar todo al carrito" reemplaza las cajas de esos productos en el carrito.
 
 Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 
