@@ -142,3 +142,34 @@ body {
     animation: none !important;
   }
 }
+
+/* Portada (parte A): la línea del recorrido se dibuja al bajar (components/portada/Recorrido.tsx).
+   Sin soporte o con "reducir movimiento", se ve dibujada desde el inicio. */
+.trazo {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+@keyframes dibujar {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .trazo {
+      animation: dibujar linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 45%;
+    }
+  }
+}
+
+/* Una cifra o un panel que cambia hace un fundido corto (mini-cotizador, pestañas) */
+@keyframes cifra {
+  from {
+    opacity: 0.25;
+  }
+}
+.cifra {
+  animation: cifra 200ms ease-out;
+}

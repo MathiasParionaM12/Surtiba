@@ -181,7 +181,10 @@ export function repartoBarra(barra: EntradaCotizador["barra"]) {
   return barra.map((b) => ({ recetaId: b.recetaId, parte: total ? PESO[b.nivel] / total : 0 }));
 }
 
-const cajasPara = (ml: number, p: ProductoCotizable) => Math.ceil(ml / (p.ml * p.unidades));
+// Redondea hacia arriba sin que un error de decimales (121.0000001) sume una unidad de más
+const arriba = (x: number) => Math.ceil(x - 1e-9);
+
+const cajasPara = (ml: number, p: ProductoCotizable) => arriba(ml / (p.ml * p.unidades));
 
 // Recomienda el producto que cubre esos ml al menor costo; primero los que tienen stock suficiente
 function recomendar(candidatos: ProductoCotizable[], ml: number) {
@@ -275,7 +278,7 @@ export function calcular(
   const mlPorProducto = new Map<string, { ml: number; para: string[] }>();
   for (const [recetaId, cantidadExacta] of porReceta) {
     const receta = recetaPorId.get(recetaId)!;
-    const cantidad = Math.ceil(cantidadExacta - 1e-9);
+    const cantidad = arriba(cantidadExacta);
     if (cantidad <= 0) continue;
     const candidatos = catalogo.filter((p) => p.categoria === receta.categoria);
     const elegidoId = e.productos[recetaId];
@@ -311,7 +314,7 @@ export function calcular(
     const precioCaja = precioPara(p.tramos, cajas) ?? p.tramos[0]?.precio_caja_centimos ?? 0;
     productos.push({
       productoId: id, nombre: p.nombre, marca: p.marca, marcaId: p.marcaId, para,
-      botellas: Math.ceil(ml / p.ml), cajasSugeridas, cajas, precioCaja, subtotal: cajas * precioCaja, stock: p.stock,
+      botellas: arriba(ml / p.ml), cajasSugeridas, cajas, precioCaja, subtotal: cajas * precioCaja, stock: p.stock,
     });
   }
   productos.sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre));
@@ -333,9 +336,9 @@ export function calcular(
 
   // 5. Lo que Surtiba no vende: hielo, agua y gaseosas, mezcladores, limones y jarabe
   const insumos: Insumo[] = [];
-  const hielo = Math.ceil(e.invitados * e.horas * par.hielo_kg_persona_hora * (e.aireLibre ? par.factor_calor : 1) * margen);
-  if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `unas ${Math.ceil(hielo / 5)} bolsas de 5 kg` });
-  const agua = Math.ceil((toman * par.sin_alcohol_l_hora_toma + e.noToman * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
+  const hielo = arriba(e.invitados * e.horas * par.hielo_kg_persona_hora * (e.aireLibre ? par.factor_calor : 1) * margen);
+  if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `unas ${arriba(hielo / 5)} bolsas de 5 kg` });
+  const agua = arriba((toman * par.sin_alcohol_l_hora_toma + e.noToman * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
   if (agua > 0) insumos.push({ nombre: "Agua y gaseosas para tomar solas", cantidad: agua, unidad: "litros" });
   const mezcladores = new Map<string, number>();
   let limones = 0;
@@ -346,9 +349,9 @@ export function calcular(
     limones += t.tragos * Number(r.limones);
     jarabe += t.tragos * r.jarabe_ml;
   }
-  for (const [nombre, ml] of mezcladores) insumos.push({ nombre, cantidad: Math.ceil(ml / 1000), unidad: "litros", nota: "para los tragos" });
-  if (limones > 0) insumos.push({ nombre: "Limones", cantidad: Math.ceil(limones), unidad: "unidades" });
-  if (jarabe > 0) insumos.push({ nombre: "Jarabe de goma", cantidad: Math.ceil(jarabe / 100) / 10, unidad: "litros" });
+  for (const [nombre, ml] of mezcladores) insumos.push({ nombre, cantidad: arriba(ml / 1000), unidad: "litros", nota: "para los tragos" });
+  if (limones > 0) insumos.push({ nombre: "Limones", cantidad: arriba(limones), unidad: "unidades" });
+  if (jarabe > 0) insumos.push({ nombre: "Jarabe de goma", cantidad: arriba(jarabe / 100) / 10, unidad: "litros" });
 
   const tragosTotales = tragos.reduce((s, t) => s + t.tragos, 0);
   const total = productos.reduce((s, l) => s + l.subtotal, 0);

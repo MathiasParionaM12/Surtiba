@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { esUuid } from "@/lib/catalogo";
-import { calcular, entradaDesdeTipo, type EntradaCotizador } from "@/lib/cotizador";
+import { calcular, entradaDesdeTipo, LIMITES, type EntradaCotizador } from "@/lib/cotizador";
 import { datosCotizador, limpiarEntrada } from "@/lib/cotizador-datos";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { createClient } from "@/lib/supabase/server";
@@ -26,24 +26,37 @@ export default function PaginaCotizador({ searchParams }: PageProps<"/cotizador"
       </p>
       <div className="mt-8">
         <Carga fallback={<EsqueletoPagina />}>
-          <Contenido searchParams={searchParams as Promise<{ desde?: string }>} />
+          <Contenido searchParams={searchParams as Promise<Busqueda>} />
         </Carga>
       </div>
     </main>
   );
 }
 
-async function Contenido({ searchParams }: { searchParams: Promise<{ desde?: string }> }) {
-  const [{ desde }, datos] = await Promise.all([searchParams, datosCotizador()]);
+// desde: cotización guardada. invitados y horas: vienen del mini-cotizador de la portada.
+type Busqueda = { desde?: string; invitados?: string; horas?: string };
+
+async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
+  const [{ desde, invitados: inv, horas: hrs }, datos] = await Promise.all([searchParams, datosCotizador()]);
   const { usuario, puedeUsar, parametros, tipos, recetas, catalogo } = datos;
   if (usuario?.rol === "solicitante") redirect("/solicitud");
   if (!parametros || tipos.length === 0) {
     return <p className="rounded-md border border-linea bg-blanco p-5 text-gris">El cotizador no está disponible por ahora.</p>;
   }
 
+  // Evento inicial: el primer tipo, con los invitados y horas de la portada si vinieron (y son válidos)
+  const invitados = Number(inv);
+  const horas = Number(hrs);
+  const inicial = (): EntradaCotizador => {
+    const e = entradaDesdeTipo(tipos[0], parametros, Number.isInteger(invitados) && invitados >= 1 && invitados <= LIMITES.invitadosMax ? invitados : 100);
+    const ocupado = (e.bienvenida.activo ? e.bienvenida.horas : 0) + (e.cena.activo ? e.cena.horas : 0);
+    if (Number.isInteger(horas) && horas >= Math.ceil(ocupado) && horas <= LIMITES.horasMax) e.horas = horas;
+    return e;
+  };
+
   // Sin cuenta: qué hace, con un ejemplo calculado con los mismos supuestos
   if (!usuario) {
-    const ejemplo = entradaDesdeTipo(tipos[0], parametros, 100);
+    const ejemplo = inicial();
     return <Presentacion tipo={tipos[0].nombre} entrada={ejemplo} resultado={calcular(ejemplo, parametros, recetas, [])} />;
   }
   if (!puedeUsar) {
@@ -55,7 +68,7 @@ async function Contenido({ searchParams }: { searchParams: Promise<{ desde?: str
   }
 
   // Volver a abrir una cotización guardada (RLS: solo las suyas, o todas si es admin)
-  let entrada: EntradaCotizador = entradaDesdeTipo(tipos[0], parametros, 100);
+  let entrada: EntradaCotizador = inicial();
   let abierta: string | undefined;
   if (esUuid(desde)) {
     const supabase = await createClient();
