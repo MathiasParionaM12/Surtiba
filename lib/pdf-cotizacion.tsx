@@ -1,9 +1,10 @@
 // Documento PDF de una cotización (se arma en el servidor con @react-pdf/renderer).
 // Colores de docs/marca.md. Fuentes incluidas en el PDF: Helvetica (texto) y Courier (códigos y sellos).
 
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Insumo, Momento } from "@/lib/cotizador";
 import { fecha, soles } from "@/lib/formato";
+import { LOGO_PDF, LOGO_PROPORCION } from "@/lib/marca/logo-pdf";
 
 const C = { papel: "#F5F3EE", tinta: "#121212", gris: "#5C5A55", linea: "#DCD8CF", verde: "#14432F", resaltador: "#E8FF00" };
 
@@ -95,10 +96,9 @@ export function PdfCotizacion({
       <Page size="A4" style={s.pagina}>
         {/* Encabezado */}
         <View style={[s.fila, { justifyContent: "space-between", alignItems: "flex-start" }]}>
-          <View style={[s.fila, { alignItems: "flex-start" }]}>
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 22, letterSpacing: -0.5 }}>surtiba</Text>
-            <View style={{ width: 5, height: 5, backgroundColor: C.resaltador, marginLeft: 2, marginTop: 3 }} />
-          </View>
+          {/* El logo oficial (imagen): el punto de la "i" es el cuadrado amarillo */}
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- la imagen del PDF (react-pdf) no tiene texto alternativo */}
+          <Image src={LOGO_PDF} style={{ width: 112, height: 112 / LOGO_PROPORCION, marginTop: 2 }} />
           <View style={{ alignItems: "flex-end" }}>
             <Text style={s.sello}>Cotización</Text>
             <Text style={{ fontFamily: "Courier-Bold", fontSize: 16, marginTop: 4 }}>{codigo}</Text>

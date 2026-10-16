@@ -14,7 +14,7 @@ export function Encabezado() {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" aria-label="Surtiba, inicio" className="shrink-0">
-            <Logo className="text-2xl sm:text-[28px]" />
+            <Logo className="h-6 sm:h-7" prioridad />
           </Link>
           <Suspense fallback={<NavPrincipalCargando />}>
             <NavPrincipal />

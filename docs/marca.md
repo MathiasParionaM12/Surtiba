@@ -38,7 +38,10 @@ Poco, corto y útil. Nunca para decorar.
 - **Reducir movimiento:** si la persona lo pidió en su sistema, todo se queda quieto.
 
 ## Logo
-"surtiba" en minúsculas, Geist semibold. El punto de la "i" es un cuadrado en `resaltador`. Mientras no haya archivo de logo, hacerlo con texto + un `span` cuadrado.
+"surtiba" en minúsculas; el punto de la "i" es un cuadrado en `resaltador`. **Ya hay archivo oficial** (de Mathias, 15-oct-2026):
+- **Logo:** `components/marca/logo-surtiba.png` (fondo transparente). En la web lo pone `components/Logo.tsx` (encabezado y pie) y en el PDF `lib/marca/logo-pdf.ts`.
+- **Ícono de la página:** la "t" con el cuadrado amarillo, sobre papel: `app/icon.png`, `app/apple-icon.png` y `app/favicon.ico`.
+- No dibujarlo con texto ni mover el cuadrado: usar siempre el archivo.
 
 ## Tono
 - Directo y honesto. Números antes que adjetivos.
