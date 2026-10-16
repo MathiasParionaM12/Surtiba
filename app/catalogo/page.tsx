@@ -12,7 +12,7 @@ export default function PaginaCatalogo({ searchParams }: PageProps<"/catalogo">)
       <p className={sello}>Catálogo</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Licores y cócteles por caja</h1>
 
-      {/* Lo que se muestra depende de la sesión y de los filtros: se carga dentro de Suspense */}
+      {/* Lo que se muestra depende de la sesión: se carga dentro de Carga (Suspense con fundido) */}
       <Carga fallback={<EsqueletoTarjetas />}>
         <Catalogo searchParams={searchParams as Promise<Filtros>} />
       </Carga>

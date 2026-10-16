@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/Logo";
+import { MedirEncabezado } from "@/components/MedirEncabezado";
 import { MenuSesion } from "@/components/MenuSesion";
 import { NavMovil, NavPrincipal, NavPrincipalCargando } from "@/components/Navegacion";
 
@@ -9,6 +10,7 @@ import { NavMovil, NavPrincipal, NavPrincipalCargando } from "@/components/Naveg
 export function Encabezado() {
   return (
     <header className="sticky top-0 z-10 border-b border-linea bg-papel/95 backdrop-blur">
+      <MedirEncabezado />
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:h-18 sm:px-8">
         <div className="flex items-center gap-6">
           <Link href="/" aria-label="Surtiba, inicio" className="shrink-0">

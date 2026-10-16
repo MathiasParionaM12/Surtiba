@@ -56,9 +56,9 @@ async function ListaFavoritos() {
   }
 
   return (
-    <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
       {productos.map((p) => (
-        <TarjetaProducto key={p.id} p={p} />
+        <TarjetaProducto key={p.id} p={p} puedeAgregar />
       ))}
     </div>
   );

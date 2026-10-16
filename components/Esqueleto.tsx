@@ -9,11 +9,11 @@ export function EsqueletoTarjetas({ cantidad = 8 }: { cantidad?: number }) {
   return (
     <div className="mt-8" aria-busy="true" aria-label="Cargando productos">
       <Bloque className="h-3 w-24" />
-      <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: cantidad }, (_, i) => (
           <div key={i} className="overflow-hidden rounded-md border border-linea bg-blanco">
-            <div className="aspect-[4/3] border-b border-linea bg-papel" />
-            <div className="flex flex-col gap-2 p-4">
+            <div className="aspect-square border-b border-linea bg-papel sm:aspect-[4/3]" />
+            <div className="flex flex-col gap-2 p-3 sm:p-4">
               <Bloque className="h-3 w-20" />
               <Bloque className="h-4 w-40" />
               <Bloque className="h-3 w-28" />

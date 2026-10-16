@@ -11,7 +11,7 @@ export function BotonFavorito({ productoId, activo, className = "" }: { producto
         aria-pressed={activo}
         aria-label={activo ? "Quitar de favoritos" : "Guardar en favoritos"}
         title={activo ? "Quitar de favoritos" : "Guardar en favoritos"}
-        className="group flex size-9 items-center justify-center rounded-md border border-linea bg-blanco/90 transition-colors hover:border-gris focus-visible:outline-2 focus-visible:outline-verde"
+        className="group flex size-11 items-center justify-center rounded-md border border-linea bg-blanco/90 sm:size-9 transition-colors hover:border-gris focus-visible:outline-2 focus-visible:outline-verde"
       >
         <Heart
           className={`size-[18px] transition-transform motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90 ${activo ? "text-verde" : "text-gris"}`}
