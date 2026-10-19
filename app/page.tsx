@@ -1,6 +1,8 @@
 import { ArrowRight, PackageCheck, ShoppingCart, Truck } from "lucide-react";
 import Link from "next/link";
 import { Carga } from "@/components/Carga";
+import { Contador } from "@/components/Contador";
+import { CintaCategorias } from "@/components/portada/CintaCategorias";
 import { MiniCotizador } from "@/components/portada/MiniCotizador";
 import { ParaQuien, type Perfil } from "@/components/portada/ParaQuien";
 import { Recorrido } from "@/components/portada/Recorrido";
@@ -11,7 +13,6 @@ import { supuestosCotizador } from "@/lib/cotizador-datos";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
-import { Contador } from "@/components/Contador";
 
 const entero = new Intl.NumberFormat("en-US");
 
@@ -84,6 +85,11 @@ export default async function Home() {
     pedidoMinimo: 1,
   }));
   const marcas = [...new Set(filas.map((f) => f.marca!))].sort().slice(0, 3);
+
+  // Categorías con productos hoy, de la que más tiene a la que menos (para la cinta). "Otro" no se muestra.
+  const porCategoria = new Map<string, number>();
+  for (const f of filas) if (f.categoria !== "otro") porCategoria.set(f.categoria!, (porCategoria.get(f.categoria!) ?? 0) + 1);
+  const categorias = [...porCategoria].map(([clave, productos]) => ({ clave, productos })).sort((a, b) => b.productos - a.productos);
 
   // Escenarios de "Para quién es", calculados con el mismo cotizador
   let perfiles: Perfil[] = [];
@@ -173,6 +179,9 @@ export default async function Home() {
         </div>
         {parametros && tipos.length > 0 && <MiniCotizador tipo={tipos[0]} parametros={parametros} recetas={recetas} />}
       </section>
+
+      {/* Cinta con las categorías que hay hoy en el catálogo */}
+      <CintaCategorias categorias={categorias} />
 
       {/* Cómo funciona: el recorrido y los 3 pasos */}
       <section className="border-y border-linea bg-blanco">

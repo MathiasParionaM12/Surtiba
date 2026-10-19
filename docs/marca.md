@@ -34,6 +34,9 @@ Poco, corto y útil. Nunca para decorar.
 - **Cambio de pantalla:** fundido de 220 ms (solo opacidad) y una barra verde fina arriba mientras carga.
 - **Carga:** esqueletos grises con un brillo que los recorre.
 - **Al pasar el mouse:** las tarjetas suben 2 px con una sombra suave; los botones se achican apenas al presionarlos.
+- **Encabezado:** arriba del todo se funde con el papel; al bajar gana fondo blanco, borde y sombra suave. En el menú, una línea verde crece al pasar el mouse y queda debajo de la página actual.
+- **Contador:** los números grandes (Resumen de la marca, Inicio del admin, "3 pedidos" de la portada) suben de 0 a su valor la primera vez que aparecen, en 0.6 s (única excepción a los 300 ms).
+- **Cinta de categorías** (portada): las categorías con productos se mueven despacio y se detienen con el mouse o el teclado.
 - **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).
 - **Reducir movimiento** (cambiado el 18-oct-2026): muchos Windows lo traen activado sin que la persona lo sepa, y apagar todo dejaba la app sin vida. Por eso solo se apaga lo que se repite o se mueve mucho: el brillo de los esqueletos, la línea del recorrido de la portada, la cinta de categorías y el desplazamiento suave entre pasos del cotizador. Los fundidos cortos, el hover, las cifras y el contador del carrito siguen. Los avisos flotantes aparecen sin deslizarse (lo decide la librería sonner).
 
