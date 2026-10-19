@@ -1,7 +1,7 @@
 "use client";
 
 import { Etiqueta } from "@/components/Etiqueta";
-import { LIMITES, type EntradaCotizador, type TipoEvento } from "@/lib/cotizador";
+import { LIMITES, PERFILES, type EntradaCotizador, type Parametros, type TipoEvento } from "@/lib/cotizador";
 import { areaToque, campo } from "@/lib/estilos";
 import { Segmentado } from "./ui";
 
@@ -19,6 +19,7 @@ export function PasoEvento({
   cambiarTipo,
   cambiarInvitados,
   sugeridoNoToman,
+  parametros,
 }: {
   entrada: EntradaCotizador;
   actualizar: (cambio: Partial<EntradaCotizador>) => void;
@@ -26,7 +27,15 @@ export function PasoEvento({
   cambiarTipo: (id: string) => void;
   cambiarInvitados: (valor: string) => void;
   sugeridoNoToman: number;
+  parametros: Parametros;
 }) {
+  // Tragos por hora en la fiesta de cada tipo de público (de día se toma un poco menos)
+  const hora = Number(entrada.horaInicio.split(":")[0]);
+  const deDia = hora >= 6 && hora < 17;
+  const factor = { tranquilo: parametros.factor_tranquilo, normal: parametros.factor_normal, fuerte: parametros.factor_fuerte };
+  const porHora = (p: keyof typeof factor) => parametros.fiesta_tragos_hora * factor[p] * (deDia ? parametros.factor_dia : 1);
+  const decimal = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+
   return (
     <div className="flex flex-col gap-7">
       <fieldset>
@@ -135,6 +144,37 @@ export function PasoEvento({
         />
         <span className="text-xs text-gris">Con calor se necesita más hielo.</span>
       </div>
+
+      <fieldset>
+        <legend className="text-sm font-medium">¿Cómo es tu público?</legend>
+        <p className="mt-0.5 mb-3 text-xs text-gris">
+          Define cuánto se toma en la fiesta. Lo sugiere el tipo de evento; cámbialo si conoces a tus invitados.
+        </p>
+        <div role="radiogroup" aria-label="Cómo es tu público" className="grid gap-2 sm:grid-cols-3">
+          {PERFILES.map((p) => {
+            const activo = entrada.perfil === p.valor;
+            return (
+              <button
+                key={p.valor}
+                type="button"
+                role="radio"
+                aria-checked={activo}
+                onClick={() => actualizar({ perfil: p.valor })}
+                className={`flex min-h-11 flex-col rounded-md border bg-blanco px-4 py-3 text-left transition-colors ${
+                  activo ? "border-tinta" : "border-linea hover:border-gris"
+                }`}
+              >
+                <span className="font-medium">{p.texto}</span>
+                <span className="mt-0.5 text-xs text-gris">{p.ayuda}</span>
+                <span className="mt-2 font-mono text-xs">
+                  ≈ {decimal.format(porHora(p.valor))} {decimal.format(porHora(p.valor)) === "1" ? "trago" : "tragos"} por hora por persona
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {deDia && <p className="mt-2 text-xs text-gris">Tu evento empieza de día: se toma un poco menos que de noche.</p>}
+      </fieldset>
     </div>
   );
 }

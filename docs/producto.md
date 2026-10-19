@@ -112,9 +112,9 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 **Solo con cuenta** (comprador; el admin también lo ve). Sin sesión, `/cotizador` explica qué hace con un ejemplo y pide crear cuenta.
 
 Asistente en 4 pasos:
-1. **Evento:** tipo (llena los valores típicos), nombre y fecha (opcionales), invitados, **cuántos no toman alcohol** (sugerido: 20 %), hora de inicio, duración y lugar (interior / aire libre o verano).
+1. **Evento:** tipo (llena los valores típicos), nombre y fecha (opcionales), invitados, **cuántos no toman alcohol** (sugerido: 20 %), hora de inicio, duración, lugar (interior / aire libre o verano) y **¿Cómo es tu público?** (toma poco / normal / toma bastante, cada uno con sus tragos por hora; lo sugiere el tipo de evento).
 2. **Momentos**, uno tras otro: **bienvenida** (con su trago o los de la barra), **cena con vino**, **brindis** (espumante) y **fiesta**, que ocupa las horas que quedan.
-3. **Barra:** el comprador elige los tragos y marca cada uno como **principal (3), secundario (2) u ocasional (1)**; no se usan porcentajes. Además elige cuánto toma el público (tranquilo / normal / fuerte) y el margen de seguridad.
+3. **Barra:** el comprador elige los tragos y marca cada uno como **principal (3), secundario (2) u ocasional (1)**; no se usan porcentajes. Además elige **"¿Pedimos un poco extra por si acaso?"**: lo justo, +10 % o +20 % (el sugerido lo fija el admin), con cuántos tragos de más significa.
 4. **Resultado:** tragos por momento, costo total y por invitado, el producto de Surtiba de cada trago (recomendado o elegido), las cajas por producto (editables), el aviso de pedido mínimo ("Marca Demo Pisco pide mínimo 5 cajas. Tu evento necesita 2.", con *Subir a X* o *Cambiar de producto*) y la **lista de lo que Surtiba no vende**: hielo, agua y gaseosas, mezcladores, limones y jarabe.
 
 Cálculo (solo cuentan los que toman; factor = público × horario, de día se toma menos):

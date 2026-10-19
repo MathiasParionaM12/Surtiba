@@ -1,6 +1,6 @@
 "use client";
 
-import { LIMITES, NIVELES, PERFILES, PESO, type EntradaCotizador, type Nivel, type Receta } from "@/lib/cotizador";
+import { LIMITES, NIVELES, PESO, type EntradaCotizador, type Nivel, type Parametros, type Receta, type ResultadoCotizacion } from "@/lib/cotizador";
 import { areaToque, campo } from "@/lib/estilos";
 import { Segmentado } from "./ui";
 
@@ -11,14 +11,24 @@ function deCada(barra: EntradaCotizador["barra"]) {
   return { total: partes.reduce((s, p) => s + p.n, 0), partes };
 }
 
+// Cuántos tragos de más trae el margen: el total ya lo incluye
+const entero = new Intl.NumberFormat("en-US");
+function extra(tragosConMargen: number, margen: number) {
+  return entero.format(Math.round(tragosConMargen - tragosConMargen / (1 + margen / 100)));
+}
+
 export function PasoBarra({
   entrada,
   actualizar,
   recetas,
+  parametros,
+  resultado,
 }: {
   entrada: EntradaCotizador;
   actualizar: (cambio: Partial<EntradaCotizador>) => void;
   recetas: Receta[];
+  parametros: Parametros;
+  resultado: ResultadoCotizacion;
 }) {
   const nombre = (id: string) => recetas.find((r) => r.id === id)?.nombre ?? "";
   const sinUsar = recetas.filter((r) => !entrada.barra.some((b) => b.recetaId === r.id));
@@ -99,25 +109,28 @@ export function PasoBarra({
 
       <section className="flex flex-col gap-3 border-t border-linea pt-6">
         <div>
-          <h3 className="font-medium">¿Cuánto toma tu público?</h3>
-          <p className="mt-0.5 text-sm text-gris">{PERFILES.find((p) => p.valor === entrada.perfil)?.ayuda}</p>
-        </div>
-        <Segmentado etiqueta="Cuánto toma el público" opciones={PERFILES} valor={entrada.perfil} onCambio={(v) => actualizar({ perfil: v })} ancho />
-      </section>
-
-      <section className="flex flex-col gap-3 border-t border-linea pt-6">
-        <div>
-          <h3 className="font-medium">Margen de seguridad</h3>
-          <p className="mt-0.5 text-sm text-gris">Un poco más para que no falte. Lo que sobra cerrado se puede guardar.</p>
+          <h3 className="font-medium">¿Pedimos un poco extra por si acaso?</h3>
+          <p className="mt-0.5 text-sm text-gris">Por si llegan más invitados o se toma más de lo previsto.</p>
         </div>
         <Segmentado
-          etiqueta="Margen de seguridad"
-          opciones={[...new Set([0, 5, 10, 15, 20, entrada.margen])]
+          etiqueta="Extra por si acaso"
+          opciones={[...new Set([0, 10, 20, entrada.margen])]
             .sort((a, b) => a - b)
-            .map((m) => ({ valor: m, texto: m === 0 ? "Sin margen" : `+${m} %` }))}
+            .map((m) => ({ valor: m, texto: m === 0 ? "Lo justo" : `+${m} %${m === parametros.margen_pct ? " · sugerido" : ""}` }))}
           valor={entrada.margen}
           onCambio={(v) => actualizar({ margen: v })}
+          ancho
         />
+        <p className="text-sm">
+          {entrada.margen === 0 ? (
+            "Pides justo lo calculado. Si llega más gente o se toma más, puede faltar."
+          ) : (
+            <>
+              Pides unos <strong className="font-mono font-medium">{extra(resultado.tragosTotales, entrada.margen)}</strong> tragos más
+              de lo calculado. Lo que sobra cerrado se puede guardar para otro evento.
+            </>
+          )}
+        </p>
       </section>
     </div>
   );

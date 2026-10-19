@@ -24,9 +24,9 @@ export const NIVELES: { valor: Nivel; texto: string }[] = [
   { valor: "ocasional", texto: "Ocasional" },
 ];
 export const PERFILES: { valor: Perfil; texto: string; ayuda: string }[] = [
-  { valor: "tranquilo", texto: "Tranquilo", ayuda: "Evento formal o de trabajo" },
-  { valor: "normal", texto: "Normal", ayuda: "La mayoría de eventos" },
-  { valor: "fuerte", texto: "Fuerte", ayuda: "Público que toma bastante" },
+  { valor: "tranquilo", texto: "Toma poco", ayuda: "Evento formal, de trabajo o público mayor" },
+  { valor: "normal", texto: "Normal", ayuda: "Público mixto: la mayoría de eventos" },
+  { valor: "fuerte", texto: "Toma bastante", ayuda: "Público joven o con ganas de fiesta" },
 ];
 
 export type Parametros = {

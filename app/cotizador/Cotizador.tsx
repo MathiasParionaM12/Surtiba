@@ -159,12 +159,13 @@ export function Cotizador({
               cambiarTipo={cambiarTipo}
               cambiarInvitados={cambiarInvitados}
               sugeridoNoToman={sugeridoNoToman}
+              parametros={parametros}
             />
           )}
           {paso === 1 && (
             <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
           )}
-          {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} />}
+          {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} />}
           {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} />}
 
           <div className="mt-6">
