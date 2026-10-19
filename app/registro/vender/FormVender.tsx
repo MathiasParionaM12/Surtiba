@@ -7,6 +7,7 @@ import { registrarVendedor, type EstadoForm } from "@/lib/acciones-auth";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { PAISES, PREFIJO_PERU } from "@/lib/paises";
+import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 
 export function FormVender() {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(registrarVendedor, {});
@@ -48,6 +49,8 @@ export function FormVender() {
             </optgroup>
           </select>
         </label>
+        {!PEDIDO_MINIMO_ACTIVO && <input type="hidden" name="pedido_minimo" value="1" />}
+        {PEDIDO_MINIMO_ACTIVO && (
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Pedido mínimo (cajas)" obligatorio />
           <input
@@ -61,6 +64,7 @@ export function FormVender() {
           />
           <span className="text-xs text-gris">Lo mínimo que te deben pedir, sumando cualquiera de tus productos.</span>
         </label>
+        )}
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Dirección donde Surtiba recogerá tus pedidos" obligatorio />
           <input name="direccion" placeholder="Calle, número, referencia" required defaultValue={v.direccion} className={campo} />

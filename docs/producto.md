@@ -87,6 +87,8 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
 
 ### Pedido mínimo
+> **Pausado el 19-oct-2026 (Mathias):** con mínimos altos el cotizador pierde sentido (sugiere 5 cajas y la marca pide 10). Todas las marcas quedaron en 1 caja y no se muestra ni se pide en ninguna pantalla (`PEDIDO_MINIMO_ACTIVO = false` en `lib/catalogo.ts`). Las reglas de abajo quedan para cuando se reactive.
+
 - Cada marca tiene un pedido mínimo en cajas (la suma de sus productos en el pedido).
 - Si no se llega, el carrito avisa ("Pedido mínimo: 5 cajas. Te faltan 2.") y no deja enviar hasta corregirlo o quitar esa marca.
 

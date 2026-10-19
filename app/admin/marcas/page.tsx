@@ -8,6 +8,7 @@ import { campo, sello } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 
 export const metadata: Metadata = { title: "Marcas · Panel Surtiba" };
 
@@ -67,7 +68,12 @@ async function Marcas() {
                 <div className="mt-5 grid gap-5 border-t border-linea pt-5 md:grid-cols-2">
                   <div>
                     <p className="mb-3 text-sm">
-                      Pedido mínimo que eligió: <strong className="font-mono">{s.pedido_minimo_cajas} cajas</strong> · Comisión:{" "}
+                      {PEDIDO_MINIMO_ACTIVO && (
+                        <>
+                          Pedido mínimo que eligió: <strong className="font-mono">{s.pedido_minimo_cajas} cajas</strong> ·{" "}
+                        </>
+                      )}
+                      Comisión:{" "}
                       <strong className="font-mono">5%</strong> <span className="text-gris">(fija por ahora)</span>
                     </p>
                     <FormAccion accion={aprobarSolicitud} ocultos={{ solicitud_id: s.id }} texto="Aprobar marca" />
@@ -94,7 +100,7 @@ async function Marcas() {
               <tr className="border-b border-linea text-left">
                 <th className={`${sello} px-4 py-3 font-medium`}>Marca</th>
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Comisión</th>
-                <th className={`${sello} px-4 py-3 text-right font-medium`}>Mínimo</th>
+                {PEDIDO_MINIMO_ACTIVO && <th className={`${sello} px-4 py-3 text-right font-medium`}>Mínimo</th>}
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Productos</th>
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Entregas</th>
                 <th className={`${sello} px-4 py-3 font-medium`}>Estado</th>
@@ -109,7 +115,7 @@ async function Marcas() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-right font-mono">{m.marcas_privado?.comision_pct ?? "—"}%</td>
-                  <td className="px-4 py-3 text-right font-mono">{m.pedido_minimo_cajas}</td>
+                  {PEDIDO_MINIMO_ACTIVO && <td className="px-4 py-3 text-right font-mono">{m.pedido_minimo_cajas}</td>}
                   <td className="px-4 py-3 text-right font-mono">{m.productos.length}</td>
                   <td className="px-4 py-3 text-right font-mono">{m.subpedidos.filter((s) => s.estado === "entregado").length}</td>
                   <td className="px-4 py-3 text-gris">{m.activa ? "Activa" : "Inactiva"}</td>

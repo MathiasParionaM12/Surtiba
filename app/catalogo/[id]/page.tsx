@@ -5,7 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
-import { CATEGORIAS, esUuid, ordenarTramos, textoTramo, urlFoto } from "@/lib/catalogo";
+import { CATEGORIAS, esUuid, ordenarTramos, PEDIDO_MINIMO_ACTIVO, textoTramo, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { catalogoPublico } from "@/lib/catalogo-publico";
@@ -132,10 +132,12 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
       </table>
       <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido.</p>
 
-      <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
-        Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
-        sumando cualquiera de sus productos.
-      </p>
+      {PEDIDO_MINIMO_ACTIVO && (
+        <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
+          Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
+          sumando cualquiera de sus productos.
+        </p>
+      )}
     </Ficha>
   );
 }

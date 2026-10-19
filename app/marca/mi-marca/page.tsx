@@ -6,6 +6,7 @@ import { guardarMinimo } from "@/lib/acciones-marca";
 import { campo, sello } from "@/lib/estilos";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 
 export const metadata: Metadata = { title: "Mi marca · Panel de marca · Surtiba" };
 
@@ -34,6 +35,7 @@ async function MiMarca() {
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{marca?.nombre_comercial}</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        {PEDIDO_MINIMO_ACTIVO && (
         <section className="rounded-md border border-linea bg-blanco p-5 sm:p-6">
           <h2 className={sello}>Pedido mínimo</h2>
           <p className="mt-2 text-sm text-gris">
@@ -57,6 +59,7 @@ async function MiMarca() {
           </FormAccion>
           <p className="mt-3 text-xs text-gris">El cambio vale para los pedidos nuevos; los ya hechos no cambian.</p>
         </section>
+        )}
 
         <section className="rounded-md border border-linea bg-blanco p-5 sm:p-6">
           <h2 className={sello}>Datos registrados</h2>

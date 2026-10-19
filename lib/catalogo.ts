@@ -1,5 +1,9 @@
 // Ayudas para mostrar productos y precios.
 
+// Pedido mínimo por marca: pausado el 19-oct-2026 (Mathias). Todas las marcas quedaron en 1 caja y no
+// se muestra ni se pide en ninguna pantalla. Para volver a usarlo: true, y que cada marca ponga el suyo.
+export const PEDIDO_MINIMO_ACTIVO = false;
+
 export const CATEGORIAS: Record<string, string> = {
   pisco: "Pisco",
   ron: "Ron",
