@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { cache } from "react";
 import { EnlaceMenu } from "@/components/EnlaceMenu";
+import { enlaceMenu } from "@/lib/estilos";
 import type { Rol } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -85,11 +87,13 @@ export async function NavMovil() {
   );
 }
 
-// Mientras carga la sesión, se muestra al menos el catálogo
+// Mientras carga la sesión, se muestra al menos el catálogo (enlace simple: todavía no se sabe la página)
 export function NavPrincipalCargando() {
   return (
     <nav className="hidden items-center gap-5 sm:flex">
-      <EnlaceMenu href="/catalogo">Catálogo</EnlaceMenu>
+      <Link href="/catalogo" className={enlaceMenu}>
+        Catálogo
+      </Link>
     </nav>
   );
 }

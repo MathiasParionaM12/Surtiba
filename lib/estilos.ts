@@ -19,3 +19,7 @@ export const sello = "font-mono text-xs font-medium tracking-[0.12em] text-gris 
 
 // Agranda la zona que se puede tocar de un botón de texto (unos 44 px de alto) sin mover el diseño
 export const areaToque = "relative before:absolute before:-inset-x-2 before:-inset-y-3.5";
+
+// Enlace del menú del encabezado: línea verde debajo al pasar el mouse y en la página actual (components/EnlaceMenu.tsx)
+export const enlaceMenu =
+  "relative text-sm font-medium hover:text-verde after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-verde after:transition-transform after:duration-200 after:ease-out hover:after:scale-x-100 aria-[current=page]:after:scale-x-100";
