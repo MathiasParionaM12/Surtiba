@@ -1,7 +1,7 @@
 "use client";
 
 // Número de productos del carrito en el encabezado. Cuando sube, da un pequeño salto
-// (salvo que la persona haya pedido menos movimiento en su sistema).
+// (también con "reducir movimiento": es corto y avisa que se agregó algo).
 import { useEffect, useRef } from "react";
 
 export function ContadorCarrito({ cantidad }: { cantidad: number }) {
@@ -9,8 +9,7 @@ export function ContadorCarrito({ cantidad }: { cantidad: number }) {
   const anterior = useRef(cantidad);
 
   useEffect(() => {
-    const quiereMenosMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (cantidad > anterior.current && !quiereMenosMovimiento) {
+    if (cantidad > anterior.current) {
       numero.current?.animate(
         [{ transform: "scale(1)" }, { transform: "scale(1.5)", backgroundColor: "rgb(255 255 255 / 0.35)" }, { transform: "scale(1)" }],
         { duration: 550, easing: "cubic-bezier(.2,.8,.2,1)" },

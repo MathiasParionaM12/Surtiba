@@ -14,7 +14,7 @@ export function BotonFavorito({ productoId, activo, className = "" }: { producto
         className="group flex size-11 items-center justify-center rounded-md border border-linea bg-blanco/90 sm:size-9 transition-colors hover:border-gris focus-visible:outline-2 focus-visible:outline-verde"
       >
         <Heart
-          className={`size-[18px] transition-transform motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90 ${activo ? "text-verde" : "text-gris"}`}
+          className={`size-[18px] transition-transform group-hover:scale-110 group-active:scale-90 ${activo ? "text-verde" : "text-gris"}`}
           fill={activo ? "currentColor" : "none"}
           strokeWidth={1.8}
           aria-hidden="true"

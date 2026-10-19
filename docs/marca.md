@@ -35,7 +35,7 @@ Poco, corto y útil. Nunca para decorar.
 - **Carga:** esqueletos grises con un brillo que los recorre.
 - **Al pasar el mouse:** las tarjetas suben 2 px con una sombra suave; los botones se achican apenas al presionarlos.
 - **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).
-- **Reducir movimiento:** si la persona lo pidió en su sistema, todo se queda quieto.
+- **Reducir movimiento** (cambiado el 18-oct-2026): muchos Windows lo traen activado sin que la persona lo sepa, y apagar todo dejaba la app sin vida. Por eso solo se apaga lo que se repite o se mueve mucho: el brillo de los esqueletos, la línea del recorrido de la portada, la cinta de categorías y el desplazamiento suave entre pasos del cotizador. Los fundidos cortos, el hover, las cifras y el contador del carrito siguen. Los avisos flotantes aparecen sin deslizarse (lo decide la librería sonner).
 
 ## Logo
 "surtiba" en minúsculas; el punto de la "i" es un cuadrado en `resaltador`. **Ya hay archivo oficial** (de Mathias, 15-oct-2026):

@@ -23,7 +23,9 @@ body {
   color: var(--color-tinta);
 }
 
-/* ── Movimiento (fase 8). Todo se apaga si la persona pidió "reducir movimiento". ── */
+/* ── Movimiento (fase 8). Con "reducir movimiento" (docs/marca.md) solo se apaga lo que se repite
+   o se mueve mucho: el brillo de los esqueletos, la línea del recorrido y la cinta de la portada.
+   Los fundidos cortos, el hover y las cifras siguen, porque ayudan a entender qué pasó. ── */
 
 /* Cada pantalla aparece con un fundido corto. Solo opacidad: un transform rompería
    los elementos fijos (como la barra inferior del cotizador) mientras dura. */
@@ -78,18 +80,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .entrada,
   .brillo {
     animation: none;
-  }
-  .barra-carga,
-  .barra-carga[data-estado] {
-    transition: none;
   }
 }
 
 /* Al bajar por la portada, cada bloque aparece suave al entrar en pantalla.
-   Solo en navegadores que lo soportan (sin JavaScript) y si no se pidió reducir movimiento. */
+   Solo en navegadores que lo soportan (sin JavaScript). */
 @keyframes aparecer {
   from {
     opacity: 0;
@@ -97,24 +94,10 @@ body {
   }
 }
 @supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .aparecer {
-      animation: aparecer linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 60%;
-    }
-  }
-}
-
-/* Respaldo general: con "reducir movimiento", ninguna animación ni transición se nota */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  .aparecer {
+    animation: aparecer linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
   }
 }
 
@@ -135,14 +118,6 @@ body {
     opacity: 0;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
-
 /* Portada (parte A): la línea del recorrido se dibuja al bajar (components/portada/Recorrido.tsx).
    Sin soporte o con "reducir movimiento", se ve dibujada desde el inicio. */
 .trazo {

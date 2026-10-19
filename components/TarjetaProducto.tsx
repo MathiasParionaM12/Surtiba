@@ -14,7 +14,7 @@ export function TarjetaProducto({ p, puedeAgregar = false }: { p: ProductoTarjet
   const agotado = conSesion && p.stock === 0;
 
   return (
-    <div className="group/tarjeta relative flex flex-col overflow-hidden rounded-md border border-linea bg-blanco transition-[border-color,box-shadow,translate] duration-200 hover:border-gris hover:shadow-md hover:shadow-tinta/5 motion-safe:hover:-translate-y-0.5">
+    <div className="group/tarjeta relative flex flex-col overflow-hidden rounded-md border border-linea bg-blanco transition-[border-color,box-shadow,translate] duration-200 hover:border-gris hover:shadow-md hover:shadow-tinta/5 hover:-translate-y-0.5">
       {p.favorito !== undefined && (
         <BotonFavorito productoId={p.id} activo={p.favorito} className="absolute top-2 right-2 z-[1] sm:top-3 sm:right-3" />
       )}

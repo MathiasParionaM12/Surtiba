@@ -236,7 +236,7 @@ export default async function Home() {
             </ol>
             <Link
               href="/registro/vender"
-              className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-blanco px-5 text-sm font-medium text-tinta transition-[background-color,scale] duration-150 hover:bg-papel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blanco motion-safe:active:scale-[0.98]"
+              className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-blanco px-5 text-sm font-medium text-tinta transition-[background-color,scale] duration-150 hover:bg-papel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blanco active:scale-[0.98]"
             >
               Quiero vender
               <ArrowRight className="size-4" aria-hidden="true" />
