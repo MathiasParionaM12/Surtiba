@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { cache } from "react";
+import { EnlaceMenu } from "@/components/EnlaceMenu";
 import type { Rol } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -63,9 +63,9 @@ export async function NavPrincipal() {
   return (
     <nav className="hidden items-center gap-5 sm:flex">
       {enlaces.map((e) => (
-        <Link key={e.href} href={e.href} className="text-sm font-medium hover:text-verde">
+        <EnlaceMenu key={e.href} href={e.href}>
           <TextoEnlace e={e} />
-        </Link>
+        </EnlaceMenu>
       ))}
     </nav>
   );
@@ -77,9 +77,9 @@ export async function NavMovil() {
   return (
     <nav className="flex gap-5 overflow-x-auto border-t border-linea px-4 py-2.5 sm:hidden">
       {enlaces.map((e) => (
-        <Link key={e.href} href={e.href} className="text-sm font-medium whitespace-nowrap hover:text-verde">
+        <EnlaceMenu key={e.href} href={e.href} className="whitespace-nowrap">
           <TextoEnlace e={e} />
-        </Link>
+        </EnlaceMenu>
       ))}
     </nav>
   );
@@ -89,9 +89,7 @@ export async function NavMovil() {
 export function NavPrincipalCargando() {
   return (
     <nav className="hidden items-center gap-5 sm:flex">
-      <Link href="/catalogo" className="text-sm font-medium hover:text-verde">
-        Catálogo
-      </Link>
+      <EnlaceMenu href="/catalogo">Catálogo</EnlaceMenu>
     </nav>
   );
 }
