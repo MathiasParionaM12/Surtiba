@@ -11,6 +11,7 @@ import { supuestosCotizador } from "@/lib/cotizador-datos";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
+import { Contador } from "@/components/Contador";
 
 const entero = new Intl.NumberFormat("en-US");
 
@@ -221,7 +222,9 @@ export default async function Home() {
           <div className="aparecer">
             <p className="font-mono text-xs font-medium tracking-[0.12em] text-blanco/60 uppercase">Para marcas</p>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">¿Tienes una marca de licores o cócteles?</h2>
-            <p className="mt-8 font-mono text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">3 pedidos</p>
+            <p className="mt-8 font-mono text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
+              <Contador valor={3} /> pedidos
+            </p>
             <p className="mt-2 text-lg text-blanco/85">sin comisión para empezar</p>
             <p className="mt-4 max-w-md text-sm text-blanco/70">Después, 5 % solo sobre lo vendido y entregado. Nada por publicar.</p>
           </div>

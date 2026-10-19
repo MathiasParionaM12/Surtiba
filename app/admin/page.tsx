@@ -6,6 +6,7 @@ import { sello } from "@/lib/estilos";
 import { inicioMesLima, mesActual, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { Contador } from "@/components/Contador";
 
 export const metadata: Metadata = { title: "Inicio · Panel Surtiba" };
 
@@ -72,21 +73,21 @@ async function Inicio() {
           {/* Resaltador: un solo uso por pantalla, en la métrica principal */}
           <p className="font-mono text-3xl font-medium">
             <span className="bg-[linear-gradient(var(--color-resaltador),var(--color-resaltador))] bg-[length:100%_0.3em] bg-[position:0_92%] bg-no-repeat">
-              {cajasMes}
+              <Contador valor={cajasMes} />
             </span>
           </p>
           <p className="mt-1 text-sm text-gris">Cajas vendidas del mes</p>
         </div>
         <div className="border-b border-linea p-5 lg:border-r lg:border-b-0">
-          <p className="font-mono text-2xl font-medium sm:text-3xl">{pedidosVigentes.length}</p>
+          <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={pedidosVigentes.length} /></p>
           <p className="mt-1 text-sm text-gris">Pedidos del mes</p>
         </div>
         <div className="border-r border-linea p-5">
-          <p className="font-mono text-2xl font-medium sm:text-3xl">{compradoresActivos}</p>
+          <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={compradoresActivos} /></p>
           <p className="mt-1 text-sm text-gris">Compradores activos</p>
         </div>
         <div className="p-5">
-          <p className="font-mono text-2xl font-medium sm:text-3xl">{soles(comisionMes)}</p>
+          <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={comisionMes} tipo="soles" /></p>
           <p className="mt-1 text-sm text-gris">Comisión del mes</p>
         </div>
       </div>
