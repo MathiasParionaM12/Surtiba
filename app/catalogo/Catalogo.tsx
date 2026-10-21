@@ -4,9 +4,9 @@ import { aTarjeta, urlFoto } from "@/lib/catalogo";
 import { catalogoPublico } from "@/lib/catalogo-publico";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { Explorador } from "./Explorador";
+import { Explorador, type FiltrosCatalogo } from "./Explorador";
 
-export type Filtros = { categoria?: string; q?: string };
+export type Filtros = FiltrosCatalogo;
 
 export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros> }) {
   const [usuario, filtros] = await Promise.all([obtenerUsuario(), searchParams]);
@@ -16,8 +16,7 @@ export async function Catalogo({ searchParams }: { searchParams: Promise<Filtros
   return (
     <Explorador
       productos={productos}
-      categoriaInicial={filtros.categoria}
-      busquedaInicial={filtros.q}
+      filtrosIniciales={filtros}
       visitante={!usuario}
       puedeAgregar={usuario?.rol === "comprador"}
     />
