@@ -38,7 +38,7 @@ type Busqueda = { desde?: string; invitados?: string; horas?: string };
 
 async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
   const [{ desde, invitados: inv, horas: hrs }, datos] = await Promise.all([searchParams, datosCotizador()]);
-  const { usuario, puedeUsar, parametros, tipos, recetas, catalogo } = datos;
+  const { usuario, puedeUsar, parametros, tipos, recetas, ingredientes, catalogo } = datos;
   if (usuario?.rol === "solicitante") redirect("/solicitud");
   if (!parametros || tipos.length === 0) {
     return <p className="rounded-md border border-linea bg-blanco p-5 text-gris">El cotizador no está disponible por ahora.</p>;
@@ -75,7 +75,7 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
     const { data } = await supabase.from("cotizaciones").select("codigo, evento").eq("id", desde).maybeSingle();
     const guardada = data?.evento as { version?: number; entrada?: EntradaCotizador } | null;
     if (guardada?.version === 2 && guardada.entrada) {
-      const limpia = limpiarEntrada(guardada.entrada, tipos, recetas);
+      const limpia = limpiarEntrada(guardada.entrada, tipos, recetas, ingredientes);
       if (typeof limpia !== "string") {
         entrada = limpia;
         abierta = data!.codigo;
@@ -93,6 +93,7 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
       <Cotizador
       tipos={tipos}
       recetas={recetas}
+      ingredientes={ingredientes}
       parametros={parametros}
       entradaInicial={entrada}
       resultadoInicial={calcular(entrada, parametros, recetas, catalogo)}

@@ -15,7 +15,7 @@
 
 import type { Tramo } from "@/lib/catalogo";
 
-export const LIMITES = { invitadosMax: 5000, horasMax: 12, barraMax: 8, cajasMax: 999 };
+export const LIMITES = { invitadosMax: 5000, horasMax: 12, barraMax: 8, cajasMax: 999, propiosMax: 5, ingredientesMax: 8, cantidadMax: 1000 };
 
 export type Nivel = "principal" | "secundario" | "ocasional";
 export type Perfil = "tranquilo" | "normal" | "fuerte";
@@ -68,6 +68,17 @@ export type Receta = {
   ingredientes: IngredienteReceta[];
 };
 
+// Ingrediente de la lista de Surtiba (para elegirlo al crear un trago)
+export type Ingrediente = Omit<IngredienteReceta, "cantidad">;
+
+// Un trago que armó el comprador ("Crear mi trago"). Vive solo dentro de su cotización.
+// El servidor lo revisa y pone él la categoría de cada ingrediente (ver limpiarEntrada).
+export type TragoPropio = { id: string; nombre: string; ingredientes: IngredienteReceta[] };
+
+// Para buscar sin importar mayúsculas ni tildes: "Maracuyá" -> "maracuya"
+export const normalizar = (t: string) =>
+  t.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+
 export type TipoEvento = {
   id: string;
   nombre: string;
@@ -97,7 +108,8 @@ export type EntradaCotizador = {
   bienvenida: { activo: boolean; horas: number; recetaId: string | null }; // null = los tragos de la barra
   cena: { activo: boolean; horas: number };
   brindis: { activo: boolean };
-  barra: { recetaId: string; nivel: Nivel }[];
+  barra: { recetaId: string; nivel: Nivel }[]; // recetaId puede ser de un trago propio ("propio-…")
+  propios: TragoPropio[];
   productos: Record<string, string>; // ingrediente_id -> producto_id que eligió la persona
   cajasManual: Record<string, number>; // producto_id -> cajas que eligió la persona
 };
@@ -232,7 +244,9 @@ export function calcular(
   catalogo: ProductoCotizable[],
 ): ResultadoCotizacion {
   const avisos: string[] = [];
-  const recetaPorId = new Map(recetas.map((r) => [r.id, r]));
+  // Los tragos propios del comprador se calculan igual que los del recetario
+  const propios: Receta[] = (e.propios ?? []).map((t) => ({ id: t.id, nombre: t.nombre, categoria: "otro", ingredientes: t.ingredientes }));
+  const recetaPorId = new Map([...recetas, ...propios].map((r) => [r.id, r]));
   const productoPorId = new Map(catalogo.map((p) => [p.id, p]));
   const toman = Math.max(0, e.invitados - e.noToman);
   const horaInicio = Number(e.horaInicio.split(":")[0]);
@@ -428,6 +442,7 @@ export function entradaDesdeTipo(tipo: TipoEvento, par: Parametros, invitados = 
     cena: { activo: tipo.cena, horas: tipo.cena_horas },
     brindis: { activo: tipo.brindis },
     barra: tipo.barra.map((b) => ({ recetaId: b.receta_id, nivel: b.nivel })),
+    propios: [],
     productos: {},
     cajasManual: {},
   };

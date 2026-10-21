@@ -12,6 +12,7 @@ import {
   horasDeFiesta,
   LIMITES,
   type EntradaCotizador,
+  type Ingrediente,
   type Parametros,
   type Receta,
   type ResultadoCotizacion,
@@ -31,6 +32,7 @@ const entero = new Intl.NumberFormat("en-US");
 export function Cotizador({
   tipos,
   recetas,
+  ingredientes,
   parametros,
   entradaInicial,
   resultadoInicial,
@@ -39,6 +41,7 @@ export function Cotizador({
 }: {
   tipos: TipoEvento[];
   recetas: Receta[];
+  ingredientes: Ingrediente[];
   parametros: Parametros;
   entradaInicial: EntradaCotizador;
   resultadoInicial: ResultadoCotizacion;
@@ -189,7 +192,7 @@ export function Cotizador({
           {paso === 1 && (
             <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
           )}
-          {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} />}
+          {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} ingredientes={ingredientes} />}
           {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} puedeAgregar={rol === "comprador"} />}
 
           <div className="mt-6">

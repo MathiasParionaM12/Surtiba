@@ -179,6 +179,8 @@ Los valores iniciales son **supuestos por validar con caterings**; el admin los 
 
 **receta_ingredientes**: cuánto lleva cada trago: (receta_id, ingrediente_id, `cantidad` por trago en la unidad del ingrediente). Las cantidades iniciales son recetas clásicas y **supuestos por validar**. Los 17 tragos nuevos quedan desactivados hasta que el cotizador calcule con ingredientes; las columnas viejas de `recetas` (`ml_por_trago`, `mezclador`…) conviven mientras tanto.
 
+Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan en la entrada del cotizador (`propios`) y se guardan dentro de `cotizaciones.evento`. `limpiarEntrada` los revisa y pone la categoría de cada ingrediente desde `ingredientes`; uno escrito a mano nunca es de Surtiba.
+
 **tipo_evento_recetas**: la barra de cada tipo de evento: (tipo_evento_id, receta_id, `nivel`: principal / secundario / ocasional, que pesan 3 / 2 / 1).
 
 **cotizaciones**: `codigo` (COT-0001), comprador_id, creado_en, `evento` (jsonb; en la versión 2 guarda la entrada completa para volver a abrirla y un resumen con momentos e insumos; null si vino del carrito), `items` (jsonb: copia de productos, cajas y precios), `total_centimos`, `pedido_id` (null hasta que termina en pedido). Solo la crea `crear_cotizacion`; nadie la escribe directo.

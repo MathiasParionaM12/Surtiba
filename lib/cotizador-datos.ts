@@ -6,13 +6,16 @@ import {
   calcular,
   LIMITES,
   type EntradaCotizador,
+  type Ingrediente,
   type IngredienteReceta,
+  normalizar,
   type Nivel,
   type Parametros,
   type Perfil,
   type ProductoCotizable,
   type Receta,
   type TipoEvento,
+  type TragoPropio,
 } from "@/lib/cotizador";
 import { cacheLife, cacheTag } from "next/cache";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -35,7 +38,7 @@ export async function supuestosCotizador() {
   cacheTag("cotizador");
   const supabase = clientePublico();
 
-  const [{ data: par }, { data: tiposData }, { data: recetasData }] = await Promise.all([
+  const [{ data: par }, { data: tiposData }, { data: recetasData }, { data: ingredientesData }] = await Promise.all([
     supabase.from("parametros_cotizador").select("*").maybeSingle(),
     supabase
       .from("tipos_evento")
@@ -49,7 +52,10 @@ export async function supuestosCotizador() {
       .select("id, nombre, categoria, receta_ingredientes(cantidad, ingredientes(id, nombre, unidad, categoria, orden, activo))")
       .eq("activo", true)
       .order("orden"),
+    supabase.from("ingredientes").select("id, nombre, unidad, categoria, orden").eq("activo", true).order("orden"),
   ]);
+  // Lista de ingredientes para "Crear mi trago"
+  const ingredientes: Ingrediente[] = (ingredientesData ?? []).map((i) => ({ ...i, unidad: i.unidad as Ingrediente["unidad"] }));
 
   // Cada trago con sus ingredientes activos. Un trago sin ingredientes no se puede calcular: no se ofrece.
   const recetas: Receta[] = (recetasData ?? [])
@@ -87,7 +93,7 @@ export async function supuestosCotizador() {
   }));
   const parametros = par ? aParametros(par) : null;
 
-  return { parametros, tipos, recetas };
+  return { parametros, tipos, recetas, ingredientes };
 }
 
 function aParametros(p: Record<string, unknown>): Parametros {
@@ -143,7 +149,56 @@ const entero = (v: unknown) => Math.trunc(Number(v));
 const mediaHora = (v: unknown) => Math.round(Number(v) * 2) / 2; // 0.5, 1, 1.5…
 
 // Lo que llega del navegador no es confiable: se limpia antes de calcular
-export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas: Receta[]): EntradaCotizador | string {
+// Tragos propios ("Crear mi trago"): se revisan uno por uno. La categoría, la unidad y el orden de cada
+// ingrediente de la lista los pone el servidor; un ingrediente escrito a mano nunca es "de Surtiba".
+const ID_PROPIO = /^propio-[a-z0-9]{4,20}$/;
+const UNIDADES = new Set(["ml", "unidad", "g"]);
+function limpiarPropios(lista: unknown, ingredientes: Ingrediente[]): TragoPropio[] | string {
+  if (!Array.isArray(lista)) return [];
+  if (lista.length > LIMITES.propiosMax) return `Puedes crear hasta ${LIMITES.propiosMax} tragos propios.`;
+  const porId = new Map(ingredientes.map((i) => [i.id, i]));
+  const porNombre = new Map(ingredientes.map((i) => [normalizar(i.nombre), i]));
+  const ids = new Set<string>();
+  const propios: TragoPropio[] = [];
+  for (const t of lista as TragoPropio[]) {
+    const nombre = String(t?.nombre ?? "").trim().slice(0, 40);
+    if (!ID_PROPIO.test(String(t?.id)) || ids.has(t.id)) return "Uno de tus tragos no es válido. Vuelve a crearlo.";
+    if (nombre.length < 2) return "Ponle un nombre a tu trago.";
+    const lineas = Array.isArray(t.ingredientes) ? t.ingredientes : [];
+    if (lineas.length < 1 || lineas.length > LIMITES.ingredientesMax)
+      return `${nombre}: pon entre 1 y ${LIMITES.ingredientesMax} ingredientes.`;
+    const vistos = new Set<string>();
+    const ingredientesTrago = [];
+    for (const l of lineas) {
+      const cantidad = Math.round(Number(l?.cantidad) * 100) / 100;
+      if (!(cantidad > 0 && cantidad <= LIMITES.cantidadMax)) return `${nombre}: cada ingrediente lleva una cantidad entre 0 y ${LIMITES.cantidadMax}.`;
+      // De la lista de Surtiba (por id o por nombre igual) o escrito a mano
+      const conocido = porId.get(String(l?.id)) ?? porNombre.get(normalizar(String(l?.nombre ?? "")));
+      let ing: IngredienteReceta;
+      if (conocido) ing = { ...conocido, cantidad };
+      else {
+        const nombreIng = String(l?.nombre ?? "").trim().slice(0, 40);
+        if (nombreIng.length < 2) return `${nombre}: escribe el nombre de cada ingrediente.`;
+        if (!UNIDADES.has(String(l?.unidad))) return `${nombre}: elige la unidad de ${nombreIng}.`;
+        const clave = normalizar(nombreIng).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30) || "otro";
+        ing = { id: `libre-${clave}`, nombre: nombreIng, unidad: l.unidad, categoria: null, orden: 99, cantidad };
+      }
+      if (vistos.has(ing.id)) return `${nombre}: ${ing.nombre} está dos veces.`;
+      vistos.add(ing.id);
+      ingredientesTrago.push(ing);
+    }
+    ids.add(t.id);
+    propios.push({ id: t.id, nombre, ingredientes: ingredientesTrago });
+  }
+  return propios;
+}
+
+export function limpiarEntrada(
+  e: EntradaCotizador,
+  tipos: TipoEvento[],
+  recetas: Receta[],
+  ingredientes: Ingrediente[] = [],
+): EntradaCotizador | string {
   const tipo = tipos.find((t) => t.id === e?.tipoEventoId);
   if (!tipo) return "Elige el tipo de evento.";
   const invitados = entero(e.invitados);
@@ -155,10 +210,13 @@ export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas
   const horaInicio = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(e.horaInicio)) ? String(e.horaInicio) : "19:00";
   const margen = Math.min(50, Math.max(0, entero(e.margen) || 0));
 
+  const propios = limpiarPropios(e.propios, ingredientes);
+  if (typeof propios === "string") return propios;
   const idsRecetas = new Set(recetas.map((r) => r.id));
+  const idsBarra = new Set([...idsRecetas, ...propios.map((t) => t.id)]); // la barra puede tener tragos propios
   const vistos = new Set<string>();
   const barra = (Array.isArray(e.barra) ? e.barra : [])
-    .filter((b) => idsRecetas.has(b?.recetaId) && NIVELES_VALIDOS.has(b.nivel) && !vistos.has(b.recetaId) && vistos.add(b.recetaId))
+    .filter((b) => idsBarra.has(b?.recetaId) && NIVELES_VALIDOS.has(b.nivel) && !vistos.has(b.recetaId) && vistos.add(b.recetaId))
     .slice(0, LIMITES.barraMax)
     .map((b) => ({ recetaId: b.recetaId, nivel: b.nivel }));
 
@@ -166,7 +224,7 @@ export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas
   const cenaHoras = Math.min(4, Math.max(0.5, mediaHora(e.cena?.horas) || 1.5));
 
   // Producto elegido para cada ingrediente (solo ingredientes que existen en algún trago)
-  const idsIngredientes = new Set(recetas.flatMap((r) => r.ingredientes.map((i) => i.id)));
+  const idsIngredientes = new Set([...recetas, ...propios].flatMap((r) => r.ingredientes.map((i) => i.id)));
   const productos: Record<string, string> = {};
   for (const [ingrediente, producto] of Object.entries(e.productos ?? {})) {
     if (idsIngredientes.has(ingrediente) && esUuid(producto)) productos[ingrediente] = producto;
@@ -196,16 +254,18 @@ export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas
     cena: { activo: e.cena?.activo === true, horas: cenaHoras },
     brindis: { activo: e.brindis?.activo === true },
     barra,
+    // Solo se guardan los tragos propios que siguen en la barra
+    propios: propios.filter((t) => barra.some((b) => b.recetaId === t.id)),
     productos,
     cajasManual,
   };
 }
 
 export async function cotizarEvento(entrada: EntradaCotizador) {
-  const { puedeUsar, parametros, tipos, recetas, catalogo } = await datosCotizador();
+  const { puedeUsar, parametros, tipos, recetas, ingredientes, catalogo } = await datosCotizador();
   if (!puedeUsar) return { error: "Ingresa con tu cuenta de comprador para usar el cotizador." };
   if (!parametros) return { error: "El cotizador no está disponible por ahora." };
-  const limpia = limpiarEntrada(entrada, tipos, recetas);
+  const limpia = limpiarEntrada(entrada, tipos, recetas, ingredientes);
   if (typeof limpia === "string") return { error: limpia };
   return { entrada: limpia, resultado: calcular(limpia, parametros, recetas, catalogo) };
 }
