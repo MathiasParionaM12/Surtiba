@@ -10,6 +10,7 @@ import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { FormConfirmar, type Iniciales } from "./FormConfirmar";
+import { RegistrarEvento } from "@/components/RegistrarEvento";
 
 export const metadata: Metadata = { title: "Confirmar pedido · Surtiba" };
 
@@ -80,6 +81,7 @@ async function Confirmar() {
 
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <RegistrarEvento tipo="inicio_pedido" />
       <div className="rounded-md border border-linea bg-blanco p-5 sm:p-8">
         <FormConfirmar
           fechaMinima={mananaEnLima()}

@@ -18,6 +18,12 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 | Cabeceras | `next.config.ts`: X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy y una CSP en modo solo reporte |
 | Claves | Ninguna en el repo. `SUPABASE_SERVICE_ROLE_KEY` no se usa |
 
+## Analítica (21-oct-2026)
+
+- **Vercel Web Analytics** (`@vercel/analytics` en `app/layout.tsx`): visitas y páginas, sin cookies ni datos personales. Se activa en Vercel → proyecto → Analytics.
+- **Eventos propios** (tabla `eventos`): vio un producto, agregó al carrito, empezó a pedir. Cualquiera registra con `registrar_evento` (sin poder inventar tipos ni hacerse pasar por otro); solo el admin los lee.
+- **Microsoft Clarity, GA4 y píxeles**: no se usan (grabaciones y cookies piden aviso y consentimiento, Ley 29733).
+
 ## Riesgos aceptados (decididos)
 
 - **Supuestos del cotizador visibles** (`parametros_cotizador` lo lee cualquiera). El mini-cotizador de la portada y el ejemplo de `/cotizador` calculan en el navegador. Son supuestos de negocio, no datos de clientes, y para cerrarlos habría que mover esos cálculos al servidor. Se revisa si Surtiba deja de ser prototipo.

@@ -188,6 +188,8 @@ Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan 
 
 **avisos** (campana, 21-oct-2026): perfil_id, `texto`, `enlace` (ruta de la app), `leido_en`, creado_en. Los crean solo los triggers de `pedidos` y `subpedidos` (`supabase/sql/27_avisos.sql`); cada persona ve los suyos y solo puede cambiar `leido_en`. Está publicada en **Supabase Realtime** (`28_avisos_tiempo_real.sql`): la campana recibe cada aviso nuevo al instante; Realtime respeta RLS. Es la única tabla publicada.
 
+**eventos** (21-oct-2026, embudo del admin): `tipo` (vio_producto · agrego_carrito · inicio_pedido), producto_id, perfil_id (si hay sesión), creado_en. Se registran solo con `registrar_evento` (visitantes incluidos; la base pone el perfil). Solo el admin los lee. Sin cookies ni datos personales (`supabase/sql/31_eventos.sql`).
+
 ## Estados
 
 ```

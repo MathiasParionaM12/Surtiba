@@ -6,6 +6,7 @@ import { BarraCarga } from "@/components/BarraCarga";
 import { Encabezado } from "@/components/Encabezado";
 import { Pie } from "@/components/Pie";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Pie />
         <Avisos />
+        {/* Visitas y páginas más vistas (Vercel Web Analytics): sin cookies ni datos personales */}
+        <Analytics />
       </body>
     </html>
   );

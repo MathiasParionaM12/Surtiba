@@ -336,6 +336,10 @@ export type Database = {
         Args: { p_ruta: string };
         Returns: undefined;
       };
+      registrar_evento: {
+        Args: { p_tipo: string; p_producto?: string | null };
+        Returns: undefined;
+      };
       marca_insights: {
         Args: Record<string, never>;
         Returns: Json;

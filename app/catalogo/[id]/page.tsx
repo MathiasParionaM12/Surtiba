@@ -13,6 +13,7 @@ import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { CalculadoraMargen } from "./CalculadoraMargen";
 import { FormAgregar } from "./FormAgregar";
+import { RegistrarEvento } from "@/components/RegistrarEvento";
 
 export const metadata: Metadata = { title: "Producto · Surtiba" };
 
@@ -40,33 +41,36 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
     const p = (await catalogoPublico()).find((c) => c.id === id);
     if (!p) notFound();
     return (
-      <Ficha
-        categoria={p.categoria!}
-        ml={p.ml!}
-        foto={urlFoto(p.foto_url)}
-        marca={p.marca!}
-        nombre={p.nombre!}
-        datos={[
-          ["Contenido", `${p.ml} ml`],
-          ["Grado", `${p.grado}%`],
-          ["Unidades por caja", `${p.unidades_por_caja}`],
-        ]}
-      >
-        <p className="font-mono text-2xl font-medium">
-          {soles(p.precio_caja_centimos!)} <span className="font-sans text-base font-normal text-gris">por caja</span>
-        </p>
-        <div className="mt-6 rounded-md border border-linea bg-blanco p-5">
-          <p className="text-sm">Ingresa para ver los precios por volumen, el stock disponible y para pedir.</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/ingresar" className={`${botonSecundario} h-10`}>
-              Ingresar
-            </Link>
-            <Link href="/registro" className={`${botonPrimario} h-10`}>
-              Crear cuenta
-            </Link>
+      <>
+        <RegistrarEvento tipo="vio_producto" productoId={id} />
+        <Ficha
+          categoria={p.categoria!}
+          ml={p.ml!}
+          foto={urlFoto(p.foto_url)}
+          marca={p.marca!}
+          nombre={p.nombre!}
+          datos={[
+            ["Contenido", `${p.ml} ml`],
+            ["Grado", `${p.grado}%`],
+            ["Unidades por caja", `${p.unidades_por_caja}`],
+          ]}
+        >
+          <p className="font-mono text-2xl font-medium">
+            {soles(p.precio_caja_centimos!)} <span className="font-sans text-base font-normal text-gris">por caja</span>
+          </p>
+          <div className="mt-6 rounded-md border border-linea bg-blanco p-5">
+            <p className="text-sm">Ingresa para ver los precios por volumen, el stock disponible y para pedir.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/ingresar" className={`${botonSecundario} h-10`}>
+                Ingresar
+              </Link>
+              <Link href="/registro" className={`${botonPrimario} h-10`}>
+                Crear cuenta
+              </Link>
+            </div>
           </div>
-        </div>
-      </Ficha>
+        </Ficha>
+      </>
     );
   }
 
@@ -94,64 +98,67 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
     : [{ data: null }, { data: null }, { data: null }];
 
   return (
-    <Ficha
-      categoria={p.categoria}
-      ml={p.ml}
-      foto={urlFoto(p.foto_url)}
-      marca={p.marcas.nombre_comercial}
-      nombre={p.nombre}
-      datos={[
-        ["Contenido", `${p.ml} ml`],
-        ["Grado", `${p.grado}%`],
-        ["Unidades por caja", `${p.unidades_por_caja}`],
-        ["Registro sanitario", p.registro_sanitario ?? "—"],
-        ["Stock disponible", p.stock_cajas === 0 ? "Agotado (por encargo)" : `${p.stock_cajas} cajas`],
-      ]}
-    >
-      {(!p.activo || !p.marcas.activa) && (
-        <p className="mb-6 border-l-2 border-linea pl-3 text-sm text-gris">
-          {p.marcas.activa ? "Producto inactivo" : "Marca inactiva"}: los compradores no lo ven en el catálogo.
-        </p>
-      )}
-      {esComprador && (
-        <div className="mb-8 flex items-start gap-2">
-          <div className="flex-1">
-            <FormAgregar productoId={id} stock={p.stock_cajas} enCarrito={enCarrito?.cajas ?? 0} />
+    <>
+      <RegistrarEvento tipo="vio_producto" productoId={id} />
+      <Ficha
+        categoria={p.categoria}
+        ml={p.ml}
+        foto={urlFoto(p.foto_url)}
+        marca={p.marcas.nombre_comercial}
+        nombre={p.nombre}
+        datos={[
+          ["Contenido", `${p.ml} ml`],
+          ["Grado", `${p.grado}%`],
+          ["Unidades por caja", `${p.unidades_por_caja}`],
+          ["Registro sanitario", p.registro_sanitario ?? "—"],
+          ["Stock disponible", p.stock_cajas === 0 ? "Agotado (por encargo)" : `${p.stock_cajas} cajas`],
+        ]}
+      >
+        {(!p.activo || !p.marcas.activa) && (
+          <p className="mb-6 border-l-2 border-linea pl-3 text-sm text-gris">
+            {p.marcas.activa ? "Producto inactivo" : "Marca inactiva"}: los compradores no lo ven en el catálogo.
+          </p>
+        )}
+        {esComprador && (
+          <div className="mb-8 flex items-start gap-2">
+            <div className="flex-1">
+              <FormAgregar productoId={id} stock={p.stock_cajas} enCarrito={enCarrito?.cajas ?? 0} />
+            </div>
+            <BotonFavorito productoId={id} activo={!!favorito} className="pt-1" />
           </div>
-          <BotonFavorito productoId={id} activo={!!favorito} className="pt-1" />
-        </div>
-      )}
-      <h2 className={sello}>Precio por caja según cantidad</h2>
-      <table className="mt-3 w-full overflow-hidden rounded-md border border-linea bg-blanco text-sm">
-        <tbody>
-          {tramos.map((t) => (
-            <tr key={t.desde_cajas} className="border-b border-linea last:border-b-0">
-              <td className="px-4 py-3 font-mono text-gris">{textoTramo(t)}</td>
-              <td className="px-4 py-3 text-right font-mono font-medium tabular-nums">{soles(t.precio_caja_centimos)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido.</p>
+        )}
+        <h2 className={sello}>Precio por caja según cantidad</h2>
+        <table className="mt-3 w-full overflow-hidden rounded-md border border-linea bg-blanco text-sm">
+          <tbody>
+            {tramos.map((t) => (
+              <tr key={t.desde_cajas} className="border-b border-linea last:border-b-0">
+                <td className="px-4 py-3 font-mono text-gris">{textoTramo(t)}</td>
+                <td className="px-4 py-3 text-right font-mono font-medium tabular-nums">{soles(t.precio_caja_centimos)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido.</p>
 
-      {/* Calculadora de margen: bares, caterings y eventos venden por trago; el resto, por botella */}
-      {esComprador && (
-        <CalculadoraMargen
-          tramos={tramos}
-          ml={p.ml}
-          unidades={p.unidades_por_caja}
-          categoria={p.categoria}
-          porTragoPrimero={perfil?.tipo_negocio !== "otro"}
-        />
-      )}
+        {/* Calculadora de margen: bares, caterings y eventos venden por trago; el resto, por botella */}
+        {esComprador && (
+          <CalculadoraMargen
+            tramos={tramos}
+            ml={p.ml}
+            unidades={p.unidades_por_caja}
+            categoria={p.categoria}
+            porTragoPrimero={perfil?.tipo_negocio !== "otro"}
+          />
+        )}
 
-      {PEDIDO_MINIMO_ACTIVO && (
-        <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
-          Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
-          sumando cualquiera de sus productos.
-        </p>
-      )}
-    </Ficha>
+        {PEDIDO_MINIMO_ACTIVO && (
+          <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
+            Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
+            sumando cualquiera de sus productos.
+          </p>
+        )}
+      </Ficha>
+    </>
   );
 }
 

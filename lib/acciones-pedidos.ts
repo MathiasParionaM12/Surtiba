@@ -54,6 +54,8 @@ export async function agregarAlCarrito(_estado: EstadoForm, form: FormData): Pro
     .upsert({ comprador_id: usuario.id, producto_id: productoId, cajas: total });
   if (error) return { error: "No pudimos agregarlo al carrito. Intenta de nuevo." };
 
+  // Embudo del panel admin: "agregó al carrito" (la base pone quién fue)
+  await supabase.rpc("registrar_evento", { p_tipo: "agrego_carrito", p_producto: productoId });
   actualizarPantallas();
   // Si pide más que el stock, lo que falta irá como pedido por encargo (la marca lo confirma)
   const encargo = Math.max(0, total - producto.stock_cajas);
