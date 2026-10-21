@@ -138,7 +138,7 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - Pie: "Precios válidos sujetos a stock al momento de pedir." No promete fechas de entrega.
 
 ### Avisos
-- **Campana en la app** (21-oct-2026): arriba a la derecha, con el número de avisos nuevos; al abrirla se marcan leídos.
+- **Campana en la app** (21-oct-2026): arriba a la derecha, con el número de avisos nuevos; al abrirla se marcan leídos. **En tiempo real:** el aviso llega al instante, sale un aviso flotante con «Ver» y la pantalla se actualiza sola.
   - Comprador: encargo confirmado (págalo), en preparación, en camino, entregado, cancelado.
   - Marca: nueva orden, nuevo encargo por confirmar, el cliente pagó el encargo (ya puede prepararlo). Solo con el código de la orden, nunca datos del comprador.
   - Admin: nuevo pedido, pedido pagado, encargo aceptado o rechazado, orden lista para recojo.

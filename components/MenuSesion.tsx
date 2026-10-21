@@ -41,7 +41,7 @@ export async function MenuSesion() {
         <p className="max-w-48 truncate text-sm font-medium">{usuario.empresa ?? usuario.nombre ?? usuario.email}</p>
         <p className="font-mono text-[11px] tracking-[0.1em] text-gris uppercase">{NOMBRE_ROL[usuario.rol]}</p>
       </div>
-      <Campana avisos={avisos} sinLeer={sinLeer ?? 0} />
+      <Campana perfilId={usuario.id} avisos={avisos} sinLeer={sinLeer ?? 0} />
       {usuario.rol === "comprador" && (
         <Link href="/carrito" className={`${botonPrimario} h-10 px-3 sm:px-4`}>
           <ShoppingCart className="size-4" aria-hidden="true" />

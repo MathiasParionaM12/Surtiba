@@ -2,10 +2,15 @@
 
 // Campana de avisos del encabezado: el número de avisos nuevos y, al tocarla, la lista.
 // Al abrirla se marcan como leídos (los nuevos se siguen viendo resaltados mientras está abierta).
+// En tiempo real (Supabase Realtime): cuando la base crea un aviso, llega al instante, sale un aviso
+// flotante y la pantalla se actualiza sola. RLS hace que cada persona reciba solo los suyos.
 import { Bell } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { marcarAvisosLeidos } from "@/lib/acciones-avisos";
+import { createClient } from "@/lib/supabase/client";
 import { botonSecundario, sello } from "@/lib/estilos";
 
 export type Aviso = { id: string; texto: string; enlace: string | null; leido: boolean; creado_en: string };
@@ -20,10 +25,33 @@ function haceCuanto(iso: string) {
   return relativo.format(Math.round(horas / 24), "day");
 }
 
-export function Campana({ avisos, sinLeer }: { avisos: Aviso[]; sinLeer: number }) {
+export function Campana({ perfilId, avisos: delServidor, sinLeer: sinLeerServidor }: { perfilId: string; avisos: Aviso[]; sinLeer: number }) {
+  const router = useRouter();
+  const [vivos, setVivos] = useState<Aviso[]>([]); // los que llegaron en tiempo real
+  // Los que llegaron en vivo y el servidor todavía no trae (al actualizar la pantalla ya vienen en la lista)
+  const soloVivos = vivos.filter((v) => !delServidor.some((a) => a.id === v.id));
+  const avisos = [...soloVivos, ...delServidor].slice(0, 10);
+  const sinLeer = sinLeerServidor + soloVivos.length;
   const [abierta, setAbierta] = useState(false);
   const [nuevos, setNuevos] = useState<Set<string>>(new Set()); // los que eran nuevos al abrir
   const caja = useRef<HTMLDivElement>(null);
+
+  // Tiempo real: escucha los avisos nuevos de esta persona
+  useEffect(() => {
+    const supabase = createClient();
+    const canal = supabase
+      .channel(`avisos-${perfilId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "avisos", filter: `perfil_id=eq.${perfilId}` }, (cambio) => {
+        const a = cambio.new as { id: string; texto: string; enlace: string | null; creado_en: string };
+        setVivos((v) => [{ id: a.id, texto: a.texto, enlace: a.enlace, leido: false, creado_en: a.creado_en }, ...v].slice(0, 10));
+        toast(a.texto, a.enlace ? { action: { label: "Ver", onClick: () => router.push(a.enlace!) } } : undefined);
+        router.refresh(); // la pantalla se actualiza sola (ej. aparece la orden nueva)
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [perfilId, router]);
 
   // Se cierra al tocar fuera o con Escape
   useEffect(() => {
