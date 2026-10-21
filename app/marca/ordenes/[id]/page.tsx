@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Orden · Panel de marca · Surtiba" 
 export default function PaginaOrden({ params }: PageProps<"/marca/ordenes/[id]">) {
   return (
     <>
-      <Link href="/marca/ordenes" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/marca/ordenes" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Órdenes
       </Link>
       <div className="mt-6">

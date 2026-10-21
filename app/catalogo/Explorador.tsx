@@ -118,7 +118,7 @@ export function Explorador({
           {visibles.length} {visibles.length === 1 ? "producto" : "productos"}
         </p>
         {hayFiltros && (
-          <button type="button" onClick={quitarFiltros} className="flex h-11 items-center gap-1 text-sm font-medium text-verde hover:text-tinta">
+          <button type="button" onClick={quitarFiltros} className="flex h-11 items-center gap-1 text-sm font-medium enlace text-verde hover:text-tinta">
             <X className="size-4" aria-hidden="true" />
             Quitar filtros
           </button>

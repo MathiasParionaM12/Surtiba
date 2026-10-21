@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Producto · Surtiba" };
 export default function PaginaProducto({ params }: PageProps<"/catalogo/[id]">) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8 sm:py-12">
-      <Link href="/catalogo" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/catalogo" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Volver al catálogo
       </Link>
       <Carga fallback={<EsqueletoDetalle />}>

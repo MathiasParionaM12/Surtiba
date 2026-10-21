@@ -112,7 +112,7 @@ async function Resumen() {
               {agotados.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-4 border-b border-linea px-4 py-3 last:border-b-0">
                   <span>{p.nombre}</span>
-                  <Link href="/marca/stock" className="text-sm font-medium text-verde hover:text-tinta">
+                  <Link href="/marca/stock" className="text-sm font-medium enlace text-verde hover:text-tinta">
                     Actualizar stock
                   </Link>
                 </li>

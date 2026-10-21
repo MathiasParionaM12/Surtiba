@@ -170,7 +170,7 @@ export function CrearTrago({
           <button
             type="button"
             onClick={sumarLinea}
-            className="flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-verde hover:text-tinta"
+            className="flex min-h-11 items-center gap-1.5 self-start text-sm font-medium enlace text-verde hover:text-tinta"
           >
             <Plus className="size-4" aria-hidden="true" />
             Otro ingrediente

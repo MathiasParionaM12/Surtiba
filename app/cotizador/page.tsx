@@ -86,7 +86,7 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
   return (
     <>
       {usuario.rol === "comprador" && (
-        <Link href="/cotizaciones" className="-mt-4 mb-8 inline-block text-sm font-medium text-verde hover:text-tinta">
+        <Link href="/cotizaciones" className="-mt-4 mb-8 inline-block text-sm font-medium enlace text-verde hover:text-tinta">
           Mis cotizaciones →
         </Link>
       )}

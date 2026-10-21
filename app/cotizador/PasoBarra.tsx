@@ -209,7 +209,7 @@ export function PasoBarra({
               <button
                 type="button"
                 onClick={() => setCreando(q && encontrados.length === 0 ? busqueda.trim() : "")}
-                className="flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-verde hover:text-tinta"
+                className="flex min-h-11 items-center gap-1.5 self-start text-sm font-medium enlace text-verde hover:text-tinta"
               >
                 <Plus className="size-4" aria-hidden="true" />
                 {q && encontrados.length === 0 ? `Crear «${busqueda.trim()}»` : "Crear mi trago"}

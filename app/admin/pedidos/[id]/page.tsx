@@ -35,7 +35,7 @@ const TIPO_NEGOCIO: Record<string, string> = {
 export default function PaginaPedidoAdmin({ params }: PageProps<"/admin/pedidos/[id]">) {
   return (
     <>
-      <Link href="/admin/pedidos" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/admin/pedidos" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Pedidos
       </Link>
       <div className="mt-6">

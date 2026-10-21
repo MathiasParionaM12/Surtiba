@@ -79,11 +79,11 @@ async function Logistica() {
                     {g.privado?.contacto_whatsapp && <span className="font-mono"> · {g.privado.contacto_whatsapp}</span>}
                   </p>
                 </header>
-                <ul>
+                <ul className="escalonado">
                   {g.ordenes.map((o) => (
                     <li key={o.id} className="flex flex-wrap items-end justify-between gap-3 border-b border-linea px-4 py-3 last:border-b-0 sm:px-5">
                       <div className="min-w-40">
-                        <Link href={`/admin/pedidos/${o.pedido_id}`} className="font-mono font-medium text-verde hover:text-tinta">
+                        <Link href={`/admin/pedidos/${o.pedido_id}`} className="font-mono font-medium enlace text-verde hover:text-tinta">
                           {o.codigo}
                         </Link>
                         <span className="ml-2 font-mono text-xs text-gris">{o.total_cajas} cajas</span>
@@ -152,11 +152,11 @@ type PedidoEntrega = {
 function ListaEntregas({ pedidos, vacio, accion }: { pedidos: PedidoEntrega[]; vacio: string; accion: "enviar" | "entregar" }) {
   if (pedidos.length === 0) return <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">{vacio}</p>;
   return (
-    <ul className="mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
+    <ul className="escalonado mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
       {pedidos.map((p) => (
         <li key={p.id} className="flex flex-wrap items-end justify-between gap-3 border-b border-linea px-4 py-3 last:border-b-0">
           <div className="text-sm">
-            <Link href={`/admin/pedidos/${p.id}`} className="font-mono font-medium text-verde hover:text-tinta">
+            <Link href={`/admin/pedidos/${p.id}`} className="font-mono font-medium enlace text-verde hover:text-tinta">
               {p.codigo}
             </Link>
             <span className="ml-2">{p.perfiles?.empresa}</span>

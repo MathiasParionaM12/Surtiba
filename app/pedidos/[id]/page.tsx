@@ -38,7 +38,7 @@ const PASOS_ENCARGO = [
 export default function PaginaPedido({ params, searchParams }: PageProps<"/pedidos/[id]">) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
-      <Link href="/pedidos" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/pedidos" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Mis pedidos
       </Link>
       <div className="mt-6">

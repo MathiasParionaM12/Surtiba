@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Confirmar pedido · Surtiba" };
 export default function PaginaConfirmar() {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
-      <Link href="/carrito" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/carrito" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Volver al carrito
       </Link>
       <p className={`${sello} mt-6`}>Último paso</p>

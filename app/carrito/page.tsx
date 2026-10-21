@@ -268,7 +268,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
             </Link>
           )}
           <BotonPdf preparar={cotizacionDelCarrito} className="mt-3" />
-          <Link href="/catalogo" className="mt-3 block text-center text-sm font-medium text-verde hover:text-tinta">
+          <Link href="/catalogo" className="mt-3 block text-center text-sm font-medium enlace text-verde hover:text-tinta">
             Seguir comprando
           </Link>
         </aside>

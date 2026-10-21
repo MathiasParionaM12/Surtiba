@@ -6,6 +6,7 @@
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useActionState, useState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
+import { Sello } from "@/components/Sello";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { agregarAlCarrito } from "@/lib/acciones-pedidos";
 import { botonPrimario } from "@/lib/estilos";
@@ -13,7 +14,11 @@ import { botonPrimario } from "@/lib/estilos";
 const MAX = 999;
 
 export function AgregarTarjeta({ productoId, nombre }: { productoId: string; nombre: string }) {
-  const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(agregarAlCarrito, {});
+  const [estado, accion, enviando] = useActionState<EstadoForm & { vez?: number }, FormData>(async (antes, form) => {
+    // "vez" cuenta los agregados que salieron bien: así el sello se vuelve a estampar cada vez
+    const r = await agregarAlCarrito(antes, form);
+    return { ...r, vez: r.mensaje ? (antes.vez ?? 0) + 1 : antes.vez };
+  }, {});
   const [cajas, setCajas] = useState(1);
   const sumar = (delta: number) => setCajas((n) => Math.min(MAX, Math.max(1, n + delta)));
 
@@ -48,6 +53,11 @@ export function AgregarTarjeta({ productoId, nombre }: { productoId: string; nom
         <ShoppingCart className="size-4" aria-hidden="true" />
         {enviando ? "Agregando…" : "Agregar"}
       </button>
+      {estado.mensaje && estado.vez ? (
+        <Sello key={estado.vez} tono="verde" giro={-4} className="estampa-pasajera self-center">
+          En el carrito
+        </Sello>
+      ) : null}
       <div className="empty:hidden text-xs">
         <AvisoForm estado={estado} />
       </div>

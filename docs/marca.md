@@ -44,6 +44,10 @@ Poco, corto y útil. Nunca para decorar.
 - **Carrito**: una barra fina en verde muestra cuánto falta para el siguiente precio por volumen ("2 cajas más y pagas S/ 285 por caja").
 - **Selectores** (Principal / Secundario / Ocasional y similares): el fondo blanco se desliza hasta la opción elegida (200 ms).
 - **Barra del reparto** de la barra de tragos: un color fijo por trago (tinta, verde, gris y sus tonos); al cambiar un nivel, cada parte cambia de tamaño suave.
+- **Enlaces de texto verdes** (clase `.enlace`): una línea crece debajo al pasar el mouse, como en el menú.
+- **Flechas (→)** de botones y enlaces: avanzan 2 px al pasar el mouse.
+- **Listas de pedidos, órdenes y logística** (clase `.escalonado`): las filas entran una tras otra al cargar (30 ms entre filas, máximo 12).
+- **"En el carrito"**: el mismo sello del cotizador al agregar desde una tarjeta o el detalle de un producto.
 - **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).
 - **Reducir movimiento** (cambiado el 18-oct-2026): muchos Windows lo traen activado sin que la persona lo sepa, y apagar todo dejaba la app sin vida. Por eso solo se apaga lo que se repite o se mueve mucho: el brillo de los esqueletos, la línea del recorrido de la portada, la cinta de categorías y el desplazamiento suave entre pasos del cotizador. Los fundidos cortos, el hover, las cifras y el contador del carrito siguen. Los avisos flotantes aparecen sin deslizarse (lo decide la librería sonner).
 

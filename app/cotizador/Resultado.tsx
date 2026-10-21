@@ -303,7 +303,7 @@ export function Resultado({
                   {p.cajas !== p.cajasSugeridas && (
                     <p className="text-xs text-gris">
                       Sugeridas: <span className="font-mono">{p.cajasSugeridas}</span> ·{" "}
-                      <button type="button" onClick={() => cambiarCajas(p.productoId, "")} className={`${areaToque} font-medium text-verde hover:text-tinta`}>
+                      <button type="button" onClick={() => cambiarCajas(p.productoId, "")} className={`${areaToque} font-medium enlace text-verde hover:text-tinta`}>
                         Volver a lo sugerido
                       </button>
                     </p>

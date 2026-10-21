@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Marca · Panel Surtiba" };
 export default function PaginaMarcaAdmin({ params }: PageProps<"/admin/marcas/[id]">) {
   return (
     <>
-      <Link href="/admin/marcas" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/admin/marcas" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Marcas
       </Link>
       <div className="mt-6">

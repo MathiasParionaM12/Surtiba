@@ -52,7 +52,7 @@ async function Lista() {
   }
 
   return (
-    <ul className="mt-8 flex flex-col gap-3">
+    <ul className="escalonado mt-8 flex flex-col gap-3">
       {cotizaciones.map((c) => {
         const e = c.evento as Evento;
         const r = e?.version === 2 ? e.resumen : undefined;
@@ -79,11 +79,11 @@ async function Lista() {
             <div className="flex flex-wrap items-center gap-4">
               <span className="font-mono font-medium">{soles(c.total_centimos)}</span>
               {e?.version === 2 && (
-                <Link href={`/cotizador?desde=${c.id}`} className="text-sm font-medium text-verde hover:text-tinta">
+                <Link href={`/cotizador?desde=${c.id}`} className="text-sm font-medium enlace text-verde hover:text-tinta">
                   Abrir en el cotizador
                 </Link>
               )}
-              <a href={`/cotizaciones/${c.id}/pdf`} download className="text-sm font-medium text-verde hover:text-tinta">
+              <a href={`/cotizaciones/${c.id}/pdf`} download className="text-sm font-medium enlace text-verde hover:text-tinta">
                 PDF
               </a>
             </div>

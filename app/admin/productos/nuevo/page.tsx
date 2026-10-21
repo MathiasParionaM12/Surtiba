@@ -27,7 +27,7 @@ async function Nuevo({ searchParams }: { searchParams: Promise<{ marca?: string 
 
   return (
     <>
-      <Link href={`/admin/marcas/${m.id}`} className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href={`/admin/marcas/${m.id}`} className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← {m.nombre_comercial}
       </Link>
       <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">Nuevo producto de {m.nombre_comercial}</h1>

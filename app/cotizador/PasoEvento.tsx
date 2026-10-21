@@ -103,7 +103,7 @@ export function PasoEvento({
           <span className="text-xs text-gris">
             Niños, conductores y quienes no toman. Sugerido: {sugeridoNoToman}.{" "}
             {entrada.noToman !== sugeridoNoToman && (
-              <button type="button" onClick={() => actualizar({ noToman: sugeridoNoToman })} className={`${areaToque} font-medium text-verde hover:text-tinta`}>
+              <button type="button" onClick={() => actualizar({ noToman: sugeridoNoToman })} className={`${areaToque} font-medium enlace text-verde hover:text-tinta`}>
                 Usar sugerido
               </button>
             )}

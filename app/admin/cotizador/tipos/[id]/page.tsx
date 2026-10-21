@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Tipo de evento · Panel Surtiba" };
 export default function PaginaTipoEvento({ params, searchParams }: PageProps<"/admin/cotizador/tipos/[id]">) {
   return (
     <>
-      <Link href="/admin/cotizador" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/admin/cotizador" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Cotizador
       </Link>
       <div className="mt-6">

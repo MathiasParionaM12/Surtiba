@@ -41,7 +41,7 @@ async function Editar({
 
   return (
     <>
-      <Link href={`/admin/marcas/${p.marca_id}`} className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href={`/admin/marcas/${p.marca_id}`} className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← {p.marcas?.nombre_comercial}
       </Link>
       <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">{p.nombre}</h1>

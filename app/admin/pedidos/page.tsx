@@ -97,7 +97,7 @@ async function Lista({ searchParams }: { searchParams: Promise<Filtros> }) {
           Filtrar
         </button>
         {hayFiltros && (
-          <Link href="/admin/pedidos" className="h-10 content-center text-sm font-medium text-verde hover:text-tinta">
+          <Link href="/admin/pedidos" className="h-10 content-center text-sm font-medium enlace text-verde hover:text-tinta">
             Quitar filtros
           </Link>
         )}
@@ -119,11 +119,11 @@ async function Lista({ searchParams }: { searchParams: Promise<Filtros> }) {
                 <th className={`${sello} px-4 py-3 font-medium`}>Pago</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="escalonado">
               {pedidos.map((p) => (
                 <tr key={p.id} className="border-b border-linea last:border-b-0 hover:bg-papel">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/pedidos/${p.id}`} className="font-mono font-medium text-verde hover:text-tinta">
+                    <Link href={`/admin/pedidos/${p.id}`} className="font-mono font-medium enlace text-verde hover:text-tinta">
                       {p.codigo}
                     </Link>
                     {p.tipo === "encargo" && <span className="ml-1.5 text-[11px] text-gris">Encargo</span>}

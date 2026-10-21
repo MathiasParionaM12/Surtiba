@@ -19,7 +19,7 @@ export function AgregarRapido({ productoId, cajas, pedidoId }: { productoId: str
     return pedidoId ? (
       <p className="text-sm font-medium text-verde">{estado.mensaje}</p>
     ) : (
-      <Link href="/carrito" className="text-sm font-medium whitespace-nowrap text-verde hover:text-tinta">
+      <Link href="/carrito" className="text-sm font-medium whitespace-nowrap enlace text-verde hover:text-tinta">
         Agregado · Ver carrito
       </Link>
     );

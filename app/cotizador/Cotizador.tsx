@@ -228,7 +228,7 @@ export function Cotizador({
             {paso === 3 && esComprador && (
               <p className="text-xs text-gris">
                 Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Al descargar el PDF, la cotización se guarda en{" "}
-                <Link href="/cotizaciones" className="font-medium text-verde hover:text-tinta">
+                <Link href="/cotizaciones" className="font-medium enlace text-verde hover:text-tinta">
                   Mis cotizaciones
                 </Link>
                 .

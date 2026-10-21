@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Nuevo producto · Panel de marca · 
 export default function PaginaNuevoProducto() {
   return (
     <>
-      <Link href="/marca/productos" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/marca/productos" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Productos
       </Link>
       <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">Nuevo producto</h1>

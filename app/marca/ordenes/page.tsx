@@ -58,7 +58,7 @@ async function ListaOrdenes() {
             <th className="px-4 py-3" />
           </tr>
         </thead>
-        <tbody>
+        <tbody className="escalonado">
           {ordenes.map((o) => (
             <tr key={o.id} className="border-b border-linea last:border-b-0">
               <td className="px-4 py-3 font-mono">{o.codigo}</td>
@@ -78,7 +78,7 @@ async function ListaOrdenes() {
                 <EtiquetaEstado estado={o.estado} />
               </td>
               <td className="px-4 py-3 text-right">
-                <Link href={`/marca/ordenes/${o.id}`} className="font-medium whitespace-nowrap text-verde hover:text-tinta">
+                <Link href={`/marca/ordenes/${o.id}`} className="font-medium whitespace-nowrap enlace text-verde hover:text-tinta">
                   {o.estado === "por_confirmar" ? "Responder" : o.estado === "pendiente" ? "Revisar" : "Ver"}
                 </Link>
               </td>

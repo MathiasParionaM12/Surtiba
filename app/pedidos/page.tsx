@@ -50,7 +50,7 @@ async function ListaPedidos() {
   }
 
   return (
-    <ul className="mt-8 flex flex-col gap-3">
+    <ul className="escalonado mt-8 flex flex-col gap-3">
       {pedidos.map((p) => {
         const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
         const cajas = vigentes.reduce((s, x) => s + x.total_cajas, 0);

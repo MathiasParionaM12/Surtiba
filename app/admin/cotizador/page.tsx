@@ -23,7 +23,7 @@ export default function PaginaCotizadorAdmin() {
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Cotizador</h1>
-        <Link href="/cotizador" className="text-sm font-medium text-verde hover:text-tinta">
+        <Link href="/cotizador" className="text-sm font-medium enlace text-verde hover:text-tinta">
           Ver el cotizador →
         </Link>
       </div>
@@ -131,7 +131,7 @@ async function Contenido() {
                     Barra: {t.tipo_evento_recetas.map((m) => `${m.recetas?.nombre} (${NIVEL[m.nivel] ?? m.nivel})`).join(" · ")}
                   </p>
                 </div>
-                <Link href={`/admin/cotizador/tipos/${t.id}`} className="text-sm font-medium text-verde hover:text-tinta">
+                <Link href={`/admin/cotizador/tipos/${t.id}`} className="text-sm font-medium enlace text-verde hover:text-tinta">
                   Editar
                 </Link>
               </li>
@@ -214,7 +214,7 @@ async function Contenido() {
                   return (
                     <tr key={c.id} className="border-b border-linea last:border-b-0">
                       <td className="px-4 py-3">
-                        <a href={`/cotizaciones/${c.id}/pdf`} download className="font-mono font-medium text-verde hover:text-tinta">
+                        <a href={`/cotizaciones/${c.id}/pdf`} download className="font-mono font-medium enlace text-verde hover:text-tinta">
                           {c.codigo}
                         </a>
                         <span className="block text-xs text-gris">{fecha(c.creado_en)}</span>
@@ -226,7 +226,7 @@ async function Contenido() {
                       <td className="px-4 py-3 text-right font-mono whitespace-nowrap">{soles(c.total_centimos)}</td>
                       <td className="px-4 py-3">
                         {c.pedido_id ? (
-                          <Link href={`/admin/pedidos/${c.pedido_id}`} className="font-mono text-verde hover:text-tinta">
+                          <Link href={`/admin/pedidos/${c.pedido_id}`} className="font-mono enlace text-verde hover:text-tinta">
                             {c.pedidos?.codigo}
                           </Link>
                         ) : (

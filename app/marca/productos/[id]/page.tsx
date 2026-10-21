@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Editar producto · Panel de marca ·
 export default function PaginaEditarProducto({ params, searchParams }: PageProps<"/marca/productos/[id]">) {
   return (
     <>
-      <Link href="/marca/productos" className="text-sm font-medium text-verde hover:text-tinta">
+      <Link href="/marca/productos" className="text-sm font-medium enlace text-verde hover:text-tinta">
         ← Productos
       </Link>
       <Carga fallback={<EsqueletoDetalle />}>

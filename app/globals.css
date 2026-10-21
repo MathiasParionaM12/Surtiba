@@ -287,6 +287,76 @@ body {
   }
 }
 
+/* Enlaces de texto verdes: una línea que crece de izquierda a derecha al pasar el mouse
+   (como el menú). Funciona también si el enlace ocupa dos líneas. */
+.enlace {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition:
+    background-size 200ms ease-out,
+    color 150ms;
+}
+.enlace:hover,
+.enlace:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* Flechas (→) de botones y enlaces: avanzan 2 px al pasar el mouse */
+.lucide-arrow-right {
+  transition: translate 150ms ease-out;
+}
+a:hover .lucide-arrow-right,
+button:hover .lucide-arrow-right {
+  translate: 2px 0;
+}
+
+/* Listas y tablas de pedidos, órdenes y logística: las filas entran una tras otra al cargar
+   (30 ms entre filas, solo las primeras 12 esperan; el resto entra con la última) */
+@keyframes fila {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.escalonado > * {
+  animation: fila 240ms ease-out both;
+}
+.escalonado > :nth-child(2) {
+  animation-delay: 30ms;
+}
+.escalonado > :nth-child(3) {
+  animation-delay: 60ms;
+}
+.escalonado > :nth-child(4) {
+  animation-delay: 90ms;
+}
+.escalonado > :nth-child(5) {
+  animation-delay: 120ms;
+}
+.escalonado > :nth-child(6) {
+  animation-delay: 150ms;
+}
+.escalonado > :nth-child(7) {
+  animation-delay: 180ms;
+}
+.escalonado > :nth-child(8) {
+  animation-delay: 210ms;
+}
+.escalonado > :nth-child(9) {
+  animation-delay: 240ms;
+}
+.escalonado > :nth-child(10) {
+  animation-delay: 270ms;
+}
+.escalonado > :nth-child(11) {
+  animation-delay: 300ms;
+}
+.escalonado > :nth-child(12) {
+  animation-delay: 330ms;
+}
+.escalonado > :nth-child(n + 13) {
+  animation-delay: 360ms;
+}
+
 /* Altura del encabezado (la ajusta components/MedirEncabezado.tsx). Valores iniciales:
    celular con la fila de enlaces, y computadora. */
 :root {

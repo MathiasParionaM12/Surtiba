@@ -110,7 +110,7 @@ async function Marcas() {
               {(marcas ?? []).map((m) => (
                 <tr key={m.id} className="border-b border-linea last:border-b-0 hover:bg-papel">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/marcas/${m.id}`} className="font-medium text-verde hover:text-tinta">
+                    <Link href={`/admin/marcas/${m.id}`} className="font-medium enlace text-verde hover:text-tinta">
                       {m.nombre_comercial}
                     </Link>
                   </td>
