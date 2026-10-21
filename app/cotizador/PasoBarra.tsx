@@ -95,7 +95,7 @@ export function PasoBarra({
         <ul className="flex flex-col divide-y divide-linea rounded-md border border-linea bg-blanco">
           {entrada.barra.map((b) => (
             <li key={b.recetaId} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="font-medium">{nombre(b.recetaId)}</span>
                   {esPropio(b.recetaId) && (
@@ -112,7 +112,7 @@ export function PasoBarra({
                   Quitar
                 </button>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-3">
                 <Segmentado
                   etiqueta={`Cuánto se pide ${nombre(b.recetaId)}`}
                   opciones={NIVELES}
