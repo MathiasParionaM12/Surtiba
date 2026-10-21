@@ -9,6 +9,7 @@ import { Cifra } from "@/components/Cifra";
 import { cotizar, guardarCotizacion, pasarAlCarrito } from "@/lib/acciones-cotizador";
 import {
   entradaDesdeTipo,
+  horasDeFiesta,
   LIMITES,
   type EntradaCotizador,
   type Parametros,
@@ -45,6 +46,9 @@ export function Cotizador({
   abierta?: string; // código de la cotización que se volvió a abrir
 }) {
   const [paso, setPaso] = useState(abierta ? 3 : 0);
+  // El paso más lejano al que llegó la persona: a los pasos de arriba solo se puede ir hasta ahí
+  const [alcanzado, setAlcanzado] = useState(abierta ? 3 : 0);
+  const [avisar, setAvisar] = useState(false); // mostrar qué le falta al paso actual
   const [entrada, setEntrada] = useState(entradaInicial);
   const [resultado, setResultado] = useState(resultadoInicial);
   const [error, setError] = useState<string>();
@@ -92,11 +96,27 @@ export function Cotizador({
     const tipo = tipos.find((t) => t.id === id);
     if (tipo) setEntrada((e) => ({ ...entradaDesdeTipo(tipo, parametros, e.invitados, e), noToman: e.noToman }));
   };
+  // Qué le falta a cada paso para poder seguir (null = está completo)
+  const pendiente = (n: number): string | null => {
+    if (n === 0 && entrada.invitados < 1) return "Escribe cuántos invitados tendrá tu evento.";
+    if (n === 1 && horasDeFiesta(entrada) < 0) return "La bienvenida y la cena duran más que todo el evento. Ajusta las horas.";
+    if (n === 2 && entrada.barra.length === 0) return "Elige al menos un trago para la barra.";
+    return null;
+  };
   const irA = (n: number) => {
+    // No se puede saltar pasos: si uno anterior está incompleto, te lleva a ese y te dice qué falta
+    const incompleto = Array.from({ length: n }, (_, i) => i).find((i) => pendiente(i) !== null);
+    setAvisar(incompleto !== undefined);
+    if (incompleto !== undefined) n = incompleto;
     setPaso(n);
+    setAlcanzado((a) => Math.max(a, n));
     const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     arriba.current?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
   };
+
+  const avanzar = () => (pendiente(paso) ? setAvisar(true) : irA(paso + 1));
+  // El aviso se va solo apenas se completa lo que faltaba
+  const avisoPaso = avisar ? pendiente(paso) : null;
 
   const tipo = tipos.find((t) => t.id === entrada.tipoEventoId)?.nombre ?? "";
   const cajas = resultado.productos.reduce((s, p) => s + p.cajas, 0);
@@ -115,13 +135,17 @@ export function Cotizador({
         {PASOS.map((p, i) => {
           // Paso actual en tinta, los ya hechos en verde, los que faltan en gris
           const estado = i === paso ? "actual" : i < paso ? "hecho" : "falta";
+          // Solo se puede ir a los pasos ya visitados; los demás se abren con "Siguiente"
+          const bloqueado = i > alcanzado;
           return (
             <li key={p}>
               <button
                 type="button"
                 onClick={() => irA(i)}
+                disabled={bloqueado}
                 aria-current={estado === "actual" ? "step" : undefined}
-                className="flex min-h-11 w-full flex-col gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde"
+                title={bloqueado ? "Termina los pasos anteriores para llegar aquí" : undefined}
+                className="flex min-h-11 w-full flex-col gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde disabled:cursor-not-allowed"
               >
                 <span
                   className={`h-1.5 rounded-full transition-colors duration-300 ${
@@ -205,6 +229,11 @@ export function Cotizador({
             {paso === 3 && rol === "admin" && (
               <p className="text-xs text-gris">Solo los compradores pueden agregarlo al carrito y guardar la cotización.</p>
             )}
+            {avisoPaso && (
+              <p role="alert" className="border-l-2 border-tinta pl-3 text-sm">
+                {avisoPaso}
+              </p>
+            )}
             <div className="flex justify-between gap-3">
               {paso > 0 ? (
                 <button type="button" onClick={() => irA(paso - 1)} className={botonSecundario}>
@@ -214,7 +243,7 @@ export function Cotizador({
                 <span />
               )}
               {paso < 3 && (
-                <button type="button" onClick={() => irA(paso + 1)} className={botonPrimario}>
+                <button type="button" onClick={avanzar} className={botonPrimario}>
                   {paso === 2 ? "Ver resultado" : "Siguiente"}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </button>
@@ -233,9 +262,9 @@ export function Cotizador({
             <span className="text-xs text-gris">{calculando ? "Calculando…" : ""}</span>
           </div>
           <ResumenDatos resultado={resultado} invitados={entrada.invitados} calculando={calculando} />
-          {paso < 3 && (
+          {paso < 3 && alcanzado === 3 && (
             <button type="button" onClick={() => irA(3)} className={`${botonSecundario} w-full`}>
-              Ver resultado
+              Volver al resultado
             </button>
           )}
         </aside>
@@ -278,7 +307,7 @@ export function Cotizador({
             />
           </button>
           {paso < 3 ? (
-            <button type="button" onClick={() => irA(paso + 1)} className={`${botonPrimario} shrink-0`}>
+            <button type="button" onClick={avanzar} className={`${botonPrimario} shrink-0`}>
               {paso === 2 ? "Ver resultado" : "Siguiente"}
               <ArrowRight className="size-4" aria-hidden="true" />
             </button>
