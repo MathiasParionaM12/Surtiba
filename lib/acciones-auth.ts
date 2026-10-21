@@ -38,7 +38,8 @@ function mensajeDeError(codigo?: string) {
       return "Correo o contraseña incorrectos. Revísalos e intenta de nuevo.";
     case "user_already_exists":
     case "email_exists":
-      return "Ya existe una cuenta con ese correo. Ingresa con tu contraseña.";
+      // Genérico a propósito: no confirma si el correo ya está registrado (evita que se adivinen correos)
+      return "No pudimos crear la cuenta con ese correo. Si ya tienes una, ingresa con tu contraseña.";
     case "weak_password":
       return "La contraseña es muy débil o ya apareció en filtraciones de otras webs. Usa una distinta, de al menos 8 caracteres, con letras y números.";
     case "email_not_confirmed":
