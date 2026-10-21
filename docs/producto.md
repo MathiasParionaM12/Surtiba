@@ -21,7 +21,7 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 |---|---|
 | Registro / login | Correo y contraseña. Datos: nombre, empresa, tipo de negocio (catering, organizador de eventos, wedding planner, bar/restaurante u otro), WhatsApp y RUC (opcional) |
 | Catálogo | Filtros por categoría y buscador; en «Más filtros» (21-oct-2026): precio máximo por caja, marca, presentación (ml), grado de alcohol, disponibilidad (con stock o por encargo, solo con sesión) y orden. Quedan en la dirección para compartirla. Antes: filtros por categoría y marca. Precio "desde", corazón de favorito y stock disponible ("Agotado" si es 0) |
-| Detalle de producto | Escala de precios completa, pedido mínimo de la marca, stock disponible y registro sanitario |
+| Detalle de producto | Escala de precios completa, stock disponible y registro sanitario. **Calcula tu margen** (21-oct-2026): pone a cuánto lo vendería, por trago (bares, caterings, eventos) o por botella (por ejemplo, una licorería), y cuántas cajas compraría; ve su costo, su ganancia por unidad y por caja y su margen. Es una estimación en el navegador: no cambia precios ni pedidos |
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |

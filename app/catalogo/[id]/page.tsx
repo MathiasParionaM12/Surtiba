@@ -11,6 +11,7 @@ import { soles } from "@/lib/formato";
 import { catalogoPublico } from "@/lib/catalogo-publico";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { CalculadoraMargen } from "./CalculadoraMargen";
 import { FormAgregar } from "./FormAgregar";
 
 export const metadata: Metadata = { title: "Producto · Surtiba" };
@@ -83,13 +84,14 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const tramos = ordenarTramos(p.escalas_precio);
   const esComprador = usuario.rol === "comprador";
 
-  // Solo para compradores: ¿está en favoritos? ¿cuántas cajas tiene ya en el carrito?
-  const [{ data: favorito }, { data: enCarrito }] = esComprador
+  // Solo para compradores: ¿está en favoritos? ¿cuántas cajas tiene ya en el carrito? ¿qué negocio tiene?
+  const [{ data: favorito }, { data: enCarrito }, { data: perfil }] = esComprador
     ? await Promise.all([
         supabase.from("favoritos").select("producto_id").eq("producto_id", id).maybeSingle(),
         supabase.from("carrito").select("cajas").eq("producto_id", id).maybeSingle(),
+        supabase.from("perfiles").select("tipo_negocio").eq("id", usuario.id).maybeSingle(),
       ])
-    : [{ data: null }, { data: null }];
+    : [{ data: null }, { data: null }, { data: null }];
 
   return (
     <Ficha
@@ -131,6 +133,17 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         </tbody>
       </table>
       <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido.</p>
+
+      {/* Calculadora de margen: bares, caterings y eventos venden por trago; el resto, por botella */}
+      {esComprador && (
+        <CalculadoraMargen
+          tramos={tramos}
+          ml={p.ml}
+          unidades={p.unidades_por_caja}
+          categoria={p.categoria}
+          porTragoPrimero={perfil?.tipo_negocio !== "otro"}
+        />
+      )}
 
       {PEDIDO_MINIMO_ACTIVO && (
         <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
