@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
-import { guardarMinimo } from "@/lib/acciones-marca";
+import { guardarDescripcion, guardarMinimo } from "@/lib/acciones-marca";
 import { campo, sello } from "@/lib/estilos";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
+import { PEDIDO_MINIMO_ACTIVO, urlFoto } from "@/lib/catalogo";
+import Link from "next/link";
+import { SubirLogo } from "./SubirLogo";
 
 export const metadata: Metadata = { title: "Mi marca · Panel de marca · Surtiba" };
 
@@ -22,7 +24,7 @@ async function MiMarca() {
   const usuario = await exigirRol("marca");
   const supabase = await createClient();
   const [{ data: marca }, { data: pv }] = await Promise.all([
-    supabase.from("marcas").select("nombre_comercial, pedido_minimo_cajas").eq("id", usuario.marcaId!).single(),
+    supabase.from("marcas").select("nombre_comercial, pedido_minimo_cajas, descripcion, logo_url").eq("id", usuario.marcaId!).single(),
     supabase
       .from("marcas_privado")
       .select("razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, contacto_correo, comision_pct")
@@ -33,6 +35,33 @@ async function MiMarca() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{marca?.nombre_comercial}</h1>
+
+      {/* Lo que ven los compradores en el directorio de marcas (/marcas) */}
+      <section className="mt-6 rounded-md border border-linea bg-blanco p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className={sello}>Tu perfil en el directorio</h2>
+          <Link href={`/marcas/${usuario.marcaId}`} className="enlace text-sm font-medium text-verde hover:text-tinta">
+            Ver cómo te ven →
+          </Link>
+        </div>
+        <p className="mt-2 text-sm text-gris">Los compradores te encuentran en «Marcas». No mostramos tu contacto ni tu dirección.</p>
+        <div className="mt-5 grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
+          <SubirLogo marcaId={usuario.marcaId!} nombre={marca?.nombre_comercial ?? ""} logoActual={urlFoto(marca?.logo_url)} />
+          <FormAccion accion={guardarDescripcion} ocultos={{}} texto="Guardar descripción" variante="secundario">
+            <label className="flex w-full flex-col gap-1.5">
+              <span className="text-xs font-medium text-gris">Descripción corta (10 a 280 letras)</span>
+              <textarea
+                name="descripcion"
+                rows={3}
+                maxLength={280}
+                defaultValue={marca?.descripcion ?? ""}
+                placeholder="Ej.: Pisco de uva quebranta de Ica, destilado en alambique de cobre."
+                className={`${campo} h-auto py-2`}
+              />
+            </label>
+          </FormAccion>
+        </div>
+      </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {PEDIDO_MINIMO_ACTIVO && (

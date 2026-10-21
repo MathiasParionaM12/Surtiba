@@ -12,9 +12,11 @@ type Enlace = { href: string; texto: string; aviso?: number };
 function enlacesPara(rol: Rol | null, porPagar = 0): Enlace[] {
   const catalogo = { href: "/catalogo", texto: "Catálogo" };
   const cotizador = { href: "/cotizador", texto: "Cotizar evento" };
+  const marcas = { href: "/marcas", texto: "Marcas" };
   if (rol === "comprador") {
     return [
       catalogo,
+      marcas,
       cotizador,
       { href: "/favoritos", texto: "Favoritos" },
       { href: "/pedidos", texto: "Mis pedidos", aviso: porPagar },
@@ -23,7 +25,7 @@ function enlacesPara(rol: Rol | null, porPagar = 0): Enlace[] {
   if (rol === "marca") return [catalogo, { href: "/marca", texto: "Mi panel" }];
   if (rol === "admin") return [catalogo, { href: "/admin", texto: "Panel Surtiba" }];
   if (rol === "solicitante") return [{ href: "/solicitud", texto: "Mi solicitud" }];
-  return [catalogo, cotizador];
+  return [catalogo, marcas, cotizador];
 }
 
 // Pedidos del comprador con algo por pagar (encargo confirmado o diferencia pendiente).

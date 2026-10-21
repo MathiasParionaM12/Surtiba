@@ -12,6 +12,7 @@
 | Pantalla | Qué tiene |
 |---|---|
 | Inicio | Qué es Surtiba y botones de "Crear cuenta" e "Ingresar" |
+| Marcas (21-oct-2026) | Directorio `/marcas`: cada marca activa con su logo, su descripción, sus categorías y cuántos productos tiene. Al tocarla, `/marcas/[id]` muestra sus productos con los filtros del catálogo. Nunca contacto ni dirección. La marca edita su logo y descripción en «Mi marca» |
 | Catálogo | Productos con foto, nombre, marca, ml, grado, unidades por caja y **solo el precio "desde"** (el del primer tramo), mostrado como "S/ 300 por caja" y debajo "Precios por volumen al ingresar" |
 
 ### Comprador

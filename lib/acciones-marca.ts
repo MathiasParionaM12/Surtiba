@@ -171,6 +171,28 @@ export async function guardarFoto(productoId: string, ruta: string): Promise<Est
   return { mensaje: "Foto actualizada." };
 }
 
+// Directorio de marcas: la descripción corta que ven los compradores en /marcas
+export async function guardarDescripcion(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const texto = String(form.get("descripcion") ?? "").trim();
+  if (texto && (texto.length < 10 || texto.length > 280)) return { error: "La descripción va de 10 a 280 letras.", valores: { descripcion: texto } };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("marca_guardar_descripcion", { p_descripcion: texto || null });
+  if (error) return { error: mensaje(error), valores: { descripcion: texto } };
+  actualizarCatalogo();
+  return { mensaje: "Descripción guardada." };
+}
+
+// Directorio de marcas: el logo ya se subió a la carpeta de la marca; aquí se guarda su ruta
+export async function guardarLogo(ruta: string): Promise<EstadoForm> {
+  await exigirRol("marca");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("marca_guardar_logo", { p_ruta: ruta });
+  if (error) return { error: "No pudimos guardar el logo. Intenta de nuevo." };
+  actualizarCatalogo();
+  return { mensaje: "Logo actualizado." };
+}
+
 // La marca cambia su propio pedido mínimo (lo decide ella, no Surtiba)
 export async function guardarMinimo(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("marca");

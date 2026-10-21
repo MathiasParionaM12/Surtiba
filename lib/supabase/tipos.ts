@@ -57,9 +57,9 @@ export type Database = {
         ];
       };
       marcas: {
-        Row: { activa: boolean; creado_en: string; id: string; nombre_comercial: string; pedido_minimo_cajas: number };
-        Insert: { activa?: boolean; creado_en?: string; id?: string; nombre_comercial: string; pedido_minimo_cajas?: number };
-        Update: { activa?: boolean; creado_en?: string; id?: string; nombre_comercial?: string; pedido_minimo_cajas?: number };
+        Row: { activa: boolean; creado_en: string; descripcion: string | null; id: string; logo_url: string | null; nombre_comercial: string; pedido_minimo_cajas: number };
+        Insert: { activa?: boolean; creado_en?: string; descripcion?: string | null; id?: string; logo_url?: string | null; nombre_comercial: string; pedido_minimo_cajas?: number };
+        Update: { activa?: boolean; creado_en?: string; descripcion?: string | null; id?: string; logo_url?: string | null; nombre_comercial?: string; pedido_minimo_cajas?: number };
         Relationships: [];
       };
       marcas_privado: {
@@ -327,6 +327,14 @@ export type Database = {
       admin_guardar_ingrediente: {
         Args: { p_id: string | null; p_nombre: string; p_unidad: string; p_categoria: string | null; p_activo: boolean };
         Returns: string;
+      };
+      marca_guardar_descripcion: {
+        Args: { p_descripcion: string | null };
+        Returns: undefined;
+      };
+      marca_guardar_logo: {
+        Args: { p_ruta: string };
+        Returns: undefined;
       };
       marca_insights: {
         Args: Record<string, never>;

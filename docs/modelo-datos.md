@@ -34,6 +34,7 @@ Extiende `auth.users` de Supabase (mismo `id`).
 | creado_en | timestamptz | |
 
 ### marcas (datos públicos: los ve cualquiera si la marca está activa)
+Desde el 21-oct-2026 también `descripcion` (10 a 280 letras) y `logo_url` (ruta en Storage, carpeta de la marca), que la marca cambia con `marca_guardar_descripcion` y `marca_guardar_logo` (`supabase/sql/30_directorio_marcas.sql`).
 | Columna | Tipo | Nota |
 |---|---|---|
 | id | uuid PK | |
