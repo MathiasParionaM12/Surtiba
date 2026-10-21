@@ -66,6 +66,7 @@ export async function guardarCotizacion(entrada: EntradaCotizador): Promise<Resp
       margen: limpia.margen,
       aire_libre: limpia.aireLibre,
       tragos_totales: resultado.tragosTotales,
+      tragos: resultado.tragos.map((t) => ({ receta: t.receta, tragos: t.tragos, lleva: t.lleva, propio: t.propio })),
       momentos: resultado.momentos,
       insumos: resultado.insumos,
     },

@@ -177,7 +177,7 @@ Los valores iniciales son **supuestos por validar con caterings**; el admin los 
 
 **ingredientes** (recetario, 21-oct-2026): nombre, `unidad` (ml / unidad / g), `categoria` de producto de Surtiba que lo cubre (pisco, ron, gin, vodka, vino, espumante, licor, cóctel listo) o vacío si Surtiba no lo vende, orden, activo.
 
-**receta_ingredientes**: cuánto lleva cada trago: (receta_id, ingrediente_id, `cantidad` por trago en la unidad del ingrediente). Las cantidades iniciales son recetas clásicas y **supuestos por validar**. Los 17 tragos nuevos quedan desactivados hasta que el cotizador calcule con ingredientes; las columnas viejas de `recetas` (`ml_por_trago`, `mezclador`…) conviven mientras tanto.
+**receta_ingredientes**: cuánto lleva cada trago: (receta_id, ingrediente_id, `cantidad` por trago en la unidad del ingrediente). Las cantidades iniciales son recetas clásicas y **supuestos por validar**. Las columnas viejas de `recetas` (`ml_por_trago`, `mezclador`, `limones`, `jarabe_ml`) ya no las usa el cotizador; `admin_guardar_trago` las llena solo para cumplir sus reglas.
 
 Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan en la entrada del cotizador (`propios`) y se guardan dentro de `cotizaciones.evento`. `limpiarEntrada` los revisa y pone la categoría de cada ingrediente desde `ingredientes`; uno escrito a mano nunca es de Surtiba.
 
@@ -239,6 +239,8 @@ La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los d
 5. Si algo falla, no se guarda nada.
 
 **Entregar un pedido:** se calcula la comisión de cada subpedido, con exención si la marca tiene menos de 3 subpedidos entregados antes.
+
+**Editar el recetario (admin):** `admin_guardar_trago` guarda un trago y sus ingredientes en una sola transacción (`supabase/sql/25_editor_recetario.sql`): revisa que cada ingrediente exista, sin repetidos y con cantidad entre 0 y 1000, y calcula solo el licor principal (`recetas.categoria`). `admin_guardar_ingrediente` crea o edita un ingrediente; lo que vende Surtiba se mide en ml.
 
 ## Caché de datos públicos (fase 8, parte D)
 Lo que es igual para todos los visitantes se guarda en caché (`"use cache"`, se renueva cada hora y al instante con `updateTag`). Se lee con `clientePublico()` (sin sesión), así RLS solo entrega lo público. **Nada que dependa de la sesión va en caché.**

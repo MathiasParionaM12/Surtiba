@@ -138,7 +138,8 @@ export type Momento = {
   detalle: { receta: string; tragos: number }[];
 };
 
-export type LineaTrago = { recetaId: string; receta: string; tragos: number };
+// lleva: "pisco 90 ml · limón 2 unid." (por trago); propio: lo creó el comprador
+export type LineaTrago = { recetaId: string; receta: string; tragos: number; lleva: string; propio: boolean };
 
 // Un ingrediente que vende Surtiba, con cuánto se necesita y qué producto lo cubre
 export type LineaIngrediente = {
@@ -322,7 +323,13 @@ export function calcular(
     const receta = recetaPorId.get(recetaId)!;
     const cantidad = arriba(cantidadExacta);
     if (cantidad <= 0) continue;
-    tragos.push({ recetaId, receta: receta.nombre, tragos: cantidad });
+    tragos.push({
+      recetaId,
+      receta: receta.nombre,
+      tragos: cantidad,
+      lleva: receta.ingredientes.map((i) => `${i.nombre.toLowerCase()} ${i.cantidad} ${i.unidad === "unidad" ? "unid." : i.unidad}`).join(" · "),
+      propio: recetaId.startsWith("propio-"),
+    });
     for (const ing of receta.ingredientes) {
       const acumulado = porIngrediente.get(ing.id) ?? { ing, total: 0, para: [] };
       acumulado.total += cantidad * ing.cantidad;

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
-import { guardarReceta } from "@/lib/acciones-admin";
+import { guardarIngrediente } from "@/lib/acciones-admin";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { PERFILES } from "@/lib/cotizador";
 import { datosCotizador } from "@/lib/cotizador-datos";
@@ -11,11 +11,11 @@ import { botonSecundario, campo, sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EditorTrago, type TragoAdmin } from "./EditorTrago";
 import { FormParametros } from "./FormParametros";
 
 export const metadata: Metadata = { title: "Cotizador · Panel Surtiba" };
 
-const decimal = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 2 });
 const NIVEL = { principal: "principal", secundario: "secundario", ocasional: "ocasional" } as Record<string, string>;
 
 export default function PaginaCotizadorAdmin() {
@@ -38,23 +38,13 @@ export default function PaginaCotizadorAdmin() {
   );
 }
 
-type Receta = {
-  id: string;
-  nombre: string;
-  categoria: string;
-  ml_por_trago: number;
-  activo: boolean;
-  mezclador: string | null;
-  mezclador_ml: number;
-  limones: number;
-  jarabe_ml: number;
-};
+type IngredienteAdmin = { id: string; nombre: string; unidad: "ml" | "unidad" | "g"; categoria: string | null; orden: number; activo: boolean };
 
 async function Contenido() {
   await exigirRol("admin");
   const supabase = await createClient();
   // RLS: el admin ve también lo inactivo y todas las cotizaciones
-  const [{ parametros }, { data: tipos }, { data: recetas }, { data: cotizaciones }, { count: total }, { count: conPedido }] =
+  const [{ parametros }, { data: tipos }, { data: recetas }, { data: ingredientesData }, { data: cotizaciones }, { count: total }, { count: conPedido }] =
     await Promise.all([
       datosCotizador({ conProductos: false }),
       supabase
@@ -63,8 +53,9 @@ async function Contenido() {
         .order("orden"),
       supabase
         .from("recetas")
-        .select("id, nombre, categoria, ml_por_trago, activo, mezclador, mezclador_ml, limones, jarabe_ml")
+        .select("id, nombre, activo, receta_ingredientes(ingrediente_id, cantidad)")
         .order("orden"),
+      supabase.from("ingredientes").select("id, nombre, unidad, categoria, orden, activo").order("orden"),
       supabase
         .from("cotizaciones")
         .select("id, codigo, creado_en, total_centimos, evento, pedido_id, perfiles(empresa, nombre), pedidos(codigo)")
@@ -74,6 +65,13 @@ async function Contenido() {
       supabase.from("cotizaciones").select("id", { count: "exact", head: true }).not("pedido_id", "is", null),
     ]);
   const conversion = total ? Math.round(((conPedido ?? 0) / total) * 100) : 0;
+  const ingredientes = (ingredientesData ?? []) as IngredienteAdmin[];
+  const tragos: TragoAdmin[] = (recetas ?? []).map((r) => ({
+    id: r.id,
+    nombre: r.nombre,
+    activo: r.activo,
+    ingredientes: r.receta_ingredientes.map((x) => ({ ingrediente_id: x.ingrediente_id, cantidad: Number(x.cantidad) })),
+  }));
 
   return (
     <div className="mt-8 flex flex-col gap-10">
@@ -142,23 +140,50 @@ async function Contenido() {
         </ul>
       </section>
 
-      {/* Tragos (recetas) */}
+      {/* Tragos (recetario) */}
       <section>
         <h2 className={sello}>Tragos</h2>
         <p className="mt-1 text-sm text-gris">
-          Cada trago usa un licor (ml por trago) y, si lleva, un mezclador, limones y jarabe: con eso se arma la lista de insumos.
+          Cada trago se arma con sus ingredientes por trago. Con eso el cotizador suma lo que se necesita: lo que vende Surtiba busca
+          su producto y lo demás va a &quot;Lo consigues por tu cuenta&quot;. Las cantidades son supuestos por validar.
         </p>
-        <div className="mt-3 flex flex-col gap-3 rounded-md border border-linea bg-blanco p-4 sm:p-5">
-          {(recetas ?? []).map((r) => (
-            <div key={r.id} className="border-b border-linea pb-3 last:border-b-0">
-              <FilaReceta receta={{ ...r, limones: Number(r.limones) }} />
+        <div className="mt-3 flex flex-col rounded-md border border-linea bg-blanco px-4 sm:px-5">
+          {tragos.map((t) => (
+            <div key={t.id} className="border-b border-linea py-3">
+              <EditorTrago receta={t} ingredientes={ingredientes} />
             </div>
           ))}
-          <div className="border-t border-linea pt-4">
-            <p className="mb-2 text-sm font-medium">Agregar un trago</p>
-            <FilaReceta />
+          <div className="py-4">
+            <p className="text-sm font-medium">Agregar un trago</p>
+            <EditorTrago ingredientes={ingredientes} />
           </div>
         </div>
+      </section>
+
+      {/* Ingredientes del recetario */}
+      <section>
+        <h2 className={sello}>Ingredientes</h2>
+        <p className="mt-1 text-sm text-gris">
+          Si Surtiba lo vende, elige qué categoría de producto lo cubre (se mide en ml). Un ingrediente inactivo deja de usarse en
+          los tragos.
+        </p>
+        <details className="group mt-3">
+          <summary className={`${botonSecundario} h-9 cursor-pointer list-none px-4`}>
+            <span className="group-open:hidden">Ver y editar ingredientes ({ingredientes.length})</span>
+            <span className="hidden group-open:inline">Ocultar ingredientes</span>
+          </summary>
+          <div className="mt-3 flex flex-col gap-3 rounded-md border border-linea bg-blanco p-4 sm:p-5">
+            {ingredientes.map((i) => (
+              <div key={i.id} className="border-b border-linea pb-3 last:border-b-0">
+                <FilaIngrediente ingrediente={i} />
+              </div>
+            ))}
+            <div className="border-t border-linea pt-4">
+              <p className="mb-2 text-sm font-medium">Agregar un ingrediente</p>
+              <FilaIngrediente />
+            </div>
+          </div>
+        </details>
       </section>
 
       {/* Últimas cotizaciones */}
@@ -220,54 +245,42 @@ async function Contenido() {
   );
 }
 
-// Un trago editable en línea (sin receta = formulario para agregar uno nuevo)
-function FilaReceta({ receta }: { receta?: Receta }) {
+// Un ingrediente editable en línea (sin ingrediente = formulario para agregar uno nuevo)
+function FilaIngrediente({ ingrediente }: { ingrediente?: IngredienteAdmin }) {
   return (
     <FormAccion
-      accion={guardarReceta}
-      ocultos={receta ? { receta_id: receta.id } : {}}
-      texto={receta ? "Guardar" : "Agregar"}
+      accion={guardarIngrediente}
+      ocultos={ingrediente ? { ingrediente_id: ingrediente.id } : {}}
+      texto={ingrediente ? "Guardar" : "Agregar"}
       variante="secundario"
     >
-      <label className="flex min-w-36 flex-1 flex-col gap-1">
-        <span className="text-xs text-gris">Trago</span>
-        <input name="nombre" required defaultValue={receta?.nombre} placeholder="Ej.: Mojito" className={`${campo} h-10`} />
+      <label className="flex min-w-40 flex-1 flex-col gap-1">
+        <span className="text-xs text-gris">Ingrediente</span>
+        <input name="nombre" required minLength={2} maxLength={40} defaultValue={ingrediente?.nombre} placeholder="Ej.: Pulpa de aguaymanto" className={`${campo} h-10`} />
       </label>
-      <label className="flex w-32 flex-col gap-1">
-        <span className="text-xs text-gris">Licor</span>
-        <select name="categoria" required defaultValue={receta?.categoria ?? ""} className={`${campo} h-10`}>
-          <option value="" disabled>
-            Elige
-          </option>
-          {Object.entries(CATEGORIAS).map(([valor, nombre]) => (
-            <option key={valor} value={valor}>
-              {nombre}
-            </option>
-          ))}
+      <label className="flex w-28 flex-col gap-1">
+        <span className="text-xs text-gris">Unidad</span>
+        <select name="unidad" defaultValue={ingrediente?.unidad ?? "ml"} className={`${campo} h-10`}>
+          <option value="ml">ml</option>
+          <option value="unidad">unidades</option>
+          <option value="g">gramos</option>
         </select>
       </label>
-      <label className="flex w-20 flex-col gap-1">
-        <span className="text-xs text-gris">ml licor</span>
-        <input name="ml" type="number" min={10} max={500} required defaultValue={receta?.ml_por_trago} className={`${campo} h-10 font-mono`} />
-      </label>
-      <label className="flex w-32 flex-col gap-1">
-        <span className="text-xs text-gris">Mezclador</span>
-        <input name="mezclador" defaultValue={receta?.mezclador ?? ""} placeholder="Ej.: Ginger ale" className={`${campo} h-10`} />
-      </label>
-      <label className="flex w-20 flex-col gap-1">
-        <span className="text-xs text-gris">ml mezcl.</span>
-        <input name="mezclador_ml" type="number" min={0} max={500} defaultValue={receta?.mezclador_ml ?? 0} className={`${campo} h-10 font-mono`} />
-      </label>
-      <label className="flex w-20 flex-col gap-1">
-        <span className="text-xs text-gris">Limones</span>
-        <input name="limones" inputMode="decimal" defaultValue={receta ? decimal.format(receta.limones) : "0"} className={`${campo} h-10 font-mono`} />
-      </label>
-      <label className="flex w-20 flex-col gap-1">
-        <span className="text-xs text-gris">Jarabe ml</span>
-        <input name="jarabe_ml" type="number" min={0} max={200} defaultValue={receta?.jarabe_ml ?? 0} className={`${campo} h-10 font-mono`} />
+      <label className="flex w-44 flex-col gap-1">
+        <span className="text-xs text-gris">¿Lo vende Surtiba?</span>
+        <select name="categoria" defaultValue={ingrediente?.categoria ?? ""} className={`${campo} h-10`}>
+          <option value="">No lo vende</option>
+          {Object.entries(CATEGORIAS)
+            .filter(([valor]) => valor !== "otro")
+            .map(([valor, nombre]) => (
+              <option key={valor} value={valor}>
+                Sí, como {nombre.toLowerCase()}
+              </option>
+            ))}
+        </select>
       </label>
       <label className="flex h-10 items-center gap-2 text-sm">
-        <input name="activo" type="checkbox" defaultChecked={receta?.activo ?? true} className="accent-verde" />
+        <input name="activo" type="checkbox" defaultChecked={ingrediente?.activo ?? true} className="accent-verde" />
         Activo
       </label>
     </FormAccion>

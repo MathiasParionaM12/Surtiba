@@ -314,11 +314,12 @@ export type Database = {
         };
         Returns: string;
       };
-      admin_guardar_receta: {
-        Args: {
-          p_id: string | null; p_nombre: string; p_categoria: string; p_ml: number; p_activo: boolean;
-          p_mezclador: string | null; p_mezclador_ml: number; p_limones: number; p_jarabe_ml: number;
-        };
+      admin_guardar_trago: {
+        Args: { p_id: string | null; p_nombre: string; p_activo: boolean; p_ingredientes: Json };
+        Returns: string;
+      };
+      admin_guardar_ingrediente: {
+        Args: { p_id: string | null; p_nombre: string; p_unidad: string; p_categoria: string | null; p_activo: boolean };
         Returns: string;
       };
       crear_cotizacion: {

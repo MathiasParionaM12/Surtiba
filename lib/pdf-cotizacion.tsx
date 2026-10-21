@@ -46,6 +46,7 @@ type EventoV2 = {
     margen: number;
     aire_libre: boolean;
     tragos_totales: number;
+    tragos?: { receta: string; tragos: number; lleva: string; propio: boolean }[];
     momentos: Momento[];
     insumos: Insumo[];
   };
@@ -277,6 +278,23 @@ function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
           </View>
         ))}
       </View>
+      {e.tragos && e.tragos.length > 0 && (
+        <View style={{ marginTop: 8 }}>
+          <Text style={s.sello}>Tragos y lo que lleva cada uno</Text>
+          {e.tragos.map((t) => (
+            <View key={t.receta} style={[s.fila, { paddingVertical: 3, borderTopWidth: 1, borderTopColor: C.linea }]}>
+              <View style={{ flex: 1 }}>
+                <Text>
+                  {t.receta}
+                  {t.propio ? " (tu trago)" : ""}
+                </Text>
+                <Text style={[s.gris, { fontSize: 8, marginTop: 1 }]}>{t.lleva}</Text>
+              </View>
+              <Text style={{ width: 70, textAlign: "right" }}>{entero.format(t.tragos)} tragos</Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }

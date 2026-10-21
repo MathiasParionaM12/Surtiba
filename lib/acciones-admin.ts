@@ -209,22 +209,47 @@ export async function guardarTipoEvento(_e: EstadoForm, form: FormData): Promise
   return { mensaje: "Guardado. El cotizador ya usa estos valores." };
 }
 
-export async function guardarReceta(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+// Un trago con sus ingredientes (recetario). La base de datos lo guarda todo junto en una transacción,
+// revisa cada ingrediente y calcula sola el licor principal.
+export async function guardarTrago(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  let lineas: unknown;
+  try {
+    lineas = JSON.parse(texto(form, "ingredientes") || "[]");
+  } catch {
+    return { error: "No pudimos leer los ingredientes. Intenta de nuevo." };
+  }
+  if (!Array.isArray(lineas) || lineas.length === 0) return { error: "Agrega al menos un ingrediente." };
+  const ingredientes = lineas.map((l) => ({ ingrediente_id: String(l?.ingrediente_id ?? ""), cantidad: Number(l?.cantidad) }));
+  if (ingredientes.some((l) => !esUuid(l.ingrediente_id) || !(l.cantidad > 0 && l.cantidad <= 1000))) {
+    return { error: "Cada ingrediente va de la lista y con una cantidad entre 0 y 1000." };
+  }
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.rpc("admin_guardar_trago", {
+      p_id: id(form, "receta_id"),
+      p_nombre: texto(form, "nombre"),
+      p_activo: form.get("activo") === "on",
+      p_ingredientes: ingredientes,
+    }),
+    "Trago guardado.",
+    "cotizador",
+  );
+}
+
+// Un ingrediente del recetario: si Surtiba lo vende, con qué categoría de producto
+export async function guardarIngrediente(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("admin");
   const supabase = await createClient();
   return ejecutar(
-    supabase.rpc("admin_guardar_receta", {
-      p_id: id(form, "receta_id"),
+    supabase.rpc("admin_guardar_ingrediente", {
+      p_id: id(form, "ingrediente_id"),
       p_nombre: texto(form, "nombre"),
-      p_categoria: texto(form, "categoria"),
-      p_ml: Math.trunc(Number(texto(form, "ml"))),
+      p_unidad: texto(form, "unidad"),
+      p_categoria: texto(form, "categoria") || null,
       p_activo: form.get("activo") === "on",
-      p_mezclador: texto(form, "mezclador") || null,
-      p_mezclador_ml: Math.trunc(Number(texto(form, "mezclador_ml"))) || 0,
-      p_limones: decimal(form, "limones") || 0,
-      p_jarabe_ml: Math.trunc(Number(texto(form, "jarabe_ml"))) || 0,
     }),
-    "Trago guardado.",
+    "Ingrediente guardado.",
     "cotizador",
   );
 }
