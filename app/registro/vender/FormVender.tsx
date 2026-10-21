@@ -108,8 +108,8 @@ export function FormVender() {
           <input name="email" type="email" autoComplete="email" required defaultValue={v.email} className={campo} />
         </label>
         <label className="flex flex-col gap-2">
-          <Etiqueta texto="Contraseña" obligatorio nota="mínimo 8" />
-          <input name="password" type="password" autoComplete="new-password" minLength={8} required className={campo} />
+          <Etiqueta texto="Contraseña" obligatorio nota="mínimo 8, con letras y números" />
+          <input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={72} required className={campo} />
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Repite tu contraseña" obligatorio />

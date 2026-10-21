@@ -23,6 +23,15 @@ function leer(form: FormData, campo: string) {
 }
 
 // Traduce los errores de Supabase a mensajes que dicen qué pasó y qué hacer
+// La misma regla que Supabase Auth (Authentication → Sign In / Providers → Email): mínimo 8 caracteres,
+// con letras y números. Supabase la vuelve a revisar aunque alguien llame a su API directo.
+function revisarClave(password: string) {
+  if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+  if (password.length > 72) return "La contraseña puede tener como máximo 72 caracteres.";
+  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) return "La contraseña debe tener letras y números.";
+  return null;
+}
+
 function mensajeDeError(codigo?: string) {
   switch (codigo) {
     case "invalid_credentials":
@@ -31,7 +40,7 @@ function mensajeDeError(codigo?: string) {
     case "email_exists":
       return "Ya existe una cuenta con ese correo. Ingresa con tu contraseña.";
     case "weak_password":
-      return "La contraseña es muy débil. Usa al menos 8 caracteres.";
+      return "La contraseña es muy débil o ya apareció en filtraciones de otras webs. Usa una distinta, de al menos 8 caracteres, con letras y números.";
     case "email_not_confirmed":
       return "Aún no confirmas tu correo. Abre el correo que te enviamos y luego ingresa.";
     case "over_email_send_rate_limit":
@@ -88,7 +97,8 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
     return { error: "El RUC tiene 11 dígitos. Si no lo tienes a la mano, déjalo vacío.", valores };
   }
   if (!email) return { error: "Escribe tu correo.", valores };
-  if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres.", valores };
+  const errorClave = revisarClave(password);
+  if (errorClave) return { error: errorClave, valores };
   if (password !== password2) return { error: "Las contraseñas no coinciden. Escríbelas de nuevo.", valores };
 
   // Se guarda en formato internacional: +51987654321
@@ -151,7 +161,8 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
     return { error: "El pedido mínimo debe ser de al menos 1 caja.", valores };
   }
   if (!email) return { error: "Escribe tu correo.", valores };
-  if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres.", valores };
+  const errorClave = revisarClave(password);
+  if (errorClave) return { error: errorClave, valores };
   if (password !== password2) return { error: "Las contraseñas no coinciden. Escríbelas de nuevo.", valores };
 
   const supabase = await createClient();
