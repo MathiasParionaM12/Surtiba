@@ -159,18 +159,22 @@ export default async function Home() {
       <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-14">
         <div>
           <p className={sello}>Prototipo · datos ficticios</p>
+          {/* El título entra frase por frase (una sola vez, al abrir la portada) */}
           <h1 className="mt-4 text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl sm:leading-[1.05]">
-            Licores y cócteles de marcas peruanas, por cajas,{" "}
-            {/* Resaltador: un solo uso por pantalla (docs/marca.md) */}
-            <span className="bg-[linear-gradient(var(--color-resaltador),var(--color-resaltador))] bg-[length:100%_0.3em] bg-[position:0_92%] bg-no-repeat">
-              en un solo pedido
+            <span className="subir inline-block">Licores y cócteles de marcas peruanas,</span>{" "}
+            <span className="subir inline-block" style={{ animationDelay: "110ms" }}>
+              por cajas,{" "}
+              {/* Resaltador: un solo uso por pantalla (docs/marca.md) */}
+              <span className="bg-[linear-gradient(var(--color-resaltador),var(--color-resaltador))] bg-[length:100%_0.3em] bg-[position:0_92%] bg-no-repeat">
+                en un solo pedido
+              </span>
+              .
             </span>
-            .
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-gris">
+          <p className="subir mt-6 max-w-xl text-lg text-gris" style={{ animationDelay: "220ms" }}>
             Para caterings, organizadores de eventos, wedding planners y bares que compran por caja.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="subir mt-10 flex flex-wrap gap-3" style={{ animationDelay: "300ms" }}>
             {/* Los botones dependen de quién ingresó; mientras se sabe, los del comprador */}
             <Carga fallback={<BotonesComprador />}>
               <Acciones />

@@ -42,3 +42,8 @@ export function mesActual() {
 export function hoyEnLima() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());
 }
+
+// Fecha y hora de hace n días, en formato ISO (para consultas como "lo entregado en las últimas 4 semanas")
+export function haceDias(n: number) {
+  return new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
+}

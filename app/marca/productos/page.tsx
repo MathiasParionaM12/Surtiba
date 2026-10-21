@@ -1,3 +1,4 @@
+import { Wine } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { botonPrimario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Productos · Panel de marca · Surtiba" };
 
@@ -40,9 +42,11 @@ async function ListaProductos() {
 
   if (!data || data.length === 0) {
     return (
-      <p className="mt-6 rounded-md border border-linea bg-blanco p-5 text-gris">
-        Aún no tienes productos. Crea el primero con el botón «Nuevo producto».
-      </p>
+      <EstadoVacio
+        icono={Wine}
+        texto="Aún no tienes productos. Crea el primero para que aparezca en el catálogo."
+        accion={{ href: "/marca/productos/nuevo", texto: "Nuevo producto" }}
+      />
     );
   }
 

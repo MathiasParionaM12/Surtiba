@@ -1,7 +1,10 @@
 import Image from "next/image";
+import { Sello } from "@/components/Sello";
 import { CATEGORIAS } from "@/lib/catalogo";
+import { IconoCategoria } from "@/components/IconoCategoria";
 
-// Foto del producto. Si todavía no tiene, un recuadro sobrio con una botella dibujada.
+// Foto del producto. Si todavía no tiene, una etiqueta: el ícono de su categoría y un sello
+// "PISCO · 750 ML" (quieto: se ven muchas tarjetas a la vez).
 export function FotoProducto({
   categoria,
   ml,
@@ -26,24 +29,23 @@ export function FotoProducto({
           className="object-contain p-3 transition-transform sm:p-4 duration-300 group-hover:scale-[1.03]"
         />
       ) : (
-        <svg
-          viewBox="0 0 40 100"
-          className={`transition-transform duration-300 group-hover:scale-[1.04] ${grande ? "h-48" : "h-16 sm:h-24"}`}
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M16 4h8v18c0 4 8 8 8 18v52a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V40c0-10 8-14 8-18V4Z"
-            stroke="var(--color-linea)"
-            strokeWidth="2"
-          />
-          <path d="M8 56h24v20H8z" fill="var(--color-linea)" opacity="0.5" />
-        </svg>
+        <div className="flex flex-col items-center gap-2 transition-transform duration-300 group-hover:scale-[1.04] sm:gap-3">
+          <IconoCategoria categoria={categoria} className={`text-verde/70 ${grande ? "size-16" : "size-8 sm:size-10"}`} strokeWidth={1} />
+          <Sello tono="verde" giro={-6} animar={false} grande={grande} className={grande ? "" : "text-[9px] sm:text-[11px]"}>
+            {CATEGORIAS[categoria] ?? categoria} · {ml} ml
+          </Sello>
+        </div>
       )}
-      <span className={`absolute font-mono tracking-[0.12em] text-gris uppercase ${grande ? "bottom-3 left-3 text-[11px]" : "bottom-2 left-2 text-[10px] sm:bottom-3 sm:left-3 sm:text-[11px]"}`}>
-        {CATEGORIAS[categoria] ?? categoria}
-      </span>
-      <span className={`absolute right-3 bottom-3 font-mono text-[11px] text-gris ${grande ? "" : "hidden sm:block"}`}>{ml} ml</span>
+      {foto && (
+        <span
+          className={`absolute font-mono tracking-[0.12em] text-gris uppercase ${grande ? "bottom-3 left-3 text-[11px]" : "bottom-2 left-2 text-[10px] sm:bottom-3 sm:left-3 sm:text-[11px]"}`}
+        >
+          {CATEGORIAS[categoria] ?? categoria}
+        </span>
+      )}
+      {foto && (
+        <span className={`absolute right-3 bottom-3 font-mono text-[11px] text-gris ${grande ? "" : "hidden sm:block"}`}>{ml} ml</span>
+      )}
     </div>
   );
 }

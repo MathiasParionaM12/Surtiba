@@ -1,3 +1,4 @@
+import { Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Carga } from "@/components/Carga";
@@ -7,6 +8,7 @@ import { sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Órdenes · Panel de marca · Surtiba" };
 
@@ -38,9 +40,7 @@ async function ListaOrdenes() {
 
   if (ordenes.length === 0) {
     return (
-      <p className="mt-6 rounded-md border border-linea bg-blanco p-5 text-gris">
-        Aún no tienes órdenes. Cuando un cliente pida tus productos, aparecerán aquí.
-      </p>
+      <EstadoVacio icono={Inbox} texto="Aún no tienes órdenes. Cuando un cliente pida tus productos, aparecerán aquí." />
     );
   }
 

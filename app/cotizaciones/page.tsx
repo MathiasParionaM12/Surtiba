@@ -4,11 +4,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
-import { botonPrimario, sello } from "@/lib/estilos";
+import { sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Mis cotizaciones · Surtiba" };
 
@@ -41,13 +42,7 @@ async function Lista() {
 
   if (cotizaciones.length === 0) {
     return (
-      <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
-        <Calculator className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
-        <p>Aún no tienes cotizaciones. Arma tu evento en el cotizador y guárdala en PDF.</p>
-        <Link href="/cotizador" className={`${botonPrimario} mt-5`}>
-          Ir al cotizador
-        </Link>
-      </div>
+      <EstadoVacio icono={Calculator} texto="Aún no tienes cotizaciones. Arma tu evento en el cotizador y guárdala en PDF." accion={{ href: "/cotizador", texto: "Ir al cotizador" }} />
     );
   }
 

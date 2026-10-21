@@ -18,8 +18,29 @@ export function TarjetaProducto({ p, puedeAgregar = false }: { p: ProductoTarjet
       {p.favorito !== undefined && (
         <BotonFavorito productoId={p.id} activo={p.favorito} className="absolute top-2 right-2 z-[1] sm:top-3 sm:right-3" />
       )}
-      <Link href={`/catalogo/${p.id}`} className="group flex flex-1 flex-col focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-verde">
-        <FotoProducto categoria={p.categoria} ml={p.ml} foto={p.foto} />
+      <Link
+        href={`/catalogo/${p.id}`}
+        className="group flex flex-1 flex-col focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-verde"
+      >
+        <div className="relative overflow-hidden">
+          <FotoProducto categoria={p.categoria} ml={p.ml} foto={p.foto} />
+          {/* Con sesión y varios precios: al pasar el mouse sube la escala completa (en celular no se usa) */}
+          {p.tramos && p.tramos.length > 1 && (
+            <div className="absolute inset-x-0 bottom-0 translate-y-full border-t border-linea bg-blanco/95 px-3 py-2.5 backdrop-blur transition-transform duration-200 ease-out group-hover/tarjeta:translate-y-0 sm:px-4">
+              <p className="font-mono text-[10px] tracking-[0.12em] text-gris uppercase">Precio por caja</p>
+              <ul className="mt-1 flex flex-col gap-0.5 text-xs">
+                {p.tramos.map((t) => (
+                  <li key={t.desde} className="flex justify-between gap-2">
+                    <span className="text-gris">
+                      {t.hasta === null ? `${t.desde} o más` : t.desde === t.hasta ? `${t.desde}` : `${t.desde} a ${t.hasta}`} cajas
+                    </span>
+                    <span className="font-mono">{soles(t.precio)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
         <div className="flex flex-1 flex-col p-3 sm:p-4">
           {p.inactivo && (
             <p className="mb-2 self-start rounded-sm border border-linea px-2 py-0.5 font-mono text-[11px] tracking-[0.08em] text-gris uppercase">
@@ -41,7 +62,8 @@ export function TarjetaProducto({ p, puedeAgregar = false }: { p: ProductoTarjet
                 <p className={`text-xs ${p.siguienteTramo ? "text-verde" : "text-gris"}`}>
                   {p.siguienteTramo ? (
                     <>
-                      Desde {p.siguienteTramo.desde} cajas: <span className="font-mono whitespace-nowrap">{soles(p.siguienteTramo.precio)}</span>
+                      Desde {p.siguienteTramo.desde} cajas:{" "}
+                      <span className="font-mono whitespace-nowrap">{soles(p.siguienteTramo.precio)}</span>
                     </>
                   ) : (
                     "Precio único"

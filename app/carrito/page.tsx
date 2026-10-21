@@ -12,6 +12,7 @@ import { soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Carrito · Surtiba" };
 
@@ -41,13 +42,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
 
   if (lineas.length === 0) {
     return (
-      <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
-        <ShoppingCart className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
-        <p>Tu carrito está vacío. Explora el catálogo para armar tu pedido.</p>
-        <Link href="/catalogo" className={`${botonPrimario} mt-5`}>
-          Ir al catálogo
-        </Link>
-      </div>
+      <EstadoVacio icono={ShoppingCart} texto="Tu carrito está vacío. Explora el catálogo para armar tu pedido." accion={{ href: "/catalogo", texto: "Ir al catálogo" }} />
     );
   }
 

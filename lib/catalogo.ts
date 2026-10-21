@@ -47,6 +47,7 @@ export type ProductoTarjeta = {
   // Solo con sesión:
   precioMinimo?: number;
   siguienteTramo?: { desde: number; precio: number }; // el primer precio por volumen (ej. desde 5 cajas)
+  tramos?: { desde: number; hasta: number | null; precio: number }[]; // la escala completa (panel al pasar el mouse)
   stock?: number;
   inactivo?: boolean; // solo lo ve el admin: el producto o su marca está desactivado
   favorito?: boolean; // solo compradores: muestra el corazón
@@ -84,6 +85,11 @@ export function aTarjeta(p: FilaProducto, favorito?: boolean): ProductoTarjeta |
     precioCaja: primero.precio_caja_centimos,
     precioMinimo: Math.min(...p.escalas_precio.map((e) => e.precio_caja_centimos)),
     siguienteTramo: siguiente ? { desde: siguiente.desde_cajas, precio: siguiente.precio_caja_centimos } : undefined,
+    tramos: ordenarTramos(p.escalas_precio).map((e, i, todos) => ({
+      desde: e.desde_cajas,
+      hasta: todos[i + 1] ? todos[i + 1].desde_cajas - 1 : null,
+      precio: e.precio_caja_centimos,
+    })),
     stock: p.stock_cajas,
     inactivo: !p.activo || !p.marcas?.activa,
     favorito,

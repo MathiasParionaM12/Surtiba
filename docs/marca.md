@@ -48,6 +48,13 @@ Poco, corto y útil. Nunca para decorar.
 - **Flechas (→)** de botones y enlaces: avanzan 2 px al pasar el mouse.
 - **Listas de pedidos, órdenes y logística** (clase `.escalonado`): las filas entran una tras otra al cargar (30 ms entre filas, máximo 12).
 - **"En el carrito"**: el mismo sello del cotizador al agregar desde una tarjeta o el detalle de un producto.
+- **Portada:** el título entra frase por frase (sube 8 px y aparece), y después el subtítulo y los botones. Una sola vez.
+- **Estados vacíos** (`components/EstadoVacio.tsx`): ícono grande de trazo fino en verde dentro de un círculo, el mensaje y un botón para empezar.
+- **Producto sin foto:** el ícono de su categoría y un sello quieto "PISCO · 750 ML", como una etiqueta.
+- **Íconos de categoría** (`components/IconoCategoria.tsx`) en los chips del catálogo y la cinta: pisco = botija, ron = palmera, gin = hoja, vodka = copo, vino = copa, espumante = destellos, licor = matraz, cóctel = martini.
+- **Escala al pasar el mouse** (catálogo con sesión): sube un panel con los precios por cantidad sobre la foto. En celular no se usa.
+- **Mini gráfico** (`components/MiniGrafico.tsx`): una línea verde con las últimas 4 semanas de lo entregado, bajo los números del Resumen de la marca y del Inicio del admin. Se dibuja una vez al aparecer.
+- **Logo:** no se anima ni se mueve el cuadrado (regla de arriba). Si algún día se quiere, primero hay que tener el logo en SVG.
 - **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).
 - **Reducir movimiento** (cambiado el 18-oct-2026): muchos Windows lo traen activado sin que la persona lo sepa, y apagar todo dejaba la app sin vida. Por eso solo se apaga lo que se repite o se mueve mucho: el brillo de los esqueletos, la línea del recorrido de la portada, la cinta de categorías y el desplazamiento suave entre pasos del cotizador. Los fundidos cortos, el hover, las cifras y el contador del carrito siguen. Los avisos flotantes aparecen sin deslizarse (lo decide la librería sonner).
 

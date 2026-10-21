@@ -8,14 +8,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TarjetaProducto, type ProductoTarjeta } from "@/components/TarjetaProducto";
 import { CATEGORIAS } from "@/lib/catalogo";
+import { IconoCategoria } from "@/components/IconoCategoria";
 import { botonSecundario, campo } from "@/lib/estilos";
 
 // Sin tildes ni mayúsculas: "Cócteles" encuentra "cocteles"
-const normalizar = (t: string) =>
-  t
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+const normalizar = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 export function Explorador({
   productos,
@@ -44,9 +41,7 @@ export function Explorador({
 
   const visibles = useMemo(() => {
     const q = normalizar(busqueda.trim());
-    return productos.filter(
-      (p) => (!categoria || p.categoria === categoria) && (!q || normalizar(`${p.nombre} ${p.marca}`).includes(q)),
-    );
+    return productos.filter((p) => (!categoria || p.categoria === categoria) && (!q || normalizar(`${p.nombre} ${p.marca}`).includes(q)));
   }, [productos, categoria, busqueda]);
 
   // Los filtros quedan en la dirección, sin recargar la página
@@ -97,17 +92,20 @@ export function Explorador({
             <button type="button" aria-pressed={!categoria} onClick={() => setCategoria("")} className={chip(!categoria)}>
               Todas <span className="font-mono text-xs opacity-70">{productos.length}</span>
             </button>
-            {categorias.map((c) => (
-              <button
-                key={c.valor}
-                type="button"
-                aria-pressed={categoria === c.valor}
-                onClick={() => setCategoria(categoria === c.valor ? "" : c.valor)}
-                className={chip(categoria === c.valor)}
-              >
-                {c.texto} <span className="font-mono text-xs opacity-70">{c.cantidad}</span>
-              </button>
-            ))}
+            {categorias.map((c) => {
+              return (
+                <button
+                  key={c.valor}
+                  type="button"
+                  aria-pressed={categoria === c.valor}
+                  onClick={() => setCategoria(categoria === c.valor ? "" : c.valor)}
+                  className={chip(categoria === c.valor)}
+                >
+                  <IconoCategoria categoria={c.valor} className="size-4 shrink-0" />
+                  {c.texto} <span className="font-mono text-xs opacity-70">{c.cantidad}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -118,7 +116,11 @@ export function Explorador({
           {visibles.length} {visibles.length === 1 ? "producto" : "productos"}
         </p>
         {hayFiltros && (
-          <button type="button" onClick={quitarFiltros} className="flex h-11 items-center gap-1 text-sm font-medium enlace text-verde hover:text-tinta">
+          <button
+            type="button"
+            onClick={quitarFiltros}
+            className="flex h-11 items-center gap-1 text-sm font-medium enlace text-verde hover:text-tinta"
+          >
             <X className="size-4" aria-hidden="true" />
             Quitar filtros
           </button>

@@ -5,11 +5,12 @@ import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
-import { botonPrimario, sello } from "@/lib/estilos";
+import { sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Mis pedidos · Surtiba" };
 
@@ -39,13 +40,7 @@ async function ListaPedidos() {
 
   if (!pedidos || pedidos.length === 0) {
     return (
-      <div className="mt-8 rounded-md border border-linea bg-blanco p-6">
-        <Package className="mb-3 size-8 text-gris" strokeWidth={1.5} aria-hidden="true" />
-        <p>Aún no tienes pedidos. Explora el catálogo para armar el primero.</p>
-        <Link href="/catalogo" className={`${botonPrimario} mt-5`}>
-          Ir al catálogo
-        </Link>
-      </div>
+      <EstadoVacio icono={Package} texto="Aún no tienes pedidos. Explora el catálogo para armar el primero." accion={{ href: "/catalogo", texto: "Ir al catálogo" }} />
     );
   }
 

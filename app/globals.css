@@ -357,6 +357,34 @@ button:hover .lucide-arrow-right {
   animation-delay: 360ms;
 }
 
+/* Portada: el título y lo que sigue entran uno tras otro (sube 8 px y aparece), una sola vez */
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.subir {
+  animation: subir 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Mini gráfico de los paneles: la línea se dibuja una vez al aparecer (como la del recorrido) */
+@keyframes trazar {
+  from {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+}
+.trazo-grafico {
+  stroke-dasharray: 1;
+  animation: trazar 600ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .trazo-grafico {
+    animation: none;
+  }
+}
+
 /* Altura del encabezado (la ajusta components/MedirEncabezado.tsx). Valores iniciales:
    celular con la fila de enlaces, y computadora. */
 :root {

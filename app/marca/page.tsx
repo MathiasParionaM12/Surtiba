@@ -7,6 +7,7 @@ import { inicioMesLima, mesActual } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { Contador } from "@/components/Contador";
+import { MiniGrafico, porSemana } from "@/components/MiniGrafico";
 
 export const metadata: Metadata = { title: "Resumen · Panel de marca · Surtiba" };
 
@@ -45,6 +46,10 @@ async function Resumen() {
     .filter((o) => o.estado === "pendiente" || o.estado === "por_confirmar")
     .sort((a, b) => Number(b.estado === "por_confirmar") - Number(a.estado === "por_confirmar"));
   const agotados = (productos ?? []).filter((p) => p.activo && p.stock_cajas === 0);
+  // Últimas 4 semanas de lo entregado (mini gráfico bajo los números)
+  const entregadas = (ordenes ?? []).filter((o) => o.estado === "entregado");
+  const cajasSemanas = porSemana(entregadas, (o) => o.entregado_en, (o) => o.total_cajas);
+  const ventasSemanas = porSemana(entregadas, (o) => o.entregado_en, (o) => o.total_centimos);
 
   return (
     <>
@@ -60,10 +65,12 @@ async function Resumen() {
             </span>
           </p>
           <p className="mt-1 text-sm text-gris">Cajas vendidas del mes</p>
+          <MiniGrafico valores={cajasSemanas} descripcion={`Cajas entregadas en las últimas 4 semanas: ${cajasSemanas.join(", ")}`} />
         </div>
         <div className="border-b border-linea p-5 lg:border-r lg:border-b-0">
           <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={ventasMes} tipo="soles" /></p>
           <p className="mt-1 text-sm text-gris">Ventas del mes</p>
+          <MiniGrafico valores={ventasSemanas} descripcion="Ventas entregadas en las últimas 4 semanas" />
         </div>
         <div className="border-r border-linea p-5">
           <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={comisionMes} tipo="soles" /></p>

@@ -3,10 +3,11 @@ import Link from "next/link";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
-import { inicioMesLima, mesActual, soles } from "@/lib/formato";
+import { haceDias, inicioMesLima, mesActual, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { Contador } from "@/components/Contador";
+import { MiniGrafico, porSemana } from "@/components/MiniGrafico";
 
 export const metadata: Metadata = { title: "Inicio · Panel Surtiba" };
 
@@ -24,7 +25,9 @@ async function Inicio() {
   const inicioMes = inicioMesLima();
 
   // RLS: el admin ve todo
-  const [{ data: entregadas }, { data: pedidosMes }, solicitudes, listas, { data: abiertos }, pagos, encargosMarca, encargosPago] =
+  // Para el mini gráfico: lo entregado en las últimas 4 semanas
+  const hace4Semanas = haceDias(28);
+  const [{ data: entregadas }, { data: pedidosMes }, solicitudes, listas, { data: abiertos }, pagos, encargosMarca, encargosPago, { data: semanas }] =
     await Promise.all([
       supabase.from("subpedidos").select("total_cajas, comision_centimos").eq("estado", "entregado").gte("entregado_en", inicioMes),
       supabase.from("pedidos").select("comprador_id, estado").gte("creado_en", inicioMes),
@@ -38,7 +41,10 @@ async function Inicio() {
         .in("estado", ["recibido", "en_preparacion", "en_camino", "entregado"]),
       supabase.from("subpedidos").select("*", { count: "exact", head: true }).eq("estado", "por_confirmar"),
       supabase.from("pedidos").select("*", { count: "exact", head: true }).eq("estado", "por_pagar"),
+      supabase.from("subpedidos").select("total_cajas, comision_centimos, entregado_en").eq("estado", "entregado").gte("entregado_en", hace4Semanas),
     ]);
+  const cajasSemanas = porSemana(semanas ?? [], (s) => s.entregado_en, (s) => s.total_cajas);
+  const comisionSemanas = porSemana(semanas ?? [], (s) => s.entregado_en, (s) => s.comision_centimos);
 
   // Métrica principal: cajas vendidas del mes = cajas de subpedidos ENTREGADOS este mes
   const cajasMes = (entregadas ?? []).reduce((s, x) => s + x.total_cajas, 0);
@@ -77,6 +83,7 @@ async function Inicio() {
             </span>
           </p>
           <p className="mt-1 text-sm text-gris">Cajas vendidas del mes</p>
+          <MiniGrafico valores={cajasSemanas} descripcion={`Cajas entregadas en las últimas 4 semanas: ${cajasSemanas.join(", ")}`} />
         </div>
         <div className="border-b border-linea p-5 lg:border-r lg:border-b-0">
           <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={pedidosVigentes.length} /></p>
@@ -89,6 +96,7 @@ async function Inicio() {
         <div className="p-5">
           <p className="font-mono text-2xl font-medium sm:text-3xl"><Contador valor={comisionMes} tipo="soles" /></p>
           <p className="mt-1 text-sm text-gris">Comisión del mes</p>
+          <MiniGrafico valores={comisionSemanas} descripcion="Comisión de lo entregado en las últimas 4 semanas" />
         </div>
       </div>
       <p className="mt-2 text-xs text-gris">Cajas y comisión cuentan solo lo entregado este mes.</p>
