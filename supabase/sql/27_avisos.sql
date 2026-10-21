@@ -111,3 +111,13 @@ create trigger subpedidos_avisos after insert or update on public.subpedidos
 -- Nadie las llama directo (los triggers se disparan igual)
 revoke execute on function privado.avisar(uuid, text, text), privado.avisar_marca(uuid, text, text),
   privado.avisar_admins(text, text), privado.avisos_pedido(), privado.avisos_subpedido() from public, anon, authenticated;
+
+-- Avisos para lo que ya estaba pendiente antes de que existiera la campana (1 comprador, 3 marcas)
+insert into public.avisos (perfil_id, texto, enlace)
+select comprador_id, 'Tu pedido ' || codigo || ' está confirmado y en producción. Págalo para continuar.', '/pedidos/' || id
+from public.pedidos where estado = 'por_pagar';
+
+insert into public.avisos (perfil_id, texto, enlace)
+select pf.id, 'Nuevo encargo ' || sp.codigo || ': dinos si puedes hacerlo y para cuándo.', '/marca/ordenes/' || sp.id
+from public.subpedidos sp join public.perfiles pf on pf.marca_id = sp.marca_id and pf.rol = 'marca'
+where sp.estado = 'por_confirmar';
