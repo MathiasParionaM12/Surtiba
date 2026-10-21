@@ -21,7 +21,7 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 ## Riesgos aceptados (decididos)
 
 - **Supuestos del cotizador visibles** (`parametros_cotizador` lo lee cualquiera). El mini-cotizador de la portada y el ejemplo de `/cotizador` calculan en el navegador. Son supuestos de negocio, no datos de clientes, y para cerrarlos habría que mover esos cálculos al servidor. Se revisa si Surtiba deja de ser prototipo.
-- **22 funciones `SECURITY DEFINER` ejecutables por usuarios con sesión** (aviso del advisor de Supabase). Es el patrón intencional: cada una valida el rol adentro. Ninguna la puede ejecutar un visitante. Las de `privado` que un visitante sí puede ejecutar (`es_admin`, `mi_rol`, `mi_marca_id`, `marca_activa`) las usan las reglas RLS y la vista del catálogo: **no quitarles EXECUTE**.
+- **23 funciones `SECURITY DEFINER` ejecutables por usuarios con sesión** (al 21-oct, con `admin_guardar_trago` y `admin_guardar_ingrediente`) (aviso del advisor de Supabase). Es el patrón intencional: cada una valida el rol adentro. Ninguna la puede ejecutar un visitante. Las de `privado` que un visitante sí puede ejecutar (`es_admin`, `mi_rol`, `mi_marca_id`, `marca_activa`) las usan las reglas RLS y la vista del catálogo: **no quitarles EXECUTE**.
 - **"Confirm email" apagado** mientras haya testers: el correo gratis de Supabase manda muy pocos correos por hora. Activarlo cuando haya un servidor de correo propio (SMTP).
 - **Bucket `productos` público de lectura**: son las fotos del catálogo. La subida limita a cada marca a su carpeta.
 
@@ -31,7 +31,7 @@ Authentication en https://supabase.com/dashboard:
 1. **Sign In / Providers → Email**:
    - *Minimum password length* = 8
    - *Password requirements* = letras y números
-2. **Attack Protection → Leaked password protection**: activar. Si sale bloqueado (puede ser solo de pago), queda anotado aquí.
+2. **Attack Protection → Leaked password protection**: activar. Al 21-oct el advisor la sigue marcando como apagada después de que Mathias revisó el panel: es probable que sea solo del plan de pago. Queda como pendiente aceptado.
 3. **Rate Limits**: revisar que estén los valores por defecto, que ya frenan la fuerza bruta.
 
 ## Opcional: CAPTCHA (Cloudflare Turnstile, gratis)
