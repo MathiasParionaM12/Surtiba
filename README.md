@@ -25,41 +25,6 @@ Al enviar un pedido se divide en un subpedido por marca. Lo que tiene stock se p
 - **Vercel**: hosting. Publica solo cada vez que se sube un cambio a `main`
 - Librerías: `@supabase/ssr`, `@react-pdf/renderer` (PDF), `sonner` (avisos), `lucide-react` (íconos)
 
-## Correr en local
-
-1. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-2. Crea `.env.local` en la raíz con las claves de tu proyecto de Supabase (Settings → API). **Nunca las subas al repo**:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=...
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-   ```
-3. Arranca la app y abre http://localhost:3000:
-   ```bash
-   npm run dev
-   ```
-
-| Comando | Para qué |
-|---|---|
-| `npm run dev` | Correr en local |
-| `npm run build` | Comprobar que compila. **Córrelo antes de cada push**: es lo mismo que hace Vercel |
-| `npm run lint` | Revisar errores de código |
-
-## Estructura
-
-```
-app/            Pantallas (una carpeta por ruta) y acciones del servidor
-  admin/        Panel del equipo Surtiba
-  marca/        Panel de cada marca
-  cotizador/    Cotizador de evento en 4 pasos
-components/     Piezas reutilizables (encabezado, tarjetas, contador…)
-lib/            Lógica: cálculo del cotizador, acciones, formato de dinero, clientes de Supabase
-supabase/sql/   Migraciones SQL en orden (tablas, RLS, funciones)
-docs/           Producto, modelo de datos, marca, seguridad y ruta de prueba
-```
-
 ## Documentación
 
 | Archivo | Qué tiene |
@@ -79,8 +44,3 @@ docs/           Producto, modelo de datos, marca, seguridad y ruta de prueba
 - Sin claves en el repo. Sin sesión solo se ve el precio del primer tramo.
 
 Detalle en [`docs/seguridad.md`](docs/seguridad.md).
-
-## Antes de una demo
-
-- Supabase gratis se **pausa tras 7 días sin uso** (los datos no se pierden). Reactívalo desde su panel.
-- Abre la web unos minutos antes: la primera carga después de un rato tarda unos segundos.
