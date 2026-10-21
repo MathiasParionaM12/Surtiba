@@ -8,21 +8,28 @@ import { marcarListo, rechazarOrden } from "@/lib/acciones-marca";
 import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
 
 // Botones de una orden pendiente: "Listo para recojo" o "No puedo atenderla" (con motivo)
-export function AccionesOrden({ subpedidoId }: { subpedidoId: string }) {
+// listoDesde: fecha que prometió la marca en un encargo (si aún no llega, todavía no se puede marcar listo)
+export function AccionesOrden({ subpedidoId, listoDesde }: { subpedidoId: string; listoDesde?: string }) {
   const [listo, accionListo, enviandoListo] = useActionState<EstadoForm, FormData>(marcarListo, {});
   const [rechazo, accionRechazo, enviandoRechazo] = useActionState<EstadoForm, FormData>(rechazarOrden, {});
   const [mostrarRechazo, setMostrarRechazo] = useState(false);
 
   return (
     <div className="rounded-md border border-linea bg-blanco p-5">
-      <p className="text-sm">¿Tienes esta orden preparada? Márcala para que Surtiba pase a recogerla.</p>
+      <p className="text-sm">
+        {listoDesde
+          ? `La marcas lista para recojo desde el ${listoDesde}, el día que prometiste.`
+          : "¿Tienes esta orden preparada? Márcala para que Surtiba pase a recogerla."}
+      </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <form action={accionListo}>
-          <input type="hidden" name="subpedido_id" value={subpedidoId} />
-          <button type="submit" disabled={enviandoListo} className={botonPrimario}>
-            {enviandoListo ? "Guardando…" : "Listo para recojo"}
-          </button>
-        </form>
+        {!listoDesde && (
+          <form action={accionListo}>
+            <input type="hidden" name="subpedido_id" value={subpedidoId} />
+            <button type="submit" disabled={enviandoListo} className={botonPrimario}>
+              {enviandoListo ? "Guardando…" : "Listo para recojo"}
+            </button>
+          </form>
+        )}
         {!mostrarRechazo && (
           <button type="button" onClick={() => setMostrarRechazo(true)} className={botonSecundario}>
             No puedo atenderla

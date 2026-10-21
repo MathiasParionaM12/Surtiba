@@ -6,7 +6,7 @@ import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { esUuid } from "@/lib/catalogo";
 import { sello } from "@/lib/estilos";
-import { fecha, hoyEnLima, soles } from "@/lib/formato";
+import { fecha, hoyEnLima, mananaEnLima, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { AccionesEncargo } from "./AccionesEncargo";
@@ -66,7 +66,7 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           {o.estado === "por_confirmar" && (
-            <AccionesEncargo subpedidoId={id} hoy={hoyEnLima()} apartadas={apartadas} porProducir={porProducir} />
+            <AccionesEncargo subpedidoId={id} manana={mananaEnLima()} apartadas={apartadas} porProducir={porProducir} />
           )}
           {o.estado === "pendiente" && o.fecha_disponible && (
             <p className="border-l-2 border-verde pl-3 text-sm">
@@ -74,7 +74,13 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
               marcarlo listo cuando el cliente haya pagado (si aún no paga, te lo diremos al intentarlo).
             </p>
           )}
-          {o.estado === "pendiente" && <AccionesOrden subpedidoId={id} />}
+          {o.estado === "pendiente" && (
+            <AccionesOrden
+              subpedidoId={id}
+              // Si prometió una fecha que aún no llega, "Listo para recojo" espera hasta ese día
+              listoDesde={o.fecha_disponible && o.fecha_disponible > hoyEnLima() ? fecha(o.fecha_disponible) : undefined}
+            />
+          )}
           {o.estado === "listo_recojo" && o.listo_en && (
             <p className="border-l-2 border-verde pl-3 text-sm">
               Marcaste esta orden como lista el {fecha(o.listo_en)}. Surtiba pasará a recogerla.

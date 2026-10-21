@@ -5,18 +5,19 @@ import { AvisoForm } from "@/components/AvisoForm";
 import { Etiqueta } from "@/components/Etiqueta";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { responderEncargo } from "@/lib/acciones-marca";
-import { botonPrimario, botonSecundario, campo } from "@/lib/estilos";
+import { botonPrimario, campo } from "@/lib/estilos";
 
-// Encargo por confirmar: la marca dice cuándo lo tendrá listo, o que no puede hacerlo.
+// Encargo por confirmar: la marca elige si puede hacerlo (y para cuándo, desde mañana) o no (y por qué),
+// y lo envía con un solo botón. La base de datos vuelve a revisar la fecha.
 // En "todo junto" una parte (o todo) ya salió de su stock: solo produce lo que falta.
 export function AccionesEncargo({
   subpedidoId,
-  hoy,
+  manana,
   apartadas,
   porProducir,
 }: {
   subpedidoId: string;
-  hoy: string;
+  manana: string; // AAAA-MM-DD: la primera fecha que se puede prometer
   apartadas: number;
   porProducir: number;
 }) {
@@ -39,29 +40,43 @@ export function AccionesEncargo({
         <p className="mt-1 text-sm text-gris">{explicacion}</p>
       </div>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setRespuesta("acepto")}
-          className={`${respuesta === "acepto" ? botonPrimario : botonSecundario} h-10`}
-        >
-          Puedo hacerlo
-        </button>
-        <button
-          type="button"
-          onClick={() => setRespuesta("no")}
-          className={`${respuesta === "no" ? botonPrimario : botonSecundario} h-10`}
-        >
-          No puedo
-        </button>
-      </div>
+      {/* Es una elección (no un botón que envía): por eso se ve como dos opciones para marcar */}
+      <fieldset>
+        <legend className="mb-2 text-sm font-medium">¿Puedes hacer este encargo?</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(
+            [
+              { valor: "acepto", titulo: "Sí, puedo hacerlo", ayuda: "Dinos para cuándo lo tendrás listo." },
+              { valor: "no", titulo: "No puedo hacerlo", ayuda: "Cuéntanos por qué; el cliente no lo paga." },
+            ] as const
+          ).map((o) => (
+            <label
+              key={o.valor}
+              className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-linea bg-blanco px-4 py-3 transition-colors hover:border-gris has-[:checked]:border-tinta"
+            >
+              <input
+                type="radio"
+                name="opcion"
+                checked={respuesta === o.valor}
+                onChange={() => setRespuesta(o.valor)}
+                className="mt-1 accent-verde"
+              />
+              <span>
+                <span className="block font-medium">{o.titulo}</span>
+                <span className="block text-xs text-gris">{o.ayuda}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {respuesta === "acepto" ? (
         <label className="flex flex-col gap-2">
           <Etiqueta texto="¿Para cuándo lo tendrás listo para recoger?" obligatorio />
           <div className="w-48">
-            <input name="fecha" type="date" min={hoy} required defaultValue={estado.valores?.fecha} className={`${campo} font-mono`} />
+            <input name="fecha" type="date" min={manana} required defaultValue={estado.valores?.fecha} className={`${campo} font-mono`} />
           </div>
+          <span className="text-xs text-gris">Desde mañana. Podrás marcarlo listo para recojo desde ese día.</span>
         </label>
       ) : (
         <label className="flex flex-col gap-2">
