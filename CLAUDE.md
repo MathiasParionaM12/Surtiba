@@ -4,6 +4,7 @@ Lee este archivo completo al iniciar cada sesión. Los detalles están en `docs/
 - `docs/producto.md` — qué hace la app por rol, reglas de negocio y qué NO entra
 - `docs/modelo-datos.md` — tablas, relaciones, estados y quién ve qué
 - `docs/marca.md` — colores, tipografía y tono de la interfaz
+- `docs/seguridad.md` — cómo está protegida la app, riesgos aceptados y pendientes (leer antes de tocar RLS, funciones o Auth)
 
 ## Qué es Surtiba
 
