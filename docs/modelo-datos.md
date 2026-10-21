@@ -245,6 +245,8 @@ La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los d
 
 **Entregar un pedido:** se calcula la comisión de cada subpedido, con exención si la marca tiene menos de 3 subpedidos entregados antes.
 
+**Métricas del admin:** `admin_insights()` (`supabase/sql/32_insights_admin.sql`, solo admin) arma todo `/admin/metricas` en una consulta.
+
 **KPIs de la marca:** `marca_insights()` (`supabase/sql/29_insights_marca.sql`) calcula para la marca de la sesión lo de «Hoy», el mes vs el anterior, productos estrella, demanda por encargo, cotizaciones y cumplimiento. Es `SECURITY DEFINER` porque usa `pedidos` y `cotizaciones`, que la marca no lee, y devuelve solo totales.
 
 **Editar el recetario (admin):** `admin_guardar_trago` guarda un trago y sus ingredientes en una sola transacción (`supabase/sql/25_editor_recetario.sql`): revisa que cada ingrediente exista, sin repetidos y con cantidad entre 0 y 1000, y calcula solo el licor principal (`recetas.categoria`). `admin_guardar_ingrediente` crea o edita un ingrediente; lo que vende Surtiba se mide en ml.

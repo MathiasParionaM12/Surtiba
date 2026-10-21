@@ -340,6 +340,10 @@ export type Database = {
         Args: { p_tipo: string; p_producto?: string | null };
         Returns: undefined;
       };
+      admin_insights: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       marca_insights: {
         Args: Record<string, never>;
         Returns: Json;

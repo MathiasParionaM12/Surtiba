@@ -50,6 +50,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 | Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
 | Pedidos | Todos los pedidos, con filtros por estado y marca. Ve los datos del comprador |
 | Logística | **Recojos**: subpedidos listos, agrupados por marca, con botón "Recogido". **Entregas**: pedidos con todo recogido, con botones "En camino" y "Entregado" |
+| **Métricas** (21-oct-2026) | Ventas del mes (entregado) vs el anterior, cajas, pedidos y ticket promedio, comisión generada y exonerada, vendido por semana (8 semanas); embudo de 30 días (vieron un producto → carrito → empezaron a pedir → pedido → pagado → entregado) y cotización → pedido; operación (horas hasta listo, recojo y entrega; atrasos); ranking de marcas; compradores activos, nuevos y recurrentes, por tipo de negocio y distrito; productos más vendidos, más cotizados y nunca vendidos. Todo de `admin_insights()` |
 | Pagos | Marcar un pedido como pagado y con qué método: transferencia, Yape, Plin o efectivo. Sin pasarela |
 
 ## Reglas de negocio
