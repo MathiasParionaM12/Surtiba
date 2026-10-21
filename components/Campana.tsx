@@ -25,7 +25,15 @@ function haceCuanto(iso: string) {
   return relativo.format(Math.round(horas / 24), "day");
 }
 
-export function Campana({ perfilId, avisos: delServidor, sinLeer: sinLeerServidor }: { perfilId: string; avisos: Aviso[]; sinLeer: number }) {
+export function Campana({
+  perfilId,
+  avisos: delServidor,
+  sinLeer: sinLeerServidor,
+}: {
+  perfilId: string;
+  avisos: Aviso[];
+  sinLeer: number;
+}) {
   const router = useRouter();
   const [vivos, setVivos] = useState<Aviso[]>([]); // los que llegaron en tiempo real
   // Los que llegaron en vivo y el servidor todavía no trae (al actualizar la pantalla ya vienen en la lista)
@@ -39,17 +47,28 @@ export function Campana({ perfilId, avisos: delServidor, sinLeer: sinLeerServido
   // Tiempo real: escucha los avisos nuevos de esta persona
   useEffect(() => {
     const supabase = createClient();
-    const canal = supabase
-      .channel(`avisos-${perfilId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "avisos", filter: `perfil_id=eq.${perfilId}` }, (cambio) => {
-        const a = cambio.new as { id: string; texto: string; enlace: string | null; creado_en: string };
-        setVivos((v) => [{ id: a.id, texto: a.texto, enlace: a.enlace, leido: false, creado_en: a.creado_en }, ...v].slice(0, 10));
-        toast(a.texto, a.enlace ? { action: { label: "Ver", onClick: () => router.push(a.enlace!) } } : undefined);
-        router.refresh(); // la pantalla se actualiza sola (ej. aparece la orden nueva)
-      })
-      .subscribe();
+    let canal: ReturnType<typeof supabase.channel> | undefined;
+    let cerrado = false;
+    // Primero se le pasa la sesión a Realtime: si se conecta como visitante, RLS no le manda nada
+    void (async () => {
+      await supabase.realtime.setAuth();
+      if (cerrado) return;
+      canal = supabase
+        .channel(`avisos-${perfilId}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "avisos", filter: `perfil_id=eq.${perfilId}` }, (cambio) => {
+          const a = cambio.new as { id: string; texto: string; enlace: string | null; creado_en: string };
+          setVivos((v) => [{ id: a.id, texto: a.texto, enlace: a.enlace, leido: false, creado_en: a.creado_en }, ...v].slice(0, 10));
+          toast(a.texto, a.enlace ? { action: { label: "Ver", onClick: () => router.push(a.enlace!) } } : undefined);
+          router.refresh(); // la pantalla se actualiza sola (ej. aparece la orden nueva)
+        })
+        // Si la conexión en vivo falla, queda anotado en la consola del navegador (para revisarlo)
+        .subscribe((estado, error) => {
+          if (estado === "CHANNEL_ERROR" || estado === "TIMED_OUT") console.warn("Avisos en vivo:", estado, error?.message ?? "");
+        });
+    })();
     return () => {
-      void supabase.removeChannel(canal);
+      cerrado = true;
+      if (canal) void supabase.removeChannel(canal);
     };
   }, [perfilId, router]);
 
