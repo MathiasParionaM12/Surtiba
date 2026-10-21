@@ -14,7 +14,7 @@ perfiles ─┬─ (rol=marca) ─► marcas ─► productos ─► escalas_pre
           ├─ (rol=comprador) ─► favoritos ─► productos
           └─ (rol=comprador) ─► cotizaciones ─► (pedido, si terminó en pedido)
 
-Cotizador (lo edita el admin): parametros_cotizador · tipos_evento ─► tipo_evento_recetas ◄─ recetas
+Cotizador (lo edita el admin): parametros_cotizador · tipos_evento ─► tipo_evento_recetas ◄─ recetas ─► receta_ingredientes ◄─ ingredientes
 ```
 
 ## Tablas
@@ -175,6 +175,10 @@ Los valores iniciales son **supuestos por validar con caterings**; el admin los 
 
 **recetas** (tragos): nombre, `categoria` del licor (la misma lista que `productos.categoria`), `ml_por_trago`, y lo que Surtiba no vende: `mezclador` + `mezclador_ml`, `limones` y `jarabe_ml` por trago. Orden, activo.
 
+**ingredientes** (recetario, 21-oct-2026): nombre, `unidad` (ml / unidad / g), `categoria` de producto de Surtiba que lo cubre (pisco, ron, gin, vodka, vino, espumante, licor, cóctel listo) o vacío si Surtiba no lo vende, orden, activo.
+
+**receta_ingredientes**: cuánto lleva cada trago: (receta_id, ingrediente_id, `cantidad` por trago en la unidad del ingrediente). Las cantidades iniciales son recetas clásicas y **supuestos por validar**. Los 17 tragos nuevos quedan desactivados hasta que el cotizador calcule con ingredientes; las columnas viejas de `recetas` (`ml_por_trago`, `mezclador`…) conviven mientras tanto.
+
 **tipo_evento_recetas**: la barra de cada tipo de evento: (tipo_evento_id, receta_id, `nivel`: principal / secundario / ocasional, que pesan 3 / 2 / 1).
 
 **cotizaciones**: `codigo` (COT-0001), comprador_id, creado_en, `evento` (jsonb; en la versión 2 guarda la entrada completa para volver a abrirla y un resumen con momentos e insumos; null si vino del carrito), `items` (jsonb: copia de productos, cajas y precios), `total_centimos`, `pedido_id` (null hasta que termina en pedido). Solo la crea `crear_cotizacion`; nadie la escribe directo.
@@ -209,7 +213,7 @@ recibido ─► en_preparacion ─► en_camino ─► entregado
 | pedidos | no | los suyos | **no** | todo |
 | subpedidos e items | no | los de sus pedidos | solo los de su marca | todo |
 | favoritos | no | los suyos | no | no hace falta |
-| tipos_evento, recetas, tipo_evento_recetas, parametros_cotizador | los activos | los activos | los activos | todo (editar) |
+| tipos_evento, recetas, tipo_evento_recetas, parametros_cotizador, ingredientes, receta_ingredientes | los activos | los activos | los activos | todo (editar) |
 | cotizaciones | no | las suyas (solo leer) | no | todas (solo leer) |
 
 La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los datos del evento). Todo lo que necesita está en su subpedido.
