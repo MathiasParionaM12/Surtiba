@@ -2,9 +2,11 @@
 
 // Controles pequeños del cotizador (botones de opción, interruptor y línea de tiempo)
 
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Momento } from "@/lib/cotizador";
 
-// Varias opciones en una fila: se elige una
+// Varias opciones en una fila: se elige una. Un fondo blanco se desliza hasta la opción elegida
+// (mide la posición del botón, así sirve aunque las opciones tengan anchos distintos).
 export function Segmentado<T extends string | number>({
   opciones,
   valor,
@@ -18,12 +20,37 @@ export function Segmentado<T extends string | number>({
   etiqueta: string;
   ancho?: boolean; // en celular ocupa todo el ancho (botones iguales)
 }) {
+  const caja = useRef<HTMLDivElement>(null);
+  const [fondo, setFondo] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const indice = opciones.findIndex((o) => o.valor === valor);
+
+  useLayoutEffect(() => {
+    const el = caja.current;
+    if (!el) return;
+    const medir = () => {
+      const b = el.querySelectorAll<HTMLButtonElement>("button")[indice];
+      setFondo(b ? { x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight } : null);
+    };
+    medir();
+    const observador = new ResizeObserver(medir); // si cambia el ancho (celular, ventana)
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [indice, opciones.length]);
+
   return (
     <div
+      ref={caja}
       role="radiogroup"
       aria-label={etiqueta}
-      className={`rounded-md border border-linea bg-papel p-0.5 ${ancho ? "flex w-full sm:inline-flex sm:w-auto" : "inline-flex flex-wrap"}`}
+      className={`relative rounded-md border border-linea bg-papel p-0.5 ${ancho ? "flex w-full sm:inline-flex sm:w-auto" : "inline-flex flex-wrap"}`}
     >
+      {fondo && (
+        <span
+          aria-hidden="true"
+          className="absolute rounded-[5px] bg-blanco shadow-sm transition-[left,top,width,height] duration-200 ease-out"
+          style={{ left: fondo.x, top: fondo.y, width: fondo.w, height: fondo.h }}
+        />
+      )}
       {opciones.map((o) => {
         const activo = o.valor === valor;
         return (
@@ -33,8 +60,8 @@ export function Segmentado<T extends string | number>({
             role="radio"
             aria-checked={activo}
             onClick={() => onCambio(o.valor)}
-            className={`h-11 rounded-[5px] px-3 text-sm sm:h-8 whitespace-nowrap transition-colors ${ancho ? "flex-1 sm:flex-none" : ""} ${
-              activo ? "bg-blanco font-medium text-tinta shadow-sm" : "text-gris hover:text-tinta"
+            className={`relative h-11 rounded-[5px] px-3 text-sm whitespace-nowrap transition-colors duration-200 sm:h-8 ${ancho ? "flex-1 sm:flex-none" : ""} ${
+              activo ? `font-medium text-tinta ${fondo ? "" : "bg-blanco shadow-sm"}` : "text-gris hover:text-tinta"
             }`}
           >
             {o.texto}

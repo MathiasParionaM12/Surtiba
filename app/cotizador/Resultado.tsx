@@ -4,6 +4,7 @@ import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
+import { Sello } from "@/components/Sello";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { agregarAlCarrito } from "@/lib/acciones-pedidos";
 import { cantidadLegible, LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
@@ -43,7 +44,11 @@ function CampoCajas({ valor, onCambio, etiqueta }: { valor: number; onCambio: (v
 // Agrega al carrito solo este producto, con las cajas de la cotización (se suman a las que ya tenías).
 // Solo manda producto_id y cajas: el precio lo pone la base de datos.
 function AgregarProducto({ productoId, cajas, nombre }: { productoId: string; cajas: number; nombre: string }) {
-  const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(agregarAlCarrito, {});
+  // "vez" cuenta los agregados que salieron bien: así el sello se vuelve a estampar cada vez
+  const [estado, accion, enviando] = useActionState<EstadoForm & { vez?: number }, FormData>(async (antes, form) => {
+    const r = await agregarAlCarrito(antes, form);
+    return { ...r, vez: r.mensaje ? (antes.vez ?? 0) + 1 : antes.vez };
+  }, {});
   return (
     <form action={accion} className="flex flex-col items-end gap-1">
       <input type="hidden" name="producto_id" value={productoId} />
@@ -52,12 +57,20 @@ function AgregarProducto({ productoId, cajas, nombre }: { productoId: string; ca
         <ShoppingCart className="size-4" aria-hidden="true" />
         {enviando ? "Agregando…" : "Agregar"}
       </button>
+      {estado.mensaje && estado.vez ? (
+        <Sello key={estado.vez} tono="verde" giro={-5}>
+          En el carrito
+        </Sello>
+      ) : null}
       <div className="empty:hidden text-xs">
         <AvisoForm estado={estado} />
       </div>
     </form>
   );
 }
+
+// "21 oct" en hora de Lima, para el sello del resultado
+const hoy = () => new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", timeZone: "America/Lima" }).format(new Date()).replace(".", "");
 
 // "pisco sour, chilcano y mojito"
 const lista = (nombres: string[]) => {
@@ -71,13 +84,16 @@ export function Resultado({
   resultado: r,
   tipo,
   puedeAgregar = false,
+  guardada,
 }: {
   entrada: EntradaCotizador;
   actualizar: (cambio: Partial<EntradaCotizador>) => void;
   resultado: ResultadoCotizacion;
   tipo: string;
   puedeAgregar?: boolean; // solo los compradores agregan al carrito
+  guardada?: string; // código de la cotización si se acaba de guardar
 }) {
+  const [fecha] = useState(hoy);
   const marcas = new Set(r.productos.map((p) => p.marcaId)).size;
   const cajas = r.productos.reduce((s, p) => s + p.cajas, 0);
   const fin = r.momentos.at(-1)?.hasta ?? r.momentos.at(-1)?.desde;
@@ -134,7 +150,19 @@ export function Resultado({
           <p className="mt-2 font-mono text-2xl font-semibold">{entero.format(r.tragosTotales)}</p>
           <p className="mt-1 text-xs text-gris">{decimal.format(r.tragosPorPersona)} por persona que toma</p>
         </div>
-        <div className="rounded-md border border-linea bg-blanco p-4">
+        <div className="relative rounded-md border border-linea bg-blanco p-4">
+          {/* Sello como en una factura: "Cotizado" y, al descargar el PDF, "Guardada · COT-0012" */}
+          <span className="absolute -top-4 right-3">
+            {guardada ? (
+              <Sello key={guardada} tono="verde" giro={-7}>
+                Guardada · {guardada}
+              </Sello>
+            ) : (
+              <Sello tono="tinta" giro={-7} className="bg-blanco">
+                Cotizado · {fecha}
+              </Sello>
+            )}
+          </span>
           <p className={sello}>Total estimado</p>
           <p className="mt-2 font-mono text-2xl font-semibold">{soles(r.total)}</p>
           <p className="mt-1 text-xs text-gris">{soles(r.porInvitado)} por invitado</p>

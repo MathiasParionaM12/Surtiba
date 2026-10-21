@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/tipos";
 
 type Respuesta = { resultado?: ResultadoCotizacion; error?: string };
-export type RespuestaPdf = { id?: string; error?: string };
+export type RespuestaPdf = { id?: string; codigo?: string; error?: string };
 
 export async function cotizar(entrada: EntradaCotizador): Promise<Respuesta> {
   const { resultado, error } = await cotizarEvento(entrada);
@@ -90,5 +90,5 @@ async function guardar(items?: Json, evento?: Json): Promise<RespuestaPdf> {
     return { error: error?.code === "P0001" ? error.message : "No pudimos guardar la cotización. Intenta de nuevo." };
   }
   revalidatePath("/cotizaciones");
-  return { id: data[0].cotizacion_id };
+  return { id: data[0].cotizacion_id, codigo: data[0].codigo };
 }

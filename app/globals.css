@@ -205,6 +205,57 @@ body {
   }
 }
 
+/* Sellos que se estampan (components/Sello.tsx): entran grandes e inclinados y se asientan.
+   Con "reducir movimiento" solo aparecen con un fundido corto, sin el golpe ni el giro. */
+@keyframes estampar {
+  0% {
+    opacity: 0;
+    transform: scale(1.7) rotate(calc(var(--giro) - 10deg));
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(var(--giro));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(var(--giro));
+  }
+}
+@keyframes estampar-suave {
+  from {
+    opacity: 0;
+  }
+}
+.estampa {
+  --giro: -4deg;
+  transform: rotate(var(--giro));
+  animation: estampar 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .estampa {
+    animation: estampar-suave 200ms ease-out both;
+  }
+}
+
+/* Un sello que avisa algo un momento y se va solo (ej. "Agregado"): se estampa y a los 2 s se desvanece */
+@keyframes desvanecer {
+  to {
+    opacity: 0;
+  }
+}
+.estampa-pasajera {
+  animation:
+    estampar 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    desvanecer 400ms ease-in 2s forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .estampa-pasajera {
+    animation:
+      estampar-suave 200ms ease-out both,
+      desvanecer 400ms ease-in 2s forwards;
+  }
+}
+
 /* Altura del encabezado (la ajusta components/MedirEncabezado.tsx). Valores iniciales:
    celular con la fila de enlaces, y computadora. */
 :root {

@@ -56,6 +56,7 @@ export function Cotizador({
   const [resultado, setResultado] = useState(resultadoInicial);
   const [error, setError] = useState<string>();
   const [resumenAbierto, setResumenAbierto] = useState(false);
+  const [guardada, setGuardada] = useState<string>(); // código de la cotización recién guardada (COT-0012)
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();
   const ultimo = useRef(0);
@@ -69,6 +70,7 @@ export function Cotizador({
       primeraVez.current = false;
       return;
     }
+    setGuardada(undefined); // si cambia algo, la cotización guardada ya no es esta
     const numero = ++ultimo.current;
     const espera = setTimeout(() => {
       iniciar(async () => {
@@ -162,7 +164,10 @@ export function Cotizador({
                 >
                   {estado === "hecho" ? (
                     <>
-                      <Check className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+                      {/* El ✓ se estampa cuando el paso queda hecho */}
+                      <span className="estampa inline-flex" style={{ "--giro": "0deg" } as React.CSSProperties}>
+                        <Check className="size-3.5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+                      </span>
                       <span className="sr-only">Hecho:</span>
                     </>
                   ) : (
@@ -193,7 +198,7 @@ export function Cotizador({
             <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
           )}
           {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} ingredientes={ingredientes} />}
-          {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} puedeAgregar={rol === "comprador"} />}
+          {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} puedeAgregar={rol === "comprador"} guardada={guardada} />}
 
           <div className="mt-6">
             <AvisoForm error={error} />
@@ -217,7 +222,7 @@ export function Cotizador({
                   <ShoppingCart className="size-4" aria-hidden="true" />
                   {pasando ? "Agregando al carrito…" : "Agregar todo al carrito"}
                 </button>
-                <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Descargar PDF" />
+                <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Descargar PDF" alGuardar={setGuardada} />
               </div>
             )}
             {paso === 3 && esComprador && (
