@@ -38,6 +38,13 @@ export function mesActual() {
   return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(new Date()).toLowerCase();
 }
 
+// El mes pasado, en minúscula: "septiembre"
+export function mesAnterior() {
+  const hoy = new Date();
+  const d = new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth() - 1, 15));
+  return new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", month: "long" }).format(d).toLowerCase();
+}
+
 // Hoy en Lima, en formato AAAA-MM-DD
 export function hoyEnLima() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());

@@ -36,7 +36,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 
 | Pantalla | Qué tiene |
 |---|---|
-| Inicio / **Mis números** | Cajas vendidas del mes, ventas del mes (S/), comisión por pagar, órdenes pendientes |
+| Inicio / **Mis números** | **Hoy** (encargos por responder, órdenes por preparar, listas esperando recojo); cajas vendidas del mes, ventas del mes (S/) con la comparación con el mes anterior y su línea de 4 semanas, comisión por pagar, órdenes pendientes; **Para vender más** (21-oct-2026): productos estrella (90 días), lo que le pidieron por encargo (30 días), en cuántas cotizaciones salió (30 días) y su cumplimiento (encargos aceptados, no atendidas, días hasta «Listo»). Solo totales: nunca datos de compradores |
 | Órdenes | Solo sus subpedidos: código, productos, cajas, total y fecha de recojo. **Sin datos del comprador** |
 | Detalle de la orden | Botones **"Listo para recojo"** y **"No puedo atenderla"** (con motivo obligatorio) |
 | Mis productos | Crear y editar productos, fotos y **escala de precios** |

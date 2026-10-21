@@ -328,6 +328,10 @@ export type Database = {
         Args: { p_id: string | null; p_nombre: string; p_unidad: string; p_categoria: string | null; p_activo: boolean };
         Returns: string;
       };
+      marca_insights: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       crear_cotizacion: {
         Args: { p_items?: Json; p_evento?: Json };
         Returns: { cotizacion_id: string; codigo: string }[];
