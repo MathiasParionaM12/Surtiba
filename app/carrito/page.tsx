@@ -91,6 +91,8 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
         siguiente: (escalas ?? [])
           .filter((e) => e.producto_id === l.producto_id && e.desde_cajas > l.cajas!)
           .sort((a, b) => a.desde_cajas - b.desde_cajas)[0],
+        // Desde cuántas cajas empieza el precio que paga ahora (para la barra hacia el siguiente)
+        desdeActual: Math.max(1, ...(escalas ?? []).filter((e) => e.producto_id === l.producto_id && e.desde_cajas <= l.cajas!).map((e) => e.desde_cajas)),
       })),
     };
   });
@@ -138,7 +140,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               )}
 
               <ul>
-                {items.map(({ l, problema, siguiente }) => (
+                {items.map(({ l, problema, siguiente, desdeActual }) => (
                   <li key={l.producto_id} className="border-b border-linea px-4 py-4 last:border-b-0 sm:px-5">
                     <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
                       <div className="min-w-0 flex-1">
@@ -150,9 +152,19 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
                           {l.unidades_por_caja} u/caja
                         </p>
                         {siguiente && !problema && (
-                          <p className="mt-1 text-xs text-verde">
-                            Con {siguiente.desde_cajas} cajas pagas {soles(siguiente.precio_caja_centimos)} por caja.
-                          </p>
+                          // Barra que se llena hacia el siguiente precio por volumen
+                          <div className="mt-2 max-w-xs">
+                            <p className="text-xs text-verde">
+                              {siguiente.desde_cajas - l.cajas! === 1 ? "1 caja más" : `${siguiente.desde_cajas - l.cajas!} cajas más`} y pagas{" "}
+                              <span className="font-mono">{soles(siguiente.precio_caja_centimos)}</span> por caja.
+                            </p>
+                            <span className="mt-1 block h-1 overflow-hidden rounded-full bg-linea" aria-hidden="true">
+                              <span
+                                className="llenar block h-full bg-verde"
+                                style={{ width: `${Math.round(((l.cajas! - desdeActual + 1) / (siguiente.desde_cajas - desdeActual + 1)) * 100)}%` }}
+                              />
+                            </span>
+                          </div>
                         )}
                         {problema && <p className="mt-1 border-l-2 border-rojo pl-2 text-xs">{problema}</p>}
                         {!problema && partes(l).encargo > 0 && (

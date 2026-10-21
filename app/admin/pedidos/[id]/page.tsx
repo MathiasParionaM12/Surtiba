@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
+import { SelloEstado } from "@/components/SelloEstado";
 import { FormAccion } from "@/components/FormAccion";
 import {
   cancelarPedido,
@@ -77,7 +78,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           {p.tipo === "encargo" && <p className="mt-1 text-sm font-medium">Pedido por encargo</p>}
           <p className="mt-1 text-sm text-gris">Hecho el {fecha(p.creado_en)}</p>
         </div>
-        <EtiquetaEstado estado={p.estado} />
+        <SelloEstado estado={p.estado} />
       </div>
 
       {/* Siguiente paso del pedido */}

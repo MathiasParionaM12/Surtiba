@@ -15,6 +15,7 @@ import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { AgregarRapido } from "./AgregarRapido";
 import { FormPagar } from "./FormPagar";
+import { SelloEstado } from "@/components/SelloEstado";
 
 export const metadata: Metadata = { title: "Detalle del pedido · Surtiba" };
 
@@ -180,7 +181,11 @@ async function DetallePedido({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className={sello}>Pedido</p>
-          <h1 className="mt-2 font-mono text-3xl font-semibold tracking-tight">{p.codigo}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <h1 className="font-mono text-3xl font-semibold tracking-tight">{p.codigo}</h1>
+            {/* El estado como sello: se estampa cuando cambia (o al llegar recién creado) */}
+            <SelloEstado estado={p.estado} recien={!!nuevo} />
+          </div>
           <p className="mt-1 text-sm text-gris">Hecho el {fecha(p.creado_en)}</p>
         </div>
         <form action={repetirPedido}>
@@ -204,7 +209,10 @@ async function DetallePedido({
             const hecho = i <= pasoActual;
             return (
               <li key={s.estado} className="flex flex-col gap-2">
-                <span className={`h-1.5 rounded-full ${hecho ? "bg-verde" : "bg-linea"}`} />
+                {/* Los tramos hechos se llenan uno tras otro hasta el estado actual */}
+                <span className="h-1.5 overflow-hidden rounded-full bg-linea">
+                  {hecho && <span className="llenar block h-full bg-verde" style={{ animationDelay: `${i * 120}ms` }} />}
+                </span>
                 <span className={`text-xs sm:text-sm ${hecho ? "font-medium" : "text-gris"}`}>
                   {s.texto}
                   {i === pasoActual && <span className="sr-only"> (estado actual)</span>}
@@ -333,8 +341,13 @@ async function DetallePedido({
             )}
           </div>
 
-          <div className="rounded-md border border-linea bg-blanco p-5 text-sm">
-            <dl className="flex flex-col gap-2">
+          {/* Totales como un recibo: borde de papel y sello de pagado */}
+          <div className="recibo relative rounded-t-md bg-blanco p-5 text-sm">
+            <div className="mb-4 flex items-start justify-between gap-3 border-b border-dashed border-linea pb-3">
+              <p className={sello}>Recibo</p>
+              {p.pago_estado === "pagado" && !cancelado && <SelloEstado estado="pagado" detalle={p.codigo} recien={!!nuevo} giro={-8} />}
+            </div>
+            <dl className="flex flex-col gap-2 font-mono">
               <div className="flex justify-between">
                 <dt className="text-gris">Subtotal</dt>
                 <dd className="font-mono">{soles(p.subtotal_centimos)}</dd>

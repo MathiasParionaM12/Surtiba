@@ -38,6 +38,10 @@ Poco, corto y útil. Nunca para decorar.
 - **Contador:** los números grandes (Resumen de la marca, Inicio del admin, "3 pedidos" de la portada) suben de 0 a su valor la primera vez que aparecen, en 0.6 s (única excepción a los 300 ms).
 - **Cinta de categorías** (portada): las categorías con productos se mueven despacio y se detienen con el mouse o el teclado.
 - **Sellos que se estampan** (`components/Sello.tsx`): marcan algo que acaba de pasar, como en un documento. Entran un poco más grandes e inclinados y se asientan en 0.26 s; con "reducir movimiento" solo aparecen. Borde de 2 px en tinta, verde o gris, Geist Mono en mayúsculas. Usos en el cotizador: el ✓ de un paso hecho, "Agregado" al sumar un trago (se va solo a los 2 s), "Tuyo" en los tragos propios, "En el carrito" al agregar un producto y, junto al total, "Cotizado · fecha" que pasa a "Guardada · COT-0012" al descargar el PDF. Nunca en resaltador.
+- **Sello de estado** (`components/SelloEstado.tsx`): en el encabezado del pedido, de la orden de la marca y del pedido en el admin. Se estampa **solo cuando el estado acaba de cambiar** (o al llegar recién pagado), no cada vez que se abre la página. En las tablas se siguen usando las etiquetas de estado.
+- **Recibo**: los totales del pedido del comprador llevan borde de abajo dentado (clase `.recibo`), números en Geist Mono y el sello "Pagado · SUR-0012".
+- **Línea de tiempo del pedido**: los tramos hechos se llenan uno tras otro (0.32 s cada uno, 120 ms entre tramos).
+- **Carrito**: una barra fina en verde muestra cuánto falta para el siguiente precio por volumen ("2 cajas más y pagas S/ 285 por caja").
 - **Selectores** (Principal / Secundario / Ocasional y similares): el fondo blanco se desliza hasta la opción elegida (200 ms).
 - **Barra del reparto** de la barra de tragos: un color fijo por trago (tinta, verde, gris y sus tonos); al cambiar un nivel, cada parte cambia de tamaño suave.
 - **Íconos:** lucide-react, de trazo fino, en verde o gris. Acompañan al texto, no lo reemplazan (salvo en celular, con su texto para lectores de pantalla).

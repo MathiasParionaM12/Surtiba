@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
-import { EtiquetaEstado } from "@/components/EtiquetaEstado";
+import { SelloEstado } from "@/components/SelloEstado";
 import { esUuid } from "@/lib/catalogo";
 import { sello } from "@/lib/estilos";
 import { fecha, hoyEnLima, mananaEnLima, soles } from "@/lib/formato";
@@ -60,7 +60,7 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
           <h1 className="mt-2 font-mono text-3xl font-semibold tracking-tight">{o.codigo}</h1>
           <p className="mt-1 text-sm text-gris">Recibida el {fecha(o.creado_en)}</p>
         </div>
-        <EtiquetaEstado estado={o.estado} />
+        <SelloEstado estado={o.estado} />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

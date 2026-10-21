@@ -256,6 +256,37 @@ body {
   }
 }
 
+/* Un sello que ya estaba (sin animación): solo inclinado */
+.sello-quieto {
+  transform: rotate(var(--giro, -4deg));
+}
+
+/* Recibo: borde de abajo dentado, como un ticket de papel (detalle del pedido) */
+.recibo {
+  --diente: 10px;
+  padding-bottom: calc(var(--diente) + 0.75rem);
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--diente) calc(var(--diente) / 2) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--diente) / 2 + 1px) no-repeat;
+}
+
+/* Línea de tiempo del pedido: cada tramo hecho se llena de izquierda a derecha, uno tras otro
+   (el retraso lo pone cada tramo). Con "reducir movimiento" se ve llena desde el inicio. */
+@keyframes llenar {
+  from {
+    transform: scaleX(0);
+  }
+}
+.llenar {
+  transform-origin: left;
+  animation: llenar 320ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .llenar {
+    animation: none;
+  }
+}
+
 /* Altura del encabezado (la ajusta components/MedirEncabezado.tsx). Valores iniciales:
    celular con la fila de enlaces, y computadora. */
 :root {
