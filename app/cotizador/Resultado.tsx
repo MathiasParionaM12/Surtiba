@@ -1,9 +1,13 @@
 "use client";
 
+import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
-import { areaToque, campo, sello } from "@/lib/estilos";
+import { useActionState, useState } from "react";
+import { AvisoForm } from "@/components/AvisoForm";
+import type { EstadoForm } from "@/lib/acciones-auth";
+import { agregarAlCarrito } from "@/lib/acciones-pedidos";
+import { cantidadLegible, LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
+import { areaToque, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { LineaTiempo } from "./ui";
 
@@ -36,25 +40,54 @@ function CampoCajas({ valor, onCambio, etiqueta }: { valor: number; onCambio: (v
   );
 }
 
+// Agrega al carrito solo este producto, con las cajas de la cotización (se suman a las que ya tenías).
+// Solo manda producto_id y cajas: el precio lo pone la base de datos.
+function AgregarProducto({ productoId, cajas, nombre }: { productoId: string; cajas: number; nombre: string }) {
+  const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(agregarAlCarrito, {});
+  return (
+    <form action={accion} className="flex flex-col items-end gap-1">
+      <input type="hidden" name="producto_id" value={productoId} />
+      <input type="hidden" name="cajas" value={cajas} />
+      <button type="submit" disabled={enviando} aria-label={`Agregar ${cajas} cajas de ${nombre} al carrito`} className={`${botonSecundario} h-11 px-3 sm:h-9`}>
+        <ShoppingCart className="size-4" aria-hidden="true" />
+        {enviando ? "Agregando…" : "Agregar"}
+      </button>
+      <div className="empty:hidden text-xs">
+        <AvisoForm estado={estado} />
+      </div>
+    </form>
+  );
+}
+
+// "pisco sour, chilcano y mojito"
+const lista = (nombres: string[]) => {
+  const n = nombres.map((x) => x.toLowerCase());
+  return n.length > 1 ? `${n.slice(0, -1).join(", ")} y ${n.at(-1)}` : (n[0] ?? "");
+};
+
 export function Resultado({
   entrada,
   actualizar,
   resultado: r,
   tipo,
+  puedeAgregar = false,
 }: {
   entrada: EntradaCotizador;
   actualizar: (cambio: Partial<EntradaCotizador>) => void;
   resultado: ResultadoCotizacion;
   tipo: string;
+  puedeAgregar?: boolean; // solo los compradores agregan al carrito
 }) {
   const marcas = new Set(r.productos.map((p) => p.marcaId)).size;
   const cajas = r.productos.reduce((s, p) => s + p.cajas, 0);
   const fin = r.momentos.at(-1)?.hasta ?? r.momentos.at(-1)?.desde;
+  // Si Surtiba no tiene ningún producto para un ingrediente, solo va en "Lo consigues por tu cuenta"
+  const deSurtiba = r.ingredientes.filter((i) => i.opciones.length > 0);
 
-  const cambiarProducto = (recetaId: string, productoId: string) => {
+  const cambiarProducto = (ingredienteId: string, productoId: string) => {
     const productos = { ...entrada.productos };
-    if (productoId) productos[recetaId] = productoId;
-    else delete productos[recetaId];
+    if (productoId) productos[ingredienteId] = productoId;
+    else delete productos[ingredienteId];
     actualizar({ productos });
   };
   const cambiarCajas = (productoId: string, valor: string) => {
@@ -69,8 +102,8 @@ export function Resultado({
     actualizar({ cajasManual: { ...entrada.cajasManual, [a.productoId]: actual + a.falta } });
   };
   const cambiarProductoDe = (a: AvisoMinimo) => {
-    const trago = r.tragos.find((t) => t.productoId === a.productoId);
-    if (trago) document.getElementById(`producto-${trago.recetaId}`)?.focus();
+    const ingrediente = r.ingredientes.find((i) => i.productoId === a.productoId);
+    if (ingrediente) document.getElementById(`producto-${ingrediente.ingredienteId}`)?.focus();
   };
 
   return (
@@ -168,42 +201,45 @@ export function Resultado({
         </div>
       ))}
 
-      {/* Qué producto cubre cada trago */}
-      <section>
-        <h3 className={sello}>Tragos y productos de Surtiba</h3>
-        <ul className="mt-3 flex flex-col divide-y divide-linea rounded-md border border-linea bg-blanco">
-          {r.tragos.map((t) => {
-            const recomendado = t.recomendado ? t.opciones.find((o) => o.id === t.productoId) : undefined;
-            return (
-              <li key={t.recetaId} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0">
-                  <span className="font-medium">{t.receta}</span>{" "}
-                  <span className="font-mono text-sm text-gris">{entero.format(t.tragos)} tragos</span>
-                  {recomendado && <span className="block text-xs text-gris">Recomendado: {recomendado.nombre}</span>}
-                </span>
-                {t.opciones.length > 0 ? (
+      {/* Lo que vende Surtiba de todos los tragos, sumado, y qué producto lo cubre */}
+      {deSurtiba.length > 0 && (
+        <section>
+          <h3 className={sello}>Lo que necesitas de Surtiba</h3>
+          <p className="mt-1 text-sm text-gris">Sumamos lo que llevan todos tus tragos. Elige el producto o deja que Surtiba recomiende.</p>
+          <ul className="mt-3 flex flex-col divide-y divide-linea rounded-md border border-linea bg-blanco">
+            {deSurtiba.map((i) => {
+              const recomendado = i.recomendado ? i.opciones.find((o) => o.id === i.productoId) : undefined;
+              const cantidad = cantidadLegible("ml", i.ml);
+              return (
+                <li key={i.ingredienteId} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="min-w-0">
+                    <span className="font-medium">{i.nombre}</span>{" "}
+                    <span className="font-mono text-sm text-gris">
+                      {decimal.format(cantidad.cantidad)} {cantidad.unidad}
+                    </span>
+                    <span className="block text-xs text-gris">Para {lista(i.para)}</span>
+                    {recomendado && <span className="block text-xs text-gris">Recomendado: {recomendado.nombre}</span>}
+                  </span>
                   <select
-                    id={`producto-${t.recetaId}`}
-                    aria-label={`Producto para ${t.receta}`}
-                    value={entrada.productos[t.recetaId] ?? ""}
-                    onChange={(e) => cambiarProducto(t.recetaId, e.target.value)}
+                    id={`producto-${i.ingredienteId}`}
+                    aria-label={`Producto para ${i.nombre}`}
+                    value={entrada.productos[i.ingredienteId] ?? ""}
+                    onChange={(e) => cambiarProducto(i.ingredienteId, e.target.value)}
                     className={`${campo} text-sm sm:h-9 sm:w-72`}
                   >
-                    <option value="">Que Surtiba recomiende</option>
-                    {t.opciones.map((o) => (
+                    <option value="">{i.puedeRecomendar ? "Que Surtiba recomiende" : "Elige un producto"}</option>
+                    {i.opciones.map((o) => (
                       <option key={o.id} value={o.id}>
                         {o.nombre} · {o.marca}
                       </option>
                     ))}
                   </select>
-                ) : (
-                  <span className="text-xs text-gris">Surtiba aún no tiene este licor</span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* Lo que se pide a Surtiba */}
       <section>
@@ -233,6 +269,7 @@ export function Resultado({
                         <CampoCajas valor={p.cajas} etiqueta={`Cajas de ${p.nombre}`} onCambio={(v) => cambiarCajas(p.productoId, v)} />
                       </label>
                       <span className="font-mono text-sm font-medium">{soles(p.subtotal)}</span>
+                      {puedeAgregar && <AgregarProducto productoId={p.productoId} cajas={p.cajas} nombre={p.nombre} />}
                     </div>
                   </div>
                   {p.cajas !== p.cajasSugeridas && (
@@ -266,8 +303,8 @@ export function Resultado({
       {/* Lo que Surtiba no vende */}
       {r.insumos.length > 0 && (
         <section>
-          <h3 className={sello}>También vas a necesitar</h3>
-          <p className="mt-1 text-sm text-gris">Surtiba no lo vende, pero te dejamos la lista para que no te falte.</p>
+          <h3 className={sello}>Lo consigues por tu cuenta</h3>
+          <p className="mt-1 text-sm text-gris">Surtiba no lo vende, pero te dejamos la lista con las cantidades para que no te falte.</p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {r.insumos.map((i) => (
               <li key={i.nombre} className="flex items-baseline justify-between gap-3 rounded-md border border-linea bg-blanco px-4 py-3 text-sm">

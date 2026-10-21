@@ -190,7 +190,7 @@ export function Cotizador({
             <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
           )}
           {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} />}
-          {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} />}
+          {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} puedeAgregar={rol === "comprador"} />}
 
           <div className="mt-6">
             <AvisoForm error={error} />

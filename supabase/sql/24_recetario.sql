@@ -126,3 +126,9 @@ from (values
 ) as v (receta, ingrediente, cantidad)
 join public.recetas r on r.nombre = v.receta
 join public.ingredientes i on i.nombre = v.ingrediente;
+
+-- Paso 3b (mismo día): el cotizador ya calcula con ingredientes; se activan los 17 tragos nuevos.
+update public.recetas set activo = true
+where not activo and nombre in ('Maracuyá sour', 'Algarrobina', 'Machu Picchu', 'Capitán', 'Pisco tonic', 'Mojito',
+  'Piña colada', 'Daiquiri', 'Negroni', 'Margarita', 'Cosmopolitan', 'Vodka tonic', 'Sangría', 'Tinto de verano',
+  'Mimosa', 'Aperol spritz', 'Whisky con soda');

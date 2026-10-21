@@ -155,9 +155,10 @@ function Presentacion({
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-medium">También vas a necesitar</h3>
+            <h3 className="text-sm font-medium">Lo consigues por tu cuenta</h3>
             <ul className="mt-2 flex flex-col gap-1 text-sm">
-              {resultado.insumos.map((i) => (
+              {/* El ejemplo se calcula sin catálogo: lo que vende Surtiba no va en esta lista */}
+              {resultado.insumos.filter((i) => !i.deSurtiba).map((i) => (
                 <li key={i.nombre} className="flex justify-between gap-3">
                   <span>{i.nombre}</span>
                   <span className="font-mono">

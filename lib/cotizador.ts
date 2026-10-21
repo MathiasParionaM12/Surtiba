@@ -8,7 +8,9 @@
 //   fiesta     = toman × factor × (1.ª hora más fuerte si es lo primero del evento + 1 trago por hora)
 //   factor = perfil (tranquilo / normal / fuerte) × horario (de día se toma menos)
 // La barra reparte sus tragos por nivel: principal 3, secundario 2, ocasional 1.
-// A todo se le suma el margen de seguridad. Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
+// A todo se le suma el margen de seguridad. Luego se suman los ingredientes de todos los tragos (recetario):
+// lo que vende Surtiba (pisco, ron, vino…) busca su producto; lo demás va a "lo consigues por tu cuenta".
+// Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
 // Todos los valores salen de parametros_cotizador: SUPUESTOS POR VALIDAR CON CATERINGS.
 
 import type { Tramo } from "@/lib/catalogo";
@@ -49,15 +51,21 @@ export type Parametros = {
   margen_pct: number;
 };
 
+// Ingrediente de un trago. "categoria" = la categoría de producto de Surtiba que lo cubre (null = no lo vende)
+export type IngredienteReceta = {
+  id: string;
+  nombre: string;
+  unidad: "ml" | "unidad" | "g";
+  categoria: string | null;
+  orden: number;
+  cantidad: number; // por trago
+};
+
 export type Receta = {
   id: string;
   nombre: string;
-  categoria: string;
-  ml_por_trago: number;
-  mezclador: string | null;
-  mezclador_ml: number;
-  limones: number;
-  jarabe_ml: number;
+  categoria: string; // licor principal (para agrupar en pantalla)
+  ingredientes: IngredienteReceta[];
 };
 
 export type TipoEvento = {
@@ -90,7 +98,7 @@ export type EntradaCotizador = {
   cena: { activo: boolean; horas: number };
   brindis: { activo: boolean };
   barra: { recetaId: string; nivel: Nivel }[];
-  productos: Record<string, string>; // receta_id -> producto_id que eligió la persona
+  productos: Record<string, string>; // ingrediente_id -> producto_id que eligió la persona
   cajasManual: Record<string, number>; // producto_id -> cajas que eligió la persona
 };
 
@@ -118,12 +126,17 @@ export type Momento = {
   detalle: { receta: string; tragos: number }[];
 };
 
-export type LineaTrago = {
-  recetaId: string;
-  receta: string;
-  tragos: number;
-  productoId: string | null; // el elegido o el recomendado (null si Surtiba no tiene ese licor)
+export type LineaTrago = { recetaId: string; receta: string; tragos: number };
+
+// Un ingrediente que vende Surtiba, con cuánto se necesita y qué producto lo cubre
+export type LineaIngrediente = {
+  ingredienteId: string;
+  nombre: string;
+  ml: number; // total del evento (con margen)
+  para: string[]; // tragos que lo usan
+  productoId: string | null; // el elegido o el recomendado (null si no hay o si hay que elegirlo)
   recomendado: boolean;
+  puedeRecomendar: boolean; // false en los licores: la persona elige cuál
   opciones: { id: string; nombre: string; marca: string }[];
 };
 
@@ -141,7 +154,8 @@ export type LineaProducto = {
   stock: number | null;
 };
 
-export type Insumo = { nombre: string; cantidad: number; unidad: string; nota?: string };
+// deSurtiba: es de una categoría que vende Surtiba, pero no hay producto (o falta elegirlo)
+export type Insumo = { nombre: string; cantidad: number; unidad: string; nota?: string; deSurtiba?: boolean };
 export type AvisoMinimo = { marcaId: string; marca: string; minimo: number; cajas: number; falta: number; productoId: string };
 
 export type ResultadoCotizacion = {
@@ -150,6 +164,7 @@ export type ResultadoCotizacion = {
   tragosPorPersona: number; // por invitado que toma
   momentos: Momento[];
   tragos: LineaTrago[];
+  ingredientes: LineaIngrediente[]; // lo que vende Surtiba
   productos: LineaProducto[];
   minimos: AvisoMinimo[];
   insumos: Insumo[];
@@ -185,6 +200,19 @@ export function repartoBarra(barra: EntradaCotizador["barra"]) {
 const arriba = (x: number) => Math.ceil(x - 1e-9);
 
 const cajasPara = (ml: number, p: ProductoCotizable) => arriba(ml / (p.ml * p.unidades));
+
+// "Tragos que lo usan" en texto: "pisco sour, chilcano y maracuyá sour"
+const lista = (nombres: string[]) => {
+  const n = nombres.map((x) => x.toLowerCase());
+  return n.length > 1 ? `${n.slice(0, -1).join(", ")} y ${n.at(-1)}` : (n[0] ?? "");
+};
+
+// Cantidad fácil de leer: 1,250 ml -> 1.3 litros; 2,400 g -> 2.4 kg; 37.5 limones -> 38 unidades
+export function cantidadLegible(unidad: IngredienteReceta["unidad"], total: number): { cantidad: number; unidad: string } {
+  if (unidad === "unidad") return { cantidad: arriba(total), unidad: "unidades" };
+  if (unidad === "g") return total >= 1000 ? { cantidad: arriba(total / 100) / 10, unidad: "kg" } : { cantidad: arriba(total), unidad: "g" };
+  return total >= 1000 ? { cantidad: arriba(total / 100) / 10, unidad: "litros" } : { cantidad: arriba(total), unidad: "ml" };
+}
 
 // Recomienda el producto que cubre esos ml al menor costo; primero los que tienen stock suficiente
 function recomendar(candidatos: ProductoCotizable[], ml: number) {
@@ -273,36 +301,58 @@ export function calcular(
     );
   }
 
-  // 2. Cada trago: cuántos (hacia arriba) y qué producto lo cubre
+  // 2. Cada trago: cuántos (hacia arriba), y sus ingredientes sumados para todo el evento
   const tragos: LineaTrago[] = [];
-  const mlPorProducto = new Map<string, { ml: number; para: string[] }>();
+  const porIngrediente = new Map<string, { ing: IngredienteReceta; total: number; para: string[] }>();
   for (const [recetaId, cantidadExacta] of porReceta) {
     const receta = recetaPorId.get(recetaId)!;
     const cantidad = arriba(cantidadExacta);
     if (cantidad <= 0) continue;
-    const candidatos = catalogo.filter((p) => p.categoria === receta.categoria);
-    const elegidoId = e.productos[recetaId];
-    const elegido = elegidoId ? candidatos.find((p) => p.id === elegidoId) : undefined;
-    const ml = cantidad * receta.ml_por_trago;
-    const producto = elegido ?? recomendar(candidatos, ml);
-    if (!producto) avisos.push(`Por ahora Surtiba no tiene productos para ${receta.nombre.toLowerCase()}.`);
+    tragos.push({ recetaId, receta: receta.nombre, tragos: cantidad });
+    for (const ing of receta.ingredientes) {
+      const acumulado = porIngrediente.get(ing.id) ?? { ing, total: 0, para: [] };
+      acumulado.total += cantidad * ing.cantidad;
+      acumulado.para.push(receta.nombre);
+      porIngrediente.set(ing.id, acumulado);
+    }
+  }
+  tragos.sort((a, b) => b.tragos - a.tragos);
 
-    tragos.push({
-      recetaId,
-      receta: receta.nombre,
-      tragos: cantidad,
+  // Lo que vende Surtiba busca su producto; lo demás va a "lo consigues por tu cuenta"
+  const ingredientes: LineaIngrediente[] = [];
+  const porTuCuenta: (Insumo & { orden: number })[] = [];
+  const mlPorProducto = new Map<string, { ml: number; para: string[] }>();
+  for (const [id, { ing, total, para }] of porIngrediente) {
+    const candidatos = ing.categoria && ing.unidad === "ml" ? catalogo.filter((p) => p.categoria === ing.categoria) : [];
+    if (!ing.categoria || ing.unidad !== "ml") {
+      porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible(ing.unidad, total), nota: `para ${lista(para)}`, orden: ing.orden });
+      continue;
+    }
+    const elegidoId = e.productos[id];
+    const elegido = elegidoId ? candidatos.find((p) => p.id === elegidoId) : undefined;
+    // Los licores son muy distintos entre sí (triple sec, campari, vermouth): no se recomienda uno al azar
+    const producto = elegido ?? (ing.categoria === "licor" ? null : recomendar(candidatos, total));
+    ingredientes.push({
+      ingredienteId: id,
+      nombre: ing.nombre,
+      ml: total,
+      para,
       productoId: producto?.id ?? null,
-      recomendado: !elegido,
+      recomendado: !elegido && !!producto,
+      puedeRecomendar: ing.categoria !== "licor",
       opciones: candidatos.map((p) => ({ id: p.id, nombre: p.nombre, marca: p.marca })),
     });
     if (producto) {
       const acumulado = mlPorProducto.get(producto.id) ?? { ml: 0, para: [] };
-      acumulado.ml += ml;
-      acumulado.para.push(receta.nombre);
+      acumulado.ml += total;
+      acumulado.para.push(...para.filter((x) => !acumulado.para.includes(x)));
       mlPorProducto.set(producto.id, acumulado);
+    } else {
+      const nota = candidatos.length > 0 ? "elige un producto de Surtiba arriba o consíguelo por tu cuenta" : "Surtiba no lo tiene por ahora";
+      porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible("ml", total), nota, orden: ing.orden, deSurtiba: true });
     }
   }
-  tragos.sort((a, b) => b.tragos - a.tragos);
+  ingredientes.sort((a, b) => b.ml - a.ml);
 
   // 3. Cada producto: botellas, cajas y precio según la escala
   const productos: LineaProducto[] = [];
@@ -334,24 +384,14 @@ export function calcular(
     .filter(([, m]) => m.cajas < m.minimo)
     .map(([marcaId, m]) => ({ marcaId, marca: m.marca, minimo: m.minimo, cajas: m.cajas, falta: m.minimo - m.cajas, productoId: m.mayor.productoId }));
 
-  // 5. Lo que Surtiba no vende: hielo, agua y gaseosas, mezcladores, limones y jarabe
+  // 5. Lo que consigues por tu cuenta: hielo, agua y gaseosas, y los ingredientes que Surtiba no vende
   const insumos: Insumo[] = [];
   const hielo = arriba(e.invitados * e.horas * par.hielo_kg_persona_hora * (e.aireLibre ? par.factor_calor : 1) * margen);
   if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `unas ${arriba(hielo / 5)} bolsas de 5 kg` });
   const agua = arriba((toman * par.sin_alcohol_l_hora_toma + e.noToman * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
   if (agua > 0) insumos.push({ nombre: "Agua y gaseosas para tomar solas", cantidad: agua, unidad: "litros" });
-  const mezcladores = new Map<string, number>();
-  let limones = 0;
-  let jarabe = 0;
-  for (const t of tragos) {
-    const r = recetaPorId.get(t.recetaId)!;
-    if (r.mezclador && r.mezclador_ml > 0) mezcladores.set(r.mezclador, (mezcladores.get(r.mezclador) ?? 0) + t.tragos * r.mezclador_ml);
-    limones += t.tragos * Number(r.limones);
-    jarabe += t.tragos * r.jarabe_ml;
-  }
-  for (const [nombre, ml] of mezcladores) insumos.push({ nombre, cantidad: arriba(ml / 1000), unidad: "litros", nota: "para los tragos" });
-  if (limones > 0) insumos.push({ nombre: "Limones", cantidad: arriba(limones), unidad: "unidades" });
-  if (jarabe > 0) insumos.push({ nombre: "Jarabe de goma", cantidad: arriba(jarabe / 100) / 10, unidad: "litros" });
+  porTuCuenta.sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
+  for (const i of porTuCuenta) insumos.push({ nombre: i.nombre, cantidad: i.cantidad, unidad: i.unidad, nota: i.nota, deSurtiba: i.deSurtiba });
 
   const tragosTotales = tragos.reduce((s, t) => s + t.tragos, 0);
   const total = productos.reduce((s, l) => s + l.subtotal, 0);
@@ -361,6 +401,7 @@ export function calcular(
     tragosPorPersona: toman ? tragosTotales / toman : 0,
     momentos,
     tragos,
+    ingredientes,
     productos,
     minimos,
     insumos,

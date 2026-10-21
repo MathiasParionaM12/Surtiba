@@ -189,10 +189,10 @@ export function PdfCotizacion({
           </View>
         </View>
 
-        {/* Lo que Surtiba no vende (cotizador por momentos) */}
+        {/* Lo que el comprador consigue por su cuenta (cotizador por momentos) */}
         {evento?.version === 2 && evento.resumen.insumos.length > 0 && (
           <View wrap={false} style={{ marginTop: 24 }}>
-            <Text style={s.sello}>También vas a necesitar (Surtiba no lo vende)</Text>
+            <Text style={s.sello}>Lo consigues por tu cuenta</Text>
             <View style={[s.fila, { flexWrap: "wrap", marginTop: 6 }]}>
               {evento.resumen.insumos.map((i) => (
                 <View key={i.nombre} style={[s.fila, { width: "50%", paddingVertical: 3, paddingRight: 16, justifyContent: "space-between" }]}>

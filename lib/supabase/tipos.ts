@@ -153,6 +153,21 @@ export type Database = {
         Update: { id?: boolean };
         Relationships: [];
       };
+      ingredientes: {
+        Row: { activo: boolean; categoria: string | null; id: string; nombre: string; orden: number; unidad: string };
+        Insert: { activo?: boolean; categoria?: string | null; id?: string; nombre: string; orden?: number; unidad: string };
+        Update: { activo?: boolean; categoria?: string | null; id?: string; nombre?: string; orden?: number; unidad?: string };
+        Relationships: [];
+      };
+      receta_ingredientes: {
+        Row: { cantidad: number; ingrediente_id: string; receta_id: string };
+        Insert: { cantidad: number; ingrediente_id: string; receta_id: string };
+        Update: { cantidad?: number; ingrediente_id?: string; receta_id?: string };
+        Relationships: [
+          { foreignKeyName: "receta_ingredientes_receta_id_fkey"; columns: ["receta_id"]; isOneToOne: false; referencedRelation: "recetas"; referencedColumns: ["id"] },
+          { foreignKeyName: "receta_ingredientes_ingrediente_id_fkey"; columns: ["ingrediente_id"]; isOneToOne: false; referencedRelation: "ingredientes"; referencedColumns: ["id"] },
+        ];
+      };
       recetas: {
         Row: {
           activo: boolean; categoria: string; id: string; ml_por_trago: number; nombre: string; orden: number;

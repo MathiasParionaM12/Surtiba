@@ -6,6 +6,7 @@ import {
   calcular,
   LIMITES,
   type EntradaCotizador,
+  type IngredienteReceta,
   type Nivel,
   type Parametros,
   type Perfil,
@@ -45,12 +46,29 @@ export async function supuestosCotizador() {
       .order("orden"),
     supabase
       .from("recetas")
-      .select("id, nombre, categoria, ml_por_trago, mezclador, mezclador_ml, limones, jarabe_ml")
+      .select("id, nombre, categoria, receta_ingredientes(cantidad, ingredientes(id, nombre, unidad, categoria, orden, activo))")
       .eq("activo", true)
       .order("orden"),
   ]);
 
-  const recetas: Receta[] = (recetasData ?? []).map((r) => ({ ...r, limones: Number(r.limones) }));
+  // Cada trago con sus ingredientes activos. Un trago sin ingredientes no se puede calcular: no se ofrece.
+  const recetas: Receta[] = (recetasData ?? [])
+    .map((r) => ({
+      id: r.id,
+      nombre: r.nombre,
+      categoria: r.categoria,
+      ingredientes: r.receta_ingredientes
+        .filter((x) => x.ingredientes?.activo)
+        .map((x) => ({
+          id: x.ingredientes!.id,
+          nombre: x.ingredientes!.nombre,
+          unidad: x.ingredientes!.unidad as IngredienteReceta["unidad"],
+          categoria: x.ingredientes!.categoria,
+          orden: x.ingredientes!.orden,
+          cantidad: Number(x.cantidad),
+        })),
+    }))
+    .filter((r) => r.ingredientes.length > 0);
   const idsRecetas = new Set(recetas.map((r) => r.id));
   const tipos: TipoEvento[] = (tiposData ?? []).map((t) => ({
     id: t.id,
@@ -147,9 +165,11 @@ export function limpiarEntrada(e: EntradaCotizador, tipos: TipoEvento[], recetas
   const bienvenidaHoras = Math.min(4, Math.max(0.5, mediaHora(e.bienvenida?.horas) || 1));
   const cenaHoras = Math.min(4, Math.max(0.5, mediaHora(e.cena?.horas) || 1.5));
 
+  // Producto elegido para cada ingrediente (solo ingredientes que existen en algún trago)
+  const idsIngredientes = new Set(recetas.flatMap((r) => r.ingredientes.map((i) => i.id)));
   const productos: Record<string, string> = {};
-  for (const [receta, producto] of Object.entries(e.productos ?? {})) {
-    if (idsRecetas.has(receta) && esUuid(producto)) productos[receta] = producto;
+  for (const [ingrediente, producto] of Object.entries(e.productos ?? {})) {
+    if (idsIngredientes.has(ingrediente) && esUuid(producto)) productos[ingrediente] = producto;
   }
   const cajasManual: Record<string, number> = {};
   for (const [id, cajas] of Object.entries(e.cajasManual ?? {})) {
