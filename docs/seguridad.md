@@ -27,7 +27,8 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 ## Riesgos aceptados (decididos)
 
 - **Supuestos del cotizador visibles** (`parametros_cotizador` lo lee cualquiera). El mini-cotizador de la portada y el ejemplo de `/cotizador` calculan en el navegador. Son supuestos de negocio, no datos de clientes, y para cerrarlos habría que mover esos cálculos al servidor. Se revisa si Surtiba deja de ser prototipo.
-- **23 funciones `SECURITY DEFINER` ejecutables por usuarios con sesión** (al 21-oct, con `admin_guardar_trago` y `admin_guardar_ingrediente`) (aviso del advisor de Supabase). Es el patrón intencional: cada una valida el rol adentro. Ninguna la puede ejecutar un visitante. Las de `privado` que un visitante sí puede ejecutar (`es_admin`, `mi_rol`, `mi_marca_id`, `marca_activa`) las usan las reglas RLS y la vista del catálogo: **no quitarles EXECUTE**.
+- **28 funciones `SECURITY DEFINER` ejecutables por usuarios con sesión** (al 21-oct: las del admin, las de la marca, `marca_insights` y `admin_insights`) (aviso del advisor de Supabase). Es el patrón intencional: cada una valida el rol adentro. Ninguna la puede ejecutar un visitante. Las de `privado` que un visitante sí puede ejecutar (`es_admin`, `mi_rol`, `mi_marca_id`, `marca_activa`) las usan las reglas RLS y la vista del catálogo: **no quitarles EXECUTE**.
+- **`registrar_evento` la puede llamar un visitante** (aviso del advisor): es a propósito, para medir el embudo. Solo acepta 3 tipos y la base pone el perfil; lo peor que alguien puede hacer es inflar los conteos del embudo. Si pasa, se agrega un límite por minuto.
 - **"Confirm email" apagado** mientras haya testers: el correo gratis de Supabase manda muy pocos correos por hora. Activarlo cuando haya un servidor de correo propio (SMTP).
 - **Bucket `productos` público de lectura**: son las fotos del catálogo. La subida limita a cada marca a su carpeta.
 
