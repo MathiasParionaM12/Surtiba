@@ -153,6 +153,12 @@ export type Database = {
         Update: { id?: boolean };
         Relationships: [];
       };
+      avisos: {
+        Row: { creado_en: string; enlace: string | null; id: string; leido_en: string | null; perfil_id: string; texto: string };
+        Insert: { creado_en?: string; enlace?: string | null; id?: string; leido_en?: string | null; perfil_id: string; texto: string };
+        Update: { leido_en?: string | null };
+        Relationships: [];
+      };
       ingredientes: {
         Row: { activo: boolean; categoria: string | null; id: string; nombre: string; orden: number; unidad: string };
         Insert: { activo?: boolean; categoria?: string | null; id?: string; nombre: string; orden?: number; unidad: string };

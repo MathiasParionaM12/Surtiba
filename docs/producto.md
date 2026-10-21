@@ -138,7 +138,11 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - Pie: "Precios válidos sujetos a stock al momento de pedir." No promete fechas de entrega.
 
 ### Avisos
-- MVP: el admin ve las novedades en su panel. Correos automáticos solo si sobra tiempo. Nada de WhatsApp API.
+- **Campana en la app** (21-oct-2026): arriba a la derecha, con el número de avisos nuevos; al abrirla se marcan leídos.
+  - Comprador: encargo confirmado (págalo), en preparación, en camino, entregado, cancelado.
+  - Marca: nueva orden, nuevo encargo por confirmar, el cliente pagó el encargo (ya puede prepararlo). Solo con el código de la orden, nunca datos del comprador.
+  - Admin: nuevo pedido, pedido pagado, encargo aceptado o rechazado, orden lista para recojo.
+- Correos automáticos solo si sobra tiempo. Nada de WhatsApp API.
 
 ## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).

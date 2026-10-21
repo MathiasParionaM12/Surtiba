@@ -185,6 +185,8 @@ Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan 
 
 **cotizaciones**: `codigo` (COT-0001), comprador_id, creado_en, `evento` (jsonb; en la versión 2 guarda la entrada completa para volver a abrirla y un resumen con momentos e insumos; null si vino del carrito), `items` (jsonb: copia de productos, cajas y precios), `total_centimos`, `pedido_id` (null hasta que termina en pedido). Solo la crea `crear_cotizacion`; nadie la escribe directo.
 
+**avisos** (campana, 21-oct-2026): perfil_id, `texto`, `enlace` (ruta de la app), `leido_en`, creado_en. Los crean solo los triggers de `pedidos` y `subpedidos` (`supabase/sql/27_avisos.sql`); cada persona ve los suyos y solo puede cambiar `leido_en`.
+
 ## Estados
 
 ```
