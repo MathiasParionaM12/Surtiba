@@ -32,6 +32,10 @@ Extiende `auth.users` de Supabase (mismo `id`).
 | ruc | text | opcional, 11 dígitos |
 | marca_id | uuid FK → marcas | solo si rol = marca (una cuenta por marca) |
 | creado_en | timestamptz | |
+| foto_ruta | text | (22-oct-2026) foto de perfil en el bucket **privado** `perfiles` (`<su id>/...`). Solo se cambia con `perfil_guardar_foto` |
+| direccion, direccion_detalle, distrito, codigo_postal, referencia | text | (22-oct-2026) dirección de entrega habitual del comprador; llena sola "Confirmar pedido" |
+
+Bucket `perfiles` (privado, `supabase/sql/33_mi_perfil.sql`): cada usuario sube, ve y borra solo su carpeta; el admin las ve todas; la marca y los visitantes, ninguna. Las fotos se muestran con enlaces firmados de 1 hora.
 
 ### marcas (datos públicos: los ve cualquiera si la marca está activa)
 Desde el 21-oct-2026 también `descripcion` (10 a 280 letras) y `logo_url` (ruta en Storage, carpeta de la marca), que la marca cambia con `marca_guardar_descripcion` y `marca_guardar_logo` (`supabase/sql/30_directorio_marcas.sql`).

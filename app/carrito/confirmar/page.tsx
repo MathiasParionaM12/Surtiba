@@ -37,7 +37,11 @@ async function Confirmar() {
   const supabase = await createClient();
   const [{ data }, { data: perfil }, { data: ultimo }, { data: tipos }, { data: cotizacion }] = await Promise.all([
     supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
-    supabase.from("perfiles").select("nombre, whatsapp").eq("id", usuario.id).single(),
+    supabase
+      .from("perfiles")
+      .select("nombre, whatsapp, direccion, direccion_detalle, distrito, codigo_postal, referencia")
+      .eq("id", usuario.id)
+      .single(),
     // Último pedido del comprador (RLS: solo los suyos), para autocompletar la dirección
     supabase
       .from("pedidos")
@@ -60,19 +64,21 @@ async function Confirmar() {
   const lineas = data ?? [];
   if (lineas.length === 0) redirect("/carrito");
 
-  // Autocompletar: quién recibe sale del último pedido o del perfil; la dirección, del último pedido
+  // Autocompletar: quién recibe sale del último pedido o del perfil. La dirección, de la que guardó
+  // en "Mi perfil"; si no guardó ninguna, de su último pedido.
   const telefono = separarTelefono(ultimo?.recibe_telefono ?? perfil?.whatsapp);
+  const dePerfil = !!perfil?.direccion;
   const iniciales: Iniciales = {
     recibe_nombre: ultimo?.recibe_nombre ?? perfil?.nombre ?? "",
     prefijo: telefono.prefijo,
     telefono: telefono.numero,
-    direccion: ultimo?.direccion_entrega ?? "",
-    direccion_detalle: ultimo?.direccion_detalle ?? "",
-    distrito: ultimo?.distrito ?? "",
-    codigo_postal: ultimo?.codigo_postal ?? "",
-    referencia: ultimo?.referencia ?? "",
+    direccion: (dePerfil ? perfil?.direccion : ultimo?.direccion_entrega) ?? "",
+    direccion_detalle: (dePerfil ? perfil?.direccion_detalle : ultimo?.direccion_detalle) ?? "",
+    distrito: (dePerfil ? perfil?.distrito : ultimo?.distrito) ?? "",
+    codigo_postal: (dePerfil ? perfil?.codigo_postal : ultimo?.codigo_postal) ?? "",
+    referencia: (dePerfil ? perfil?.referencia : ultimo?.referencia) ?? "",
   };
-  const autocompletado = !!(ultimo || perfil?.nombre || perfil?.whatsapp);
+  const autocompletado = !!(ultimo || perfil?.nombre || perfil?.whatsapp || dePerfil);
 
   // Datos del evento desde la cotización (la fecha solo si todavía se puede entregar antes)
   const resumen = (cotizacion?.evento as { resumen?: Record<string, unknown> } | null)?.resumen ?? {};

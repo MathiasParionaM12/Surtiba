@@ -4,16 +4,9 @@ import { useActionState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
 import { Etiqueta } from "@/components/Etiqueta";
 import { registrarse, type EstadoForm } from "@/lib/acciones-auth";
+import { TIPOS_NEGOCIO } from "@/lib/cuenta";
 import { botonPrimario, campo } from "@/lib/estilos";
 import { PAISES, PREFIJO_PERU } from "@/lib/paises";
-
-const TIPOS_NEGOCIO = [
-  { valor: "catering", texto: "Catering" },
-  { valor: "organizador_eventos", texto: "Organizador de eventos" },
-  { valor: "wedding_planner", texto: "Wedding planner" },
-  { valor: "bar_restaurante", texto: "Bar o restaurante" },
-  { valor: "otro", texto: "Otro" },
-];
 
 export function FormRegistro() {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(registrarse, {});

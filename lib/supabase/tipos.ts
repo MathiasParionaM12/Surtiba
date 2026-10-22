@@ -112,14 +112,20 @@ export type Database = {
         Row: {
           creado_en: string; empresa: string | null; id: string; marca_id: string | null; nombre: string | null;
           rol: string; ruc: string | null; tipo_negocio: string | null; whatsapp: string | null;
+          codigo_postal: string | null; direccion: string | null; direccion_detalle: string | null;
+          distrito: string | null; foto_ruta: string | null; referencia: string | null;
         };
         Insert: {
           creado_en?: string; empresa?: string | null; id: string; marca_id?: string | null; nombre?: string | null;
           rol?: string; ruc?: string | null; tipo_negocio?: string | null; whatsapp?: string | null;
+          codigo_postal?: string | null; direccion?: string | null; direccion_detalle?: string | null;
+          distrito?: string | null; foto_ruta?: string | null; referencia?: string | null;
         };
         Update: {
           creado_en?: string; empresa?: string | null; id?: string; marca_id?: string | null; nombre?: string | null;
           rol?: string; ruc?: string | null; tipo_negocio?: string | null; whatsapp?: string | null;
+          codigo_postal?: string | null; direccion?: string | null; direccion_detalle?: string | null;
+          distrito?: string | null; foto_ruta?: string | null; referencia?: string | null;
         };
         Relationships: [
           { foreignKeyName: "perfiles_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
@@ -334,6 +340,10 @@ export type Database = {
       };
       marca_guardar_logo: {
         Args: { p_ruta: string };
+        Returns: undefined;
+      };
+      perfil_guardar_foto: {
+        Args: { p_ruta: string | null };
         Returns: undefined;
       };
       registrar_evento: {

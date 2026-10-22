@@ -5,6 +5,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { revisarClave, TIPOS_NEGOCIO } from "@/lib/cuenta";
 import { DISTRITOS } from "@/lib/distritos";
 import { PAISES, PREFIJO_PERU, telefonoValido } from "@/lib/paises";
 import { rutaInicio, type Rol } from "@/lib/roles";
@@ -16,22 +17,11 @@ export type EstadoForm = {
   valores?: Record<string, string>; // para no borrar lo que el usuario ya escribió
 };
 
-const TIPOS_NEGOCIO = ["catering", "organizador_eventos", "wedding_planner", "bar_restaurante", "otro"];
-
 function leer(form: FormData, campo: string) {
   return String(form.get(campo) ?? "").trim();
 }
 
 // Traduce los errores de Supabase a mensajes que dicen qué pasó y qué hacer
-// La misma regla que Supabase Auth (Authentication → Sign In / Providers → Email): mínimo 8 caracteres,
-// con letras y números. Supabase la vuelve a revisar aunque alguien llame a su API directo.
-function revisarClave(password: string) {
-  if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
-  if (password.length > 72) return "La contraseña puede tener como máximo 72 caracteres.";
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) return "La contraseña debe tener letras y números.";
-  return null;
-}
-
 function mensajeDeError(codigo?: string) {
   switch (codigo) {
     case "invalid_credentials":
@@ -86,7 +76,7 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
   const valores = { email, nombre, empresa, tipo_negocio: tipoNegocio, prefijo, whatsapp: numero, ruc };
 
   if (!nombre || !empresa) return { error: "Completa tu nombre y el nombre de tu empresa.", valores };
-  if (!TIPOS_NEGOCIO.includes(tipoNegocio)) return { error: "Elige el tipo de negocio.", valores };
+  if (!TIPOS_NEGOCIO.some((t) => t.valor === tipoNegocio)) return { error: "Elige el tipo de negocio.", valores };
   if (!PAISES.some((p) => p.prefijo === prefijo)) return { error: "Elige el país de tu WhatsApp.", valores };
   if (prefijo === PREFIJO_PERU && !/^9\d{8}$/.test(numero)) {
     return { error: "Escribe un celular peruano de 9 dígitos que empiece con 9. Ejemplo: 987654321.", valores };

@@ -26,7 +26,8 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |
-| Confirmar pedido | Quién recibe (nombre y celular con prefijo de país), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Datos del evento opcionales: nombre, tipo, fecha, invitados. Se autocompleta con el perfil y el último pedido |
+| Confirmar pedido | Quién recibe (nombre y celular con prefijo de país), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Datos del evento opcionales: nombre, tipo (de la lista del cotizador u "Otro"), fecha (el mismo día de la entrega o después) e invitados; si tiene una cotización de las 2 últimas semanas sin pedido, se llenan con ella (22-oct-2026). Se autocompleta con el perfil (su dirección habitual) y el último pedido |
+| **Mi perfil** (22-oct-2026) | Desde su nombre y su foto en el encabezado. Foto o logo (privada: solo la ven él y Surtiba), nombre, empresa, tipo de negocio, WhatsApp, RUC, dirección de entrega habitual y cambiar contraseña (pide la actual). No se guardan métodos de pago ni tarjetas |
 | Mis pedidos | Lista con su estado. Botón **"Repetir pedido"** |
 | Detalle del pedido | Línea de tiempo: Recibido → En preparación → En camino → Entregado |
 
@@ -48,7 +49,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 |---|---|
 | Inicio | Cajas vendidas del mes (métrica principal), pedidos del mes, compradores activos, comisión del mes |
 | Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
-| Pedidos | Todos los pedidos, con filtros por estado y marca. Ve los datos del comprador |
+| Pedidos | Todos los pedidos en pestañas por etapa (22-oct-2026): Por atender, Por recoger, En camino, Cerrados y Todos, cada una con su número. Filtros por marca y pago y buscador por código o comprador, que se aplican al instante. Ve los datos del comprador |
 | Logística | **Recojos**: subpedidos listos, agrupados por marca, con botón "Recogido". **Entregas**: pedidos con todo recogido, con botones "En camino" y "Entregado" |
 | **Métricas** (21-oct-2026) | Ventas del mes (entregado) vs el anterior, cajas, pedidos y ticket promedio, comisión generada y exonerada, vendido por semana (8 semanas); embudo de 30 días (vieron un producto → carrito → empezaron a pedir → pedido → pagado → entregado) y cotización → pedido; operación (horas hasta listo, recojo y entrega; atrasos); ranking de marcas; compradores activos, nuevos y recurrentes, por tipo de negocio y distrito; productos más vendidos, más cotizados y nunca vendidos. Todo de `admin_insights()` |
 | Pagos | Marcar un pedido como pagado y con qué método: transferencia, Yape, Plin o efectivo. Sin pasarela |

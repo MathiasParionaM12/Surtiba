@@ -31,6 +31,9 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 - **`registrar_evento` la puede llamar un visitante** (aviso del advisor): es a propósito, para medir el embudo. Solo acepta 3 tipos y la base pone el perfil; lo peor que alguien puede hacer es inflar los conteos del embudo. Si pasa, se agrega un límite por minuto.
 - **"Confirm email" apagado** mientras haya testers: el correo gratis de Supabase manda muy pocos correos por hora. Activarlo cuando haya un servidor de correo propio (SMTP).
 - **Bucket `productos` público de lectura**: son las fotos del catálogo. La subida limita a cada marca a su carpeta.
+- **Bucket `perfiles` privado** (22-oct-2026): fotos de perfil de los compradores, que son un dato personal. Cada uno solo toca su carpeta; el admin las ve; la marca nunca. Se muestran con enlaces firmados de 1 hora y sin la optimización de imágenes de Vercel, para que no queden copias. Probado por rol.
+- **Cambiar contraseña** (22-oct-2026) pide la actual: si alguien deja su sesión abierta, otra persona no puede cambiarla.
+- **No se guardan tarjetas ni métodos de pago**: el pago es simulado y guardar números de tarjeta exigiría cumplir PCI.
 
 ## Pendiente (en el panel de Supabase, lo hace Mathias)
 

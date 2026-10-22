@@ -10,6 +10,7 @@ export type Usuario = {
   nombre: string | null;
   empresa: string | null;
   marcaId: string | null;
+  fotoRuta: string | null; // ruta en el bucket privado "perfiles" (solo compradores)
 };
 
 // Usuario con sesión y su perfil, o null si nadie ingresó.
@@ -23,7 +24,7 @@ export const obtenerUsuario = cache(async (): Promise<Usuario | null> => {
 
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("rol, nombre, empresa, marca_id")
+    .select("rol, nombre, empresa, marca_id, foto_ruta")
     .eq("id", claims.sub)
     .single();
   if (!perfil) return null;
@@ -35,6 +36,7 @@ export const obtenerUsuario = cache(async (): Promise<Usuario | null> => {
     nombre: perfil.nombre,
     empresa: perfil.empresa,
     marcaId: perfil.marca_id,
+    fotoRuta: perfil.foto_ruta,
   };
 });
 
