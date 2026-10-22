@@ -7,6 +7,7 @@ import { BotonPdf } from "@/components/BotonPdf";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { cotizacionDelCarrito } from "@/lib/acciones-cotizador";
 import { cambiarCajas, quitarDelCarrito } from "@/lib/acciones-pedidos";
+import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
 import { botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
@@ -37,8 +38,14 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
 
   // Precios calculados en la base de datos (vista carrito_detalle), según las cajas de cada producto
   const supabase = await createClient();
-  const { data } = await supabase.from("carrito_detalle").select("*").order("marca").order("nombre");
+  const [{ data }, tarifas, { data: perfil }] = await Promise.all([
+    supabase.from("carrito_detalle").select("*").order("marca").order("nombre"),
+    tarifasEnvio(),
+    supabase.from("perfiles").select("distrito").eq("id", usuario.id).single(),
+  ]);
   const lineas = data ?? [];
+  // Envío fijo por zona: exacto si guardó su distrito en "Mi perfil"; si no, el rango
+  const envioPerfil = perfil?.distrito ? tarifas.porDistrito[perfil.distrito] : undefined;
 
   if (lineas.length === 0) {
     return (
@@ -222,15 +229,18 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               </dt>
               <dd className="font-mono">{soles(total)}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-gris">Envío</dt>
-              <dd className="font-mono">{soles(0)}</dd>
+            <div className="flex justify-between gap-3">
+              <dt className="text-gris">
+                Envío{envioPerfil !== undefined ? ` a ${perfil?.distrito}` : ""}
+                {envioPerfil === undefined && <span className="block text-xs">Fijo por pedido, según tu distrito</span>}
+              </dt>
+              <dd className="text-right font-mono">{envioPerfil !== undefined ? soles(envioPerfil) : rangoEnvio(tarifas, soles)}</dd>
             </div>
             <div className="mt-2 flex justify-between border-t border-linea pt-3 text-base">
               <dt className="font-medium">
-                Total <span className="font-sans text-xs font-normal text-gris">· incluye IGV</span>
+                Total <span className="font-sans text-xs font-normal text-gris">· incluye IGV{envioPerfil === undefined ? ", sin envío" : ""}</span>
               </dt>
-              <dd className="font-mono font-semibold">{soles(total)}</dd>
+              <dd className="font-mono font-semibold">{soles(total + (envioPerfil ?? 0))}</dd>
             </div>
             {porEncargo > 0 && (
               <>

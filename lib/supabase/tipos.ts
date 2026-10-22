@@ -159,6 +159,18 @@ export type Database = {
         Update: { id?: boolean };
         Relationships: [];
       };
+      zonas_envio: {
+        Row: { monto_centimos: number; nombre: string; zona: number };
+        Insert: { monto_centimos: number; nombre: string; zona: number };
+        Update: { monto_centimos?: number };
+        Relationships: [];
+      };
+      distritos_envio: {
+        Row: { distrito: string; zona: number };
+        Insert: { distrito: string; zona: number };
+        Update: { zona?: number };
+        Relationships: [];
+      };
       reclamos: {
         Row: {
           codigo: string; correo: string; creado_en: string; descripcion_bien: string; detalle: string; domicilio: string;
@@ -360,6 +372,10 @@ export type Database = {
           p_monto_centimos: number | null; p_descripcion_bien: string; p_detalle: string; p_pedido: string;
         };
         Returns: Json;
+      };
+      admin_guardar_envio: {
+        Args: { p_zona: number; p_monto_centimos: number };
+        Returns: undefined;
       };
       admin_responder_reclamo: {
         Args: { p_reclamo: string; p_respuesta: string };

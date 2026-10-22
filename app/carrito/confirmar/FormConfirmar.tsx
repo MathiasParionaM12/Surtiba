@@ -28,6 +28,7 @@ export function FormConfirmar({
   autocompletado,
   tiposEvento,
   cotizacion,
+  envioPorDistrito,
 }: {
   fechaMinima: string;
   pagasAhora: number; // céntimos: lo que tiene stock (se paga ahora)
@@ -36,6 +37,7 @@ export function FormConfirmar({
   autocompletado: boolean;
   tiposEvento: string[]; // los del cotizador; además está "Otro"
   cotizacion: string | null; // código de la cotización con la que se llenaron los datos del evento
+  envioPorDistrito: Record<string, number>; // céntimos; solo para mostrar (lo cobra crear_pedido en la base)
 }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(confirmarPedido, {});
   // Si el servidor devolvió un error, se muestran los valores que la persona ya escribió
@@ -46,7 +48,11 @@ export function FormConfirmar({
   const minimoEvento = fechaEntrega && fechaEntrega > fechaMinima ? fechaEntrega : fechaMinima;
   const tipos = v.evento_tipo && !tiposEvento.includes(v.evento_tipo) && v.evento_tipo !== "Otro" ? [...tiposEvento, v.evento_tipo] : tiposEvento;
 
-  const total = pagasAhora + porEncargo;
+  // Envío fijo según el distrito: uno solo por compra (va en lo que pagas ahora; si no hay, en el encargo)
+  const [distrito, setDistrito] = useState(v.distrito ?? "");
+  const envio = envioPorDistrito[distrito] ?? 0;
+  const productos = pagasAhora + porEncargo;
+  const total = productos + envio;
   const hayEleccion = pagasAhora > 0 && porEncargo > 0;
   // Con "todo junto" no se paga nada ahora: se paga todo cuando las marcas confirmen
   const pagaAhora = pagasAhora > 0 && !(hayEleccion && modo === "junto");
@@ -120,7 +126,7 @@ export function FormConfirmar({
         </label>
         <label className="flex flex-col gap-2 sm:col-span-4">
           <Etiqueta texto="Distrito" obligatorio />
-          <select name="distrito" required defaultValue={v.distrito ?? ""} className={campo}>
+          <select name="distrito" required value={distrito} onChange={(e) => setDistrito(e.target.value)} className={campo}>
             <option value="" disabled>
               Elige el distrito
             </option>
@@ -135,6 +141,11 @@ export function FormConfirmar({
               ))}
             </optgroup>
           </select>
+          <span className="text-xs text-gris">
+            {distrito && envioPorDistrito[distrito] !== undefined
+              ? `Envío a ${distrito}: ${soles(envio)}, fijo por pedido.`
+              : "El envío es fijo por pedido y depende del distrito."}
+          </span>
         </label>
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Código postal" nota="opcional" />
@@ -257,8 +268,8 @@ export function FormConfirmar({
                   <span className="font-medium">{o.titulo}</span>
                   <span className="mt-1 block text-gris">
                     {o.valor === "separado"
-                      ? `Pagas ${soles(pagasAhora)} ahora y eso sale primero. El resto (${soles(porEncargo)}) lo pagas cuando la marca lo confirme. Pueden llegar en fechas distintas.`
-                      : `No pagas ahora. Apartamos lo que hay en stock y las marcas confirman lo que falta. Pagas todo (${soles(total)}) en un solo pago y llega junto.`}
+                      ? `Pagas ${soles(pagasAhora + envio)} ahora (con el envío) y eso sale primero. El resto (${soles(porEncargo)}) lo pagas cuando la marca lo confirme, sin otro envío. Pueden llegar en fechas distintas.`
+                      : `No pagas ahora. Apartamos lo que hay en stock y las marcas confirman lo que falta. Pagas todo (${soles(total)}, con el envío) en un solo pago y llega junto.`}
                   </span>
                 </span>
               </label>
@@ -272,7 +283,8 @@ export function FormConfirmar({
         <fieldset className="border-t border-linea pt-6">
           <legend className={`${sello} mb-4 pt-6`}>Pago</legend>
           <p className="mb-3 text-sm">
-            Pagas ahora <strong className="font-mono">{soles(pagasAhora)}</strong>
+            Pagas ahora <strong className="font-mono">{soles(pagasAhora + envio)}</strong>
+            {envio > 0 && <span className="text-gris"> (incluye {soles(envio)} de envío)</span>}
             {porEncargo > 0 && (
               <span className="text-gris"> · el encargo ({soles(porEncargo)}) lo pagas cuando la marca lo confirme</span>
             )}
@@ -304,7 +316,7 @@ export function FormConfirmar({
           {enviando
             ? "Enviando…"
             : pagaAhora
-              ? `Pagar ${soles(pagasAhora)} y enviar`
+              ? `Pagar ${soles(pagasAhora + envio)} y enviar`
               : `Enviar pedido por encargo · ${soles(total)}`}
         </button>
       </div>

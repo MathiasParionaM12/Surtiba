@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
+import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
 import { haceDias, mananaEnLima, soles } from "@/lib/formato";
 import { separarTelefono } from "@/lib/paises";
 import { rutaInicio } from "@/lib/roles";
@@ -35,7 +36,7 @@ async function Confirmar() {
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
 
   const supabase = await createClient();
-  const [{ data }, { data: perfil }, { data: ultimo }, { data: tipos }, { data: cotizacion }] = await Promise.all([
+  const [{ data }, { data: perfil }, { data: ultimo }, { data: tipos }, { data: cotizacion }, tarifas] = await Promise.all([
     supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase
       .from("perfiles")
@@ -60,6 +61,7 @@ async function Confirmar() {
       .order("creado_en", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    tarifasEnvio(),
   ]);
   const lineas = data ?? [];
   if (lineas.length === 0) redirect("/carrito");
@@ -120,6 +122,7 @@ async function Confirmar() {
           autocompletado={autocompletado}
           tiposEvento={(tipos ?? []).map((t) => t.nombre)}
           cotizacion={conEvento ? (cotizacion?.codigo ?? null) : null}
+          envioPorDistrito={tarifas.porDistrito}
         />
       </div>
 
@@ -152,7 +155,7 @@ async function Confirmar() {
             </div>
           </dl>
         )}
-        <p className="mt-2 text-xs text-gris">Incluye IGV. Envío: tarifa por definir.</p>
+        <p className="mt-2 text-xs text-gris">Incluye IGV. Envío fijo por pedido según el distrito: {rangoEnvio(tarifas, soles)}. Uno solo aunque llegue en dos partes.</p>
         <Link href="/carrito" className={`${botonSecundario} mt-5 w-full`}>
           Editar carrito
         </Link>

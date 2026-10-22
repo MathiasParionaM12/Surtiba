@@ -85,7 +85,11 @@ export default function PaginaCondiciones() {
             pero no la garantiza: si algo cambia, lo ves en «Mis pedidos». Los encargos llegan después de la fecha que confirma
             cada marca.
           </li>
-          <li>El costo de envío está por definir: hoy figura como S/ 0.00.</li>
+          <li>
+            El envío es <strong className="font-medium">fijo por pedido</strong>, sin importar cuántas cajas lleves, y depende de tu
+            distrito: lo ves antes de pagar. Si tu pedido llega en dos partes (lo que hay ahora y el resto por encargo), pagas un solo
+            envío.
+          </li>
           <li>Sigues tu pedido en «Mis pedidos»: recibido, en preparación, en camino y entregado.</li>
         </ul>
       </Seccion>

@@ -66,6 +66,11 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - Esto se controla en la base de datos (una vista o función que solo devuelve el primer tramo), no solo ocultándolo en pantalla.
 - RLS filtra filas, no columnas. Para ocultar columnas (stock al visitante, contactos y dirección de las marcas) se usan **vistas**.
 
+### Envío (decidido el 22-oct-2026)
+- **Fijo por pedido según la zona del distrito**, sin importar las cajas: zona 1 (Lima Centro y Moderna: Barranco, Breña, Jesús María, La Victoria, Cercado, Lince, Magdalena, Miraflores, Pueblo Libre, Rímac, San Borja, San Isidro, San Luis, San Miguel, Surco, Surquillo) **S/ 20**; zona 2 (el resto de Lima y el Callao) **S/ 35**. Son supuestos: el admin los cambia en Logística.
+- **Uno solo por compra:** si se divide en compra directa + encargo, el envío va en la directa; si es solo encargo (o "todo junto"), en el encargo. Si todas las marcas de un pedido quedan fuera, el envío vuelve a 0.
+- Lo calcula `crear_pedido` en la base (tablas `zonas_envio` y `distritos_envio`); el navegador solo lo muestra. El recojo en cada marca lo cubre la comisión (7 %).
+
 ### Devoluciones (decidido el 22-oct-2026)
 - Solo si el producto llegó roto o dañado, vencido o distinto a lo pedido. El comprador avisa dentro de las 48 horas siguientes a la entrega. Surtiba revisa con la marca y repone o devuelve lo pagado por esas cajas. No hay devoluciones por cambio de opinión.
 
@@ -173,7 +178,6 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
 - % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 7 %** para todas las marcas (era 5 % desde el 14-oct-2026; subió el 22-oct-2026).
-- Costo de envío: ¿quién lo paga y cuánto? Por ahora, campo en 0.
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
 - Zonas y horarios de entrega
 - Valores iniciales del cotizador

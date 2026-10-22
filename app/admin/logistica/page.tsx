@@ -4,7 +4,8 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { FormAccion } from "@/components/FormAccion";
-import { fijarRecojo, marcarEnCamino, marcarEntregado, marcarRecogido } from "@/lib/acciones-admin";
+import { fijarRecojo, guardarEnvio, marcarEnCamino, marcarEntregado, marcarRecogido } from "@/lib/acciones-admin";
+import { tarifasEnvio } from "@/lib/envio";
 import { campo, sello } from "@/lib/estilos";
 import { fecha, hoyEnLima, mananaEnLima } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
@@ -41,7 +42,7 @@ async function Logistica() {
   // Lo atrasado va con hoy; sin fecha, con "más adelante"
   const diaDe = (f: string | null): Dia => (!f ? "despues" : f <= hoy ? "hoy" : f === manana ? "manana" : "despues");
 
-  const [{ data: porRecoger }, { data: abiertos }] = await Promise.all([
+  const [{ data: porRecoger }, { data: abiertos }, tarifas] = await Promise.all([
     supabase
       .from("subpedidos")
       .select(
@@ -54,7 +55,9 @@ async function Logistica() {
       .select("id, codigo, estado, fecha_entrega_deseada, distrito, direccion_entrega, direccion_detalle, referencia, recibe_nombre, recibe_telefono, perfiles(empresa), subpedidos(estado)")
       .in("estado", ["recibido", "en_preparacion", "en_camino"])
       .order("fecha_entrega_deseada"),
+    tarifasEnvio(),
   ]);
+  const distritosDe = (zona: number) => Object.keys(tarifas.zonaDe).filter((d) => tarifas.zonaDe[d] === zona).sort();
 
   const recojos = (porRecoger ?? []).map((s) => ({ ...s, dia: diaDe(s.fecha_recojo), atrasado: !!s.fecha_recojo && s.fecha_recojo < hoy }));
   const entregas = (abiertos ?? []).map((p) => {
@@ -90,6 +93,43 @@ async function Logistica() {
           </div>
         ))}
       </dl>
+
+      {/* Envío al comprador: fijo por pedido según la zona del distrito (lo cobra crear_pedido) */}
+      <section className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
+        <h2 className={sello}>Envío al comprador</h2>
+        <p className="mt-1 text-sm text-gris">
+          Fijo por pedido, sin importar las cajas. Uno solo aunque el pedido llegue en dos partes. Los pedidos ya hechos no cambian.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {tarifas.zonas.map((z) => (
+            <div key={z.zona} className="flex flex-col gap-2">
+              <FormAccion accion={guardarEnvio} ocultos={{ zona: String(z.zona) }} texto="Guardar" variante="secundario">
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs font-medium text-gris">
+                    Zona {z.zona} · {z.nombre}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono text-sm text-gris">S/</span>
+                    <span className="w-28">
+                      <input
+                        name="monto"
+                        inputMode="decimal"
+                        required
+                        defaultValue={(z.monto_centimos / 100).toFixed(2)}
+                        className={`${campo} h-10 font-mono`}
+                      />
+                    </span>
+                  </span>
+                </label>
+              </FormAccion>
+              <details className="text-xs text-gris">
+                <summary className="cursor-pointer">{distritosDe(z.zona).length} distritos</summary>
+                <p className="mt-1 leading-relaxed">{distritosDe(z.zona).join(", ")}</p>
+              </details>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {DIAS.map((d) => {
         const deRecojo = recojos.filter((r) => r.dia === d.clave);

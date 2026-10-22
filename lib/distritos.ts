@@ -1,5 +1,6 @@
 // Distritos donde entrega Surtiba hoy: Lima Metropolitana (43) y Callao (7).
-// Las zonas y horarios de reparto siguen como decisión pendiente (docs/producto.md).
+// La zona de envío de cada distrito está en la base de datos (distritos_envio, supabase/sql/36_envio_por_zona.sql).
+// Si se agrega un distrito aquí, hay que agregarlo también allá, o crear_pedido no lo acepta.
 
 export const DISTRITOS_LIMA = [
   "Ancón", "Ate", "Barranco", "Breña", "Carabayllo", "Chaclacayo", "Chorrillos", "Cieneguilla", "Comas",

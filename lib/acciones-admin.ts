@@ -13,8 +13,8 @@ import { createClient } from "@/lib/supabase/server";
 type Resultado = { error: { code?: string; message: string } | null };
 
 // Llama a la función, traduce el error y refresca las pantallas
-// etiqueta: caché pública que también hay que renovar ("catalogo" o "cotizador")
-async function ejecutar(llamada: PromiseLike<Resultado>, exito: string, etiqueta?: "catalogo" | "cotizador"): Promise<EstadoForm> {
+// etiqueta: caché pública que también hay que renovar ("catalogo", "cotizador" o "envio")
+async function ejecutar(llamada: PromiseLike<Resultado>, exito: string, etiqueta?: "catalogo" | "cotizador" | "envio"): Promise<EstadoForm> {
   const { error } = await llamada;
   if (error) {
     return { error: error.code === "P0001" ? error.message : "No pudimos guardar el cambio. Intenta de nuevo." };
@@ -251,5 +251,19 @@ export async function guardarIngrediente(_e: EstadoForm, form: FormData): Promis
     }),
     "Ingrediente guardado.",
     "cotizador",
+  );
+}
+
+// Monto fijo del envío de una zona, en soles (se guarda en céntimos)
+export async function guardarEnvio(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const zona = Number(form.get("zona"));
+  const texto = String(form.get("monto") ?? "").trim();
+  if (!/^\d{1,4}(\.\d{1,2})?$/.test(texto)) return { error: "Escribe el monto en soles, por ejemplo 25 o 25.50." };
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.rpc("admin_guardar_envio", { p_zona: zona, p_monto_centimos: Math.round(Number(texto) * 100) }),
+    "Envío actualizado. Los pedidos nuevos ya usan este monto.",
+    "envio",
   );
 }
