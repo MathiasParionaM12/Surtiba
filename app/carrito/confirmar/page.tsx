@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
-import { mananaEnLima, soles } from "@/lib/formato";
+import { haceDias, mananaEnLima, soles } from "@/lib/formato";
 import { separarTelefono } from "@/lib/paises";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -35,7 +35,7 @@ async function Confirmar() {
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
 
   const supabase = await createClient();
-  const [{ data }, { data: perfil }, { data: ultimo }] = await Promise.all([
+  const [{ data }, { data: perfil }, { data: ultimo }, { data: tipos }, { data: cotizacion }] = await Promise.all([
     supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase.from("perfiles").select("nombre, whatsapp").eq("id", usuario.id).single(),
     // Último pedido del comprador (RLS: solo los suyos), para autocompletar la dirección
@@ -43,6 +43,16 @@ async function Confirmar() {
       .from("pedidos")
       .select("recibe_nombre, recibe_telefono, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia")
       .not("distrito", "is", null)
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("tipos_evento").select("nombre").eq("activo", true).order("orden"),
+    // Su última cotización de las 2 últimas semanas que aún no se volvió pedido: llena los datos del evento
+    supabase
+      .from("cotizaciones")
+      .select("codigo, evento")
+      .is("pedido_id", null)
+      .gte("creado_en", haceDias(14))
       .order("creado_en", { ascending: false })
       .limit(1)
       .maybeSingle(),
@@ -63,6 +73,19 @@ async function Confirmar() {
     referencia: ultimo?.referencia ?? "",
   };
   const autocompletado = !!(ultimo || perfil?.nombre || perfil?.whatsapp);
+
+  // Datos del evento desde la cotización (la fecha solo si todavía se puede entregar antes)
+  const resumen = (cotizacion?.evento as { resumen?: Record<string, unknown> } | null)?.resumen ?? {};
+  const texto = (x: unknown) => (typeof x === "string" ? x.trim() : "");
+  const fechaEvento = texto(resumen.fecha);
+  const evento = {
+    evento_nombre: texto(resumen.nombre),
+    evento_tipo: texto(resumen.tipo),
+    evento_fecha: fechaEvento >= mananaEnLima() ? fechaEvento : "",
+    invitados: typeof resumen.invitados === "number" && resumen.invitados > 0 ? String(resumen.invitados) : "",
+  };
+  const conEvento = Object.values(evento).some(Boolean);
+  if (conEvento) Object.assign(iniciales, evento);
 
   // Resumen por marca (los precios ya vienen calculados por la base de datos)
   const porMarca = new Map<string, { cajas: number; total: number }>();
@@ -89,6 +112,8 @@ async function Confirmar() {
           porEncargo={total - pagasAhora}
           iniciales={iniciales}
           autocompletado={autocompletado}
+          tiposEvento={(tipos ?? []).map((t) => t.nombre)}
+          cotizacion={conEvento ? (cotizacion?.codigo ?? null) : null}
         />
       </div>
 

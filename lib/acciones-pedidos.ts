@@ -125,8 +125,18 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   }
   if (!valores.fecha_entrega) return { error: "Elige la fecha de entrega.", valores };
   const invitados = valores.invitados ? Number(valores.invitados) : undefined;
-  if (invitados !== undefined && !(Number.isInteger(invitados) && invitados > 0)) {
+  if (invitados !== undefined && !(Number.isInteger(invitados) && invitados > 0 && invitados <= 100000)) {
     return { error: "El número de invitados debe ser un número entero mayor que 0.", valores };
+  }
+  // Fechas AAAA-MM-DD: se comparan como texto. El evento no puede ser antes de la entrega.
+  if (valores.evento_fecha && !/^\d{4}-\d{2}-\d{2}$/.test(valores.evento_fecha)) {
+    return { error: "Elige la fecha del evento en el calendario.", valores };
+  }
+  if (valores.evento_fecha && valores.evento_fecha < valores.fecha_entrega) {
+    return { error: "La fecha del evento no puede ser antes de la entrega. Si el evento es antes, cambia la fecha de entrega.", valores };
+  }
+  if (valores.evento_nombre.length > 80 || valores.evento_tipo.length > 60) {
+    return { error: "El nombre o el tipo del evento es demasiado largo.", valores };
   }
 
   // Toda la lógica (stock, precios, mínimos, subpedidos) corre en la función crear_pedido, en una transacción

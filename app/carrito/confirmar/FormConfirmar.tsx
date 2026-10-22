@@ -26,17 +26,25 @@ export function FormConfirmar({
   porEncargo,
   iniciales,
   autocompletado,
+  tiposEvento,
+  cotizacion,
 }: {
   fechaMinima: string;
   pagasAhora: number; // céntimos: lo que tiene stock (se paga ahora)
   porEncargo: number; // céntimos: lo que va por encargo (se paga al confirmar)
   iniciales: Iniciales;
   autocompletado: boolean;
+  tiposEvento: string[]; // los del cotizador; además está "Otro"
+  cotizacion: string | null; // código de la cotización con la que se llenaron los datos del evento
 }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(confirmarPedido, {});
   // Si el servidor devolvió un error, se muestran los valores que la persona ya escribió
   const v = estado.valores ?? iniciales;
   const [modo, setModo] = useState<Modo>(v.modo === "junto" ? "junto" : "separado");
+  // El evento no puede ser antes de la entrega: su calendario empieza en la fecha de entrega elegida
+  const [fechaEntrega, setFechaEntrega] = useState(v.fecha_entrega ?? "");
+  const minimoEvento = fechaEntrega && fechaEntrega > fechaMinima ? fechaEntrega : fechaMinima;
+  const tipos = v.evento_tipo && !tiposEvento.includes(v.evento_tipo) && v.evento_tipo !== "Otro" ? [...tiposEvento, v.evento_tipo] : tiposEvento;
 
   const total = pagasAhora + porEncargo;
   const hayEleccion = pagasAhora > 0 && porEncargo > 0;
@@ -161,7 +169,8 @@ export function FormConfirmar({
             type="date"
             min={fechaMinima}
             required
-            defaultValue={v.fecha_entrega}
+            value={fechaEntrega}
+            onChange={(e) => setFechaEntrega(e.target.value)}
             className={`${campo} font-mono`}
           />
           <span className="text-xs text-gris">Desde mañana.</span>
@@ -181,22 +190,36 @@ export function FormConfirmar({
       {/* Evento */}
       <fieldset className="grid grid-cols-1 gap-5 border-t border-linea pt-6 sm:grid-cols-2">
         <legend className={`${sello} mb-4 pt-6`}>Datos del evento (opcional)</legend>
+        <p className="-mt-1 text-sm text-gris sm:col-span-2">
+          {cotizacion
+            ? `Los llenamos con tu cotización ${cotizacion}: revísalos. `
+            : ""}
+          Con el nombre reconoces este pedido en «Mis pedidos», y con la fecha coordinamos la entrega antes de tu evento.
+        </p>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Nombre del evento" />
-          <input name="evento_nombre" placeholder="Ej.: Boda Pérez" defaultValue={v.evento_nombre} className={campo} />
+          <input name="evento_nombre" maxLength={80} placeholder="Ej.: Boda Pérez" defaultValue={v.evento_nombre} className={campo} />
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Tipo de evento" />
-          <input
-            name="evento_tipo"
-            placeholder="Boda, corporativo, cumpleaños…"
-            defaultValue={v.evento_tipo}
-            className={campo}
-          />
+          <select name="evento_tipo" defaultValue={v.evento_tipo ?? ""} className={campo}>
+            <option value="">Elige el tipo</option>
+            {tipos.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+            <option>Otro</option>
+          </select>
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Fecha del evento" />
-          <input name="evento_fecha" type="date" defaultValue={v.evento_fecha} className={`${campo} font-mono`} />
+          <input
+            name="evento_fecha"
+            type="date"
+            min={minimoEvento}
+            defaultValue={v.evento_fecha}
+            className={`${campo} font-mono`}
+          />
+          <span className="text-xs text-gris">El mismo día de la entrega o después.</span>
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Invitados" />
@@ -204,6 +227,7 @@ export function FormConfirmar({
             name="invitados"
             type="number"
             min={1}
+            max={100000}
             inputMode="numeric"
             defaultValue={v.invitados}
             className={`${campo} font-mono`}
