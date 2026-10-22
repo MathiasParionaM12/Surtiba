@@ -27,6 +27,8 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |
 | Confirmar pedido | Quién recibe (nombre y celular con prefijo de país), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Datos del evento opcionales: nombre, tipo (de la lista del cotizador u "Otro"), fecha (el mismo día de la entrega o después) e invitados; si tiene una cotización de las 2 últimas semanas sin pedido, se llenan con ella (22-oct-2026). Se autocompleta con el perfil (su dirección habitual) y el último pedido |
+| **Libro de Reclamaciones** (22-oct-2026) | `/libro-de-reclamaciones`, enlazado con ícono en el pie de todas las páginas. Para cualquiera, con o sin cuenta: reclamo o queja, datos (documento, domicilio, correo), producto o servicio, pedido y monto (opcionales), qué pasó y qué pide. Recibe un código correlativo (REC-2026-0001) y la fecha límite de respuesta (15 días hábiles, de lunes a viernes). Ve su copia para imprimir o guardar en PDF (todavía no se envía por correo). Con cuenta, ve sus hojas y la respuesta |
+| Condiciones y privacidad (22-oct-2026) | `/condiciones` (precios con IGV, encargos, pago simulado, entrega, cancelaciones y devoluciones) y `/privacidad` (Ley 29733: qué datos, para qué, quién los ve, dónde están y derechos ARCO). Los datos de Surtiba (razón social, RUC, dirección, correo) dicen "Por definir" hasta que existan: se llenan en `lib/empresa.ts` |
 | **Mi perfil** (22-oct-2026) | Desde su nombre y su foto en el encabezado. Foto o logo (privada: solo la ven él y Surtiba), nombre, empresa, tipo de negocio, WhatsApp, RUC, dirección de entrega habitual y cambiar contraseña (pide la actual). No se guardan métodos de pago ni tarjetas |
 | Mis pedidos | Lista con su estado. Botón **"Repetir pedido"** |
 | Detalle del pedido | Línea de tiempo: Recibido → En preparación → En camino → Entregado |
@@ -51,6 +53,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 | Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
 | Pedidos | Todos los pedidos en pestañas por etapa (22-oct-2026): Por atender, Por recoger, En camino, Cerrados y Todos, cada una con su número. Filtros por marca y pago y buscador por código o comprador, que se aplican al instante. Ve los datos del comprador |
 | Logística | **Hoja de ruta por día** (22-oct-2026): resumen (recojos y entregas de hoy, atrasados, recojos sin fecha) y luego **Hoy** (con lo atrasado), **Mañana** y **Más adelante** (con los recojos sin fecha). En cada día, **Recoger** (agrupado por marca, con fecha de recojo y botón "Recogido") y **Entregar** (dirección completa, quién recibe, cuántas marcas faltan recoger y los botones "En camino" y "Entregado") |
+| **Reclamos** (22-oct-2026) | Hojas por responder (la que vence antes primero, en rojo si venció) y respondidas. Cada hoja se responde una sola vez y el comprador recibe un aviso |
 | **Métricas** (21-oct-2026) | Ventas del mes (entregado) vs el anterior, cajas, pedidos y ticket promedio, comisión generada y exonerada, vendido por semana (8 semanas); embudo de 30 días (vieron un producto → carrito → empezaron a pedir → pedido → pagado → entregado) y cotización → pedido; operación (horas hasta listo, recojo y entrega; atrasos); ranking de marcas; compradores activos, nuevos y recurrentes, por tipo de negocio y distrito; productos más vendidos, más cotizados y nunca vendidos. Todo de `admin_insights()` |
 | Pagos | Marcar un pedido como pagado y con qué método: transferencia, Yape, Plin o efectivo. Sin pasarela |
 
@@ -62,6 +65,9 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - Con sesión de comprador: la escala completa.
 - Esto se controla en la base de datos (una vista o función que solo devuelve el primer tramo), no solo ocultándolo en pantalla.
 - RLS filtra filas, no columnas. Para ocultar columnas (stock al visitante, contactos y dirección de las marcas) se usan **vistas**.
+
+### Devoluciones (decidido el 22-oct-2026)
+- Solo si el producto llegó roto o dañado, vencido o distinto a lo pedido. El comprador avisa dentro de las 48 horas siguientes a la entrega. Surtiba revisa con la marca y repone o devuelve lo pagado por esas cajas. No hay devoluciones por cambio de opinión.
 
 ### IGV (decidido el 22-oct-2026)
 - **Los precios incluyen IGV.** La marca pone el precio final por caja; es lo que ve y paga el comprador. Se avisa "incluye IGV" en el catálogo, el producto, el carrito, el pedido, el cotizador y el PDF. Los cálculos no cambian.

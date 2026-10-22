@@ -9,6 +9,7 @@ const PESTANAS = [
   { href: "/admin/marcas", texto: "Marcas" },
   { href: "/admin/cotizador", texto: "Cotizador" },
   { href: "/admin/metricas", texto: "Métricas" },
+  { href: "/admin/reclamos", texto: "Reclamos" },
 ];
 
 // Marco común del panel del admin. Cada pestaña revisa que el usuario sea admin.

@@ -159,6 +159,17 @@ export type Database = {
         Update: { id?: boolean };
         Relationships: [];
       };
+      reclamos: {
+        Row: {
+          codigo: string; correo: string; creado_en: string; descripcion_bien: string; detalle: string; domicilio: string;
+          fecha_limite: string; bien: string; id: string; monto_centimos: number | null; nombre: string; numero: number;
+          numero_documento: string; pedido: string; pedido_codigo: string | null; perfil_id: string | null;
+          respondido_en: string | null; respuesta: string | null; telefono: string | null; tipo: string; tipo_documento: string;
+        };
+        Insert: { codigo: string };
+        Update: { respuesta?: string | null };
+        Relationships: [];
+      };
       avisos: {
         Row: { creado_en: string; enlace: string | null; id: string; leido_en: string | null; perfil_id: string; texto: string };
         Insert: { creado_en?: string; enlace?: string | null; id?: string; leido_en?: string | null; perfil_id: string; texto: string };
@@ -340,6 +351,18 @@ export type Database = {
       };
       marca_guardar_logo: {
         Args: { p_ruta: string };
+        Returns: undefined;
+      };
+      registrar_reclamo: {
+        Args: {
+          p_tipo: string; p_nombre: string; p_tipo_documento: string; p_numero_documento: string; p_domicilio: string;
+          p_telefono: string | null; p_correo: string; p_bien: string; p_pedido_codigo: string | null;
+          p_monto_centimos: number | null; p_descripcion_bien: string; p_detalle: string; p_pedido: string;
+        };
+        Returns: Json;
+      };
+      admin_responder_reclamo: {
+        Args: { p_reclamo: string; p_respuesta: string };
         Returns: undefined;
       };
       perfil_guardar_foto: {

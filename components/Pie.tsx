@@ -1,10 +1,11 @@
+import { BookOpenText } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 
 // Pie de página de todas las pantallas
 export function Pie() {
   return (
-    <footer className="border-t border-linea">
+    <footer className="border-t border-linea print:hidden">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-start sm:justify-between sm:px-8">
         <div>
           <Logo className="h-5" />
@@ -19,6 +20,23 @@ export function Pie() {
           </Link>
           <Link href="/registro/vender" className="hover:text-verde">
             Quiero vender
+          </Link>
+          <Link href="/marcas" className="hover:text-verde">
+            Marcas
+          </Link>
+          <Link href="/condiciones" className="hover:text-verde">
+            Condiciones de compra
+          </Link>
+          <Link href="/privacidad" className="hover:text-verde">
+            Privacidad
+          </Link>
+          {/* Visible en todas las páginas, como pide la norma del Libro de Reclamaciones */}
+          <Link
+            href="/libro-de-reclamaciones"
+            className="col-span-2 mt-2 inline-flex items-center gap-2 justify-self-start rounded-md border border-linea bg-blanco px-3 py-2 font-medium hover:border-gris hover:text-verde"
+          >
+            <BookOpenText className="size-5 text-verde" strokeWidth={1.5} aria-hidden="true" />
+            Libro de Reclamaciones
           </Link>
         </nav>
       </div>

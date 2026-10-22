@@ -194,6 +194,8 @@ Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan 
 
 **eventos** (21-oct-2026, embudo del admin): `tipo` (vio_producto · agrego_carrito · inicio_pedido), producto_id, perfil_id (si hay sesión), creado_en. Se registran solo con `registrar_evento` (visitantes incluidos; la base pone el perfil). Solo el admin los lee. Sin cookies ni datos personales (`supabase/sql/31_eventos.sql`).
 
+**reclamos** (22-oct-2026, Libro de Reclamaciones, `supabase/sql/34_libro_reclamaciones.sql`): código correlativo `REC-AAAA-0001`, tipo (reclamo · queja), quien reclama (nombre, tipo y número de documento, domicilio, teléfono, correo), bien (producto · servicio), código de pedido y monto (opcionales), descripción, detalle, pedido, respuesta y respondido_en, perfil_id (si tenía sesión), fecha_limite (15 días hábiles). Se crea solo con `registrar_reclamo` (visitantes incluidos; máximo 3 por documento al día y 20 por minuto en total) y se responde una vez con `admin_responder_reclamo`. Nadie la edita. Lee: quien la registró con su cuenta y el admin; la marca nunca.
+
 ## Estados
 
 ```
