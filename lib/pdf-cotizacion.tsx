@@ -212,7 +212,7 @@ export function PdfCotizacion({
           <Text style={s.gris}>Precios en soles con IGV incluido, válidos sujetos a stock al momento de pedir.</Text>
           {evento && (
             <Text style={s.gris}>
-              Estimación referencial con supuestos por validar con caterings: ajusta las cantidades antes de pedir.
+              Estimación referencial: ajusta las cantidades antes de pedir.
             </Text>
           )}
           <Text style={s.gris}>Lo que supere el stock de una marca se pide por encargo y la marca lo confirma.</Text>
@@ -233,7 +233,7 @@ export function PdfCotizacion({
             paddingTop: 6,
           }}
         >
-          <Text style={[s.gris, { fontSize: 8 }]}>Surtiba · Prototipo del curso con datos ficticios · surtiba.vercel.app</Text>
+          <Text style={[s.gris, { fontSize: 8 }]}>Surtiba · surtiba.vercel.app</Text>
           <Text
             style={[s.gris, { fontSize: 8 }]}
             render={({ pageNumber, totalPages }) => `${codigo} · Página ${pageNumber} de ${totalPages}`}

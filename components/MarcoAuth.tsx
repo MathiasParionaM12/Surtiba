@@ -31,9 +31,6 @@ export function MarcoAuth({
             </li>
           ))}
         </ul>
-        <p className="mt-6 text-sm text-gris">
-          Prototipo con datos ficticios: no se hacen ventas ni envíos reales.
-        </p>
       </section>
 
       <section className="order-1 lg:order-2">

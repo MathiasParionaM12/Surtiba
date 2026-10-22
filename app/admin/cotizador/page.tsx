@@ -28,8 +28,7 @@ export default function PaginaCotizadorAdmin() {
         </Link>
       </div>
       <p className="mt-2 max-w-2xl text-sm text-gris">
-        Los valores iniciales son supuestos por validar con caterings. Cámbialos aquí cuando tengas datos reales: el cotizador
-        los usa al instante.
+        Estos son los supuestos del cotizador. Cámbialos aquí cuando tengas mejores datos: el cotizador los usa al instante.
       </p>
       <Carga fallback={<EsqueletoTabla filas={6} />}>
         <Contenido />
@@ -145,7 +144,7 @@ async function Contenido() {
         <h2 className={sello}>Tragos</h2>
         <p className="mt-1 text-sm text-gris">
           Cada trago se arma con sus ingredientes por trago. Con eso el cotizador suma lo que se necesita: lo que vende Surtiba busca
-          su producto y lo demás va a &quot;Lo consigues por tu cuenta&quot;. Las cantidades son supuestos por validar.
+          su producto y lo demás va a &quot;Lo consigues por tu cuenta&quot;.
         </p>
         <div className="mt-3 flex flex-col rounded-md border border-linea bg-blanco px-4 sm:px-5">
           {tragos.map((t) => (

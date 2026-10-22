@@ -18,9 +18,8 @@ export default function PaginaCondiciones() {
       titulo="Condiciones de compra y devoluciones"
       intro={
         <>
-          Surtiba es un <strong className="font-medium text-tinta">prototipo del curso</strong>: los productos, las marcas y los
-          pedidos son de prueba, no se cobra dinero real y no se entrega nada. Estas condiciones muestran cómo funcionaría la
-          compra.
+          Estas son las reglas para comprar en Surtiba: precios, pago, entrega, encargos y devoluciones. Surtiba es un{" "}
+          <strong className="font-medium text-tinta">prototipo del curso</strong> y por ahora el pago es simulado.
         </>
       }
     >

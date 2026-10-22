@@ -42,7 +42,7 @@ export function Pie() {
       </div>
       <div className="border-t border-linea">
         <p className="mx-auto w-full max-w-6xl px-4 py-4 font-mono text-[11px] tracking-[0.08em] text-gris uppercase sm:px-8">
-          Prototipo del curso · datos ficticios · no se venden ni entregan productos reales
+          Surtiba · Lima, Perú · Prototipo del curso
         </p>
       </div>
     </footer>

@@ -8,7 +8,7 @@ import { campo, sello } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
+import { COMISION_PCT, PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 
 export const metadata: Metadata = { title: "Marcas · Panel Surtiba" };
 
@@ -74,7 +74,7 @@ async function Marcas() {
                         </>
                       )}
                       Comisión:{" "}
-                      <strong className="font-mono">5%</strong> <span className="text-gris">(fija por ahora)</span>
+                      <strong className="font-mono">{COMISION_PCT}%</strong> <span className="text-gris">(fija por ahora)</span>
                     </p>
                     <FormAccion accion={aprobarSolicitud} ocultos={{ solicitud_id: s.id }} texto="Aprobar marca" />
                   </div>

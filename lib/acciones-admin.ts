@@ -6,7 +6,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
-import { esUuid } from "@/lib/catalogo";
+import { COMISION_PCT, esUuid } from "@/lib/catalogo";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,10 +38,10 @@ export async function aprobarSolicitud(_e: EstadoForm, form: FormData): Promise<
   await exigirRol("admin");
   const solicitud = id(form, "solicitud_id");
   if (!solicitud) return { error: "No encontramos esa solicitud." };
-  // Comisión fija de 5 % por ahora; el pedido mínimo es el que eligió la marca en su solicitud
+  // Comisión fija (COMISION_PCT) para todas; el pedido mínimo es el que eligió la marca en su solicitud
   const supabase = await createClient();
   return ejecutar(
-    supabase.rpc("aprobar_solicitud", { p_solicitud: solicitud }),
+    supabase.rpc("aprobar_solicitud", { p_solicitud: solicitud, p_comision: COMISION_PCT }),
     "Marca aprobada. Ya puede ingresar a su panel y cargar sus productos.",
   );
 }

@@ -7,6 +7,7 @@ import { MiniCotizador } from "@/components/portada/MiniCotizador";
 import { ParaQuien, type Perfil } from "@/components/portada/ParaQuien";
 import { Recorrido } from "@/components/portada/Recorrido";
 import { Ventajas } from "@/components/portada/Ventajas";
+import { COMISION_PCT } from "@/lib/catalogo";
 import { catalogoPublico } from "@/lib/catalogo-publico";
 import { calcular, entradaDesdeTipo, type ProductoCotizable } from "@/lib/cotizador";
 import { supuestosCotizador } from "@/lib/cotizador-datos";
@@ -158,7 +159,7 @@ export default async function Home() {
       {/* Portada: mensaje a la izquierda y el cotizador para probar a la derecha */}
       <section className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-14">
         <div>
-          <p className={sello}>Prototipo · datos ficticios</p>
+          <p className={sello}>Abastecimiento para eventos y bares</p>
           {/* El título entra frase por frase (una sola vez, al abrir la portada) */}
           <h1 className="mt-4 text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl sm:leading-[1.05]">
             <span className="subir inline-block">Licores y cócteles de marcas peruanas,</span>{" "}
@@ -239,7 +240,7 @@ export default async function Home() {
               <Contador valor={3} /> pedidos
             </p>
             <p className="mt-2 text-lg text-blanco/85">sin comisión para empezar</p>
-            <p className="mt-4 max-w-md text-sm text-blanco/70">Después, 5 % solo sobre lo vendido y entregado. Nada por publicar.</p>
+            <p className="mt-4 max-w-md text-sm text-blanco/70">Después, {COMISION_PCT} % solo sobre lo vendido y entregado. Nada por publicar.</p>
           </div>
           <div className="aparecer">
             <ol className="divide-y divide-blanco/15 border-y border-blanco/15">

@@ -5,7 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarMarca } from "@/lib/acciones-admin";
-import { esUuid, ordenarTramos, PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
+import { COMISION_PCT, esUuid, ordenarTramos, PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
@@ -54,10 +54,10 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
           <FormAccion accion={guardarMarca} ocultos={{ marca_id: m.id }} texto="Guardar cambios" className="mt-4">
             <div className="grid w-full grid-cols-2 gap-4">
               <Campo nombre="nombre" etiqueta="Nombre comercial" valor={m.nombre_comercial} ancho />
-              {/* Comisión fija de 5 % por ahora y pedido mínimo que decide la marca: aquí solo se muestran */}
-              <input type="hidden" name="comision" value={String(pv?.comision_pct ?? 5)} />
+              {/* Comisión fija (COMISION_PCT) y pedido mínimo que decide la marca: aquí solo se muestran */}
+              <input type="hidden" name="comision" value={String(pv?.comision_pct ?? COMISION_PCT)} />
               <input type="hidden" name="pedido_minimo" value={String(m.pedido_minimo_cajas)} />
-              <Dato etiqueta="Comisión" valor={`${pv?.comision_pct ?? 5}% (fija por ahora)`} />
+              <Dato etiqueta="Comisión" valor={`${pv?.comision_pct ?? COMISION_PCT}% (fija por ahora)`} />
               {PEDIDO_MINIMO_ACTIVO && <Dato etiqueta="Pedido mínimo" valor={`${m.pedido_minimo_cajas} cajas (lo decide la marca)`} />}
               <Campo nombre="razon_social" etiqueta="Razón social" valor={pv?.razon_social ?? ""} ancho />
               <Campo nombre="ruc" etiqueta="RUC" valor={pv?.ruc ?? ""} mono />

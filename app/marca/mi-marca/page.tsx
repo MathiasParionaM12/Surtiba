@@ -6,7 +6,7 @@ import { guardarDescripcion, guardarMinimo } from "@/lib/acciones-marca";
 import { campo, sello } from "@/lib/estilos";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { PEDIDO_MINIMO_ACTIVO, urlFoto } from "@/lib/catalogo";
+import { COMISION_PCT, PEDIDO_MINIMO_ACTIVO, urlFoto } from "@/lib/catalogo";
 import Link from "next/link";
 import { SubirLogo } from "./SubirLogo";
 
@@ -99,7 +99,7 @@ async function MiMarca() {
               ["Dirección de recojo", pv?.direccion_recojo],
               ["Contacto", [pv?.contacto_nombre, pv?.contacto_whatsapp].filter(Boolean).join(" · ")],
               ["Correo", pv?.contacto_correo],
-              ["Comisión de Surtiba", `${pv?.comision_pct ?? 5}% sobre lo entregado (tus primeras 3 entregas no pagan)`],
+              ["Comisión de Surtiba", `${pv?.comision_pct ?? COMISION_PCT}% sobre lo entregado (tus primeras 3 entregas no pagan)`],
             ].map(([k, valor]) => (
               <div key={k} className="border-b border-linea py-2.5 last:border-b-0">
                 <dt className="text-xs text-gris">{k}</dt>

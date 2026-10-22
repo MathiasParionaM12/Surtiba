@@ -170,7 +170,7 @@ function Presentacion({
             </ul>
           </div>
         </div>
-        <p className="mt-6 text-xs text-gris">Estimación referencial con supuestos por validar con caterings.</p>
+        <p className="mt-6 text-xs text-gris">Estimación referencial.</p>
       </section>
 
       <div className="flex flex-col gap-4 rounded-md border border-tinta bg-blanco p-5 sm:flex-row sm:items-center sm:justify-between">

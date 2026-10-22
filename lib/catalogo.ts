@@ -4,6 +4,10 @@
 // se muestra ni se pide en ninguna pantalla. Para volver a usarlo: true, y que cada marca ponga el suyo.
 export const PEDIDO_MINIMO_ACTIVO = false;
 
+// Comisión de Surtiba sobre lo entregado, igual para todas las marcas. Subió de 5 % a 7 % el 22-oct-2026
+// (Mathias): Surtiba cubre el recojo en cada marca. Cada orden guarda el % vigente al crearse.
+export const COMISION_PCT = 7;
+
 export const CATEGORIAS: Record<string, string> = {
   pisco: "Pisco",
   ron: "Ron",

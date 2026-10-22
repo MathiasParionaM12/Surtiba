@@ -160,7 +160,7 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
 - **Aprobación de productos:** cada producto que suba una marca queda "en revisión" hasta que el admin lo acepte; recién ahí aparece en el catálogo.
 - ~~**Pago al comprar**~~ → ya construido en la fase 7 (ver "Pedidos por encargo y pago").
-- **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija de 5 % por ahora.
+- **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija para todas: 5 % desde el 14-oct-2026 y **7 % desde el 22-oct-2026** (Surtiba cubre el recojo; `COMISION_PCT` en `lib/catalogo.ts`).
 
 ## Fuera del MVP (no construir; si parece necesario, preguntar)
 - Pasarela de pago (Culqi, Mercado Pago, Izipay): será el próximo año
@@ -172,7 +172,7 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - Distribuidores y mayoristas como compradores
 
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
-- % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 5 %** para todas las marcas (14-oct-2026).
+- % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 7 %** para todas las marcas (era 5 % desde el 14-oct-2026; subió el 22-oct-2026).
 - Costo de envío: ¿quién lo paga y cuánto? Por ahora, campo en 0.
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
 - Zonas y horarios de entrega

@@ -123,7 +123,7 @@ export function MiniCotizador({ tipo, parametros, recetas }: { tipo: TipoEvento;
         Ver cotización completa
         <ArrowRight className="size-4" aria-hidden="true" />
       </Link>
-      <p className="mt-3 text-xs text-gris">Estimación con supuestos por validar con caterings.</p>
+      <p className="mt-3 text-xs text-gris">Estimación referencial.</p>
     </div>
   );
 }

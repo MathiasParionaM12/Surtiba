@@ -19,8 +19,8 @@ export default function PaginaPrivacidad() {
       titulo="Política de privacidad"
       intro={
         <>
-          Surtiba es un <strong className="font-medium text-tinta">prototipo del curso</strong>. Te pedimos usar datos de prueba.
-          Aun así, tratamos lo que escribas según la Ley 29733 de Protección de Datos Personales.
+          Surtiba es un <strong className="font-medium text-tinta">prototipo del curso</strong>. Tratamos lo que escribas según la Ley 29733
+          de Protección de Datos Personales.
         </>
       }
     >
@@ -86,15 +86,6 @@ export default function PaginaPrivacidad() {
           </li>
           <li>Tu foto de perfil está en un espacio privado: solo la ven tú y Surtiba.</li>
         </ul>
-      </Seccion>
-
-      <Seccion titulo="Dónde se guardan">
-        <p>
-          Usamos dos proveedores: <strong className="font-medium">Supabase</strong> (base de datos, cuentas y fotos) y{" "}
-          <strong className="font-medium">Vercel</strong> (donde funciona la página y sus estadísticas de visitas). Sus servidores
-          están en São Paulo, Brasil, así que tus datos salen del Perú (flujo transfronterizo). Las dos son empresas de Estados
-          Unidos.
-        </p>
       </Seccion>
 
       <Seccion titulo="Cookies">

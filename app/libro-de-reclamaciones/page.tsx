@@ -37,9 +37,6 @@ export default function PaginaLibro() {
           <dt className="text-gris">Dirección</dt>
           <dd>{EMPRESA.direccion ?? SIN_DATO}</dd>
         </dl>
-        <p className="mt-4 border-l-2 border-verde pl-3 text-sm text-gris">
-          Es un prototipo del curso: usa datos de prueba, no tu DNI real.
-        </p>
       </div>
 
       <div className="mt-8">

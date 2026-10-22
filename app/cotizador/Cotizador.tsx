@@ -258,7 +258,7 @@ export function Cotizador({
               )}
             </div>
             <p className="text-xs text-gris">
-              Estimación referencial con supuestos por validar con caterings. Ajusta las cantidades antes de pedir.
+              Estimación referencial: ajusta las cantidades antes de pedir.
             </p>
           </div>
         </div>
