@@ -121,8 +121,9 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
       <fieldset className="border-t border-linea pt-6">
         <legend className={`${sello} mb-2 pt-6`}>Precio por caja según cantidad</legend>
         <p className="mb-4 text-sm text-gris">
-          El primer tramo empieza en 1 caja. Cada tramo llega hasta donde empieza el siguiente, y el último vale para
-          cualquier cantidad mayor.
+          Pon el precio final por caja, <strong className="font-medium text-tinta">con IGV incluido</strong>: es el que ve y
+          paga el comprador. El primer tramo empieza en 1 caja. Cada tramo llega hasta donde empieza el siguiente, y el
+          último vale para cualquier cantidad mayor.
         </p>
         <div className="flex flex-col gap-3">
           {tramos.map((t, i) => {

@@ -152,7 +152,7 @@ async function Confirmar() {
             </div>
           </dl>
         )}
-        <p className="mt-2 text-xs text-gris">Envío: tarifa por definir.</p>
+        <p className="mt-2 text-xs text-gris">Incluye IGV. Envío: tarifa por definir.</p>
         <Link href="/carrito" className={`${botonSecundario} mt-5 w-full`}>
           Editar carrito
         </Link>

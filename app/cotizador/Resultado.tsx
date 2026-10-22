@@ -165,7 +165,7 @@ export function Resultado({
           </span>
           <p className={sello}>Total estimado</p>
           <p className="mt-2 font-mono text-2xl font-semibold">{soles(r.total)}</p>
-          <p className="mt-1 text-xs text-gris">{soles(r.porInvitado)} por invitado</p>
+          <p className="mt-1 text-xs text-gris">{soles(r.porInvitado)} por invitado · incluye IGV</p>
         </div>
         <div className="rounded-md border border-linea bg-blanco p-4">
           <p className={sello}>Cajas</p>

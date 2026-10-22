@@ -11,6 +11,7 @@ export default function PaginaCatalogo({ searchParams }: PageProps<"/catalogo">)
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8 sm:py-14">
       <p className={sello}>Catálogo</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Licores y cócteles por caja</h1>
+      <p className="mt-2 text-sm text-gris">Precios por caja en soles, con IGV incluido.</p>
 
       {/* Lo que se muestra depende de la sesión: se carga dentro de Carga (Suspense con fundido) */}
       <Carga fallback={<EsqueletoTarjetas />}>

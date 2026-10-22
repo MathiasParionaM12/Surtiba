@@ -227,7 +227,9 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               <dd className="font-mono">{soles(0)}</dd>
             </div>
             <div className="mt-2 flex justify-between border-t border-linea pt-3 text-base">
-              <dt className="font-medium">Total</dt>
+              <dt className="font-medium">
+                Total <span className="font-sans text-xs font-normal text-gris">· incluye IGV</span>
+              </dt>
               <dd className="font-mono font-semibold">{soles(total)}</dd>
             </div>
             {porEncargo > 0 && (

@@ -138,7 +138,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
             ))}
           </tbody>
         </table>
-        <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido.</p>
+        <p className="mt-3 text-xs text-gris">El precio se elige según las cajas de este producto en tu pedido. Incluye IGV.</p>
 
         {/* Calculadora de margen: bares, caterings y eventos venden por trago; el resto, por botella */}
         {esComprador && (

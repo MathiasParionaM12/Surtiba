@@ -357,7 +357,9 @@ async function DetallePedido({
                 <dd className="font-mono">{soles(p.envio_centimos)}</dd>
               </div>
               <div className="flex justify-between border-t border-linea pt-3 text-base">
-                <dt className="font-medium">Total</dt>
+                <dt className="font-medium">
+                Total <span className="font-sans text-xs font-normal text-gris">· incluye IGV</span>
+              </dt>
                 <dd className="font-mono font-semibold">{soles(p.total_centimos)}</dd>
               </div>
             </dl>

@@ -209,7 +209,7 @@ export function PdfCotizacion({
 
         {/* Notas */}
         <View wrap={false} style={{ marginTop: 24, gap: 3 }}>
-          <Text style={s.gris}>Precios válidos sujetos a stock al momento de pedir.</Text>
+          <Text style={s.gris}>Precios en soles con IGV incluido, válidos sujetos a stock al momento de pedir.</Text>
           {evento && (
             <Text style={s.gris}>
               Estimación referencial con supuestos por validar con caterings: ajusta las cantidades antes de pedir.

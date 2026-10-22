@@ -63,6 +63,9 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - Esto se controla en la base de datos (una vista o función que solo devuelve el primer tramo), no solo ocultándolo en pantalla.
 - RLS filtra filas, no columnas. Para ocultar columnas (stock al visitante, contactos y dirección de las marcas) se usan **vistas**.
 
+### IGV (decidido el 22-oct-2026)
+- **Los precios incluyen IGV.** La marca pone el precio final por caja; es lo que ve y paga el comprador. Se avisa "incluye IGV" en el catálogo, el producto, el carrito, el pedido, el cotizador y el PDF. Los cálculos no cambian.
+
 ### Escala de precios
 - Cada producto tiene uno o más tramos: `desde_cajas`, `hasta_cajas` (vacío = sin tope) y `precio_caja`.
 - El precio se elige según las cajas **de ese producto** en el pedido.
@@ -163,7 +166,6 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - Distribuidores y mayoristas como compradores
 
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
-- ¿Los precios incluyen IGV?
 - % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 5 %** para todas las marcas (14-oct-2026).
 - Costo de envío: ¿quién lo paga y cuánto? Por ahora, campo en 0.
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
