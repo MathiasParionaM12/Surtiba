@@ -74,7 +74,7 @@ export function AccionesEncargo({
         <label className="flex flex-col gap-2">
           <Etiqueta texto="¿Para cuándo lo tendrás listo para recoger?" obligatorio />
           <div className="w-48">
-            <input name="fecha" type="date" min={manana} required defaultValue={estado.valores?.fecha} className={`${campo} font-mono`} />
+            <input name="fecha" type="date" min={manana} max={`${Number(manana.slice(0, 4)) + 1}${manana.slice(4)}`} required defaultValue={estado.valores?.fecha} className={`${campo} font-mono`} />
           </div>
           <span className="text-xs text-gris">Desde mañana. Podrás marcarlo listo para recojo desde ese día.</span>
         </label>

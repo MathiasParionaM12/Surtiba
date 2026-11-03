@@ -6,7 +6,7 @@ import type { Insumo, Momento } from "@/lib/cotizador";
 import { fecha, soles } from "@/lib/formato";
 import { LOGO_PDF, LOGO_PROPORCION } from "@/lib/marca/logo-pdf";
 
-const C = { papel: "#F5F3EE", tinta: "#121212", gris: "#5C5A55", linea: "#DCD8CF", verde: "#14432F", resaltador: "#E8FF00" };
+const C = { papel: "#F5F3EE", tinta: "#121212", gris: "#5C5A55", linea: "#DCD8CF", verde: "#14432F", resaltador: "#E8FF00", rojo: "#8A2B2B" };
 
 export type ItemCotizacion = {
   producto_id: string;
@@ -194,6 +194,12 @@ export function PdfCotizacion({
         {evento?.version === 2 && evento.resumen.insumos.length > 0 && (
           <View wrap={false} style={{ marginTop: 24 }}>
             <Text style={s.sello}>Lo consigues por tu cuenta</Text>
+            <View style={{ marginTop: 6, borderWidth: 1.5, borderColor: C.rojo, borderRadius: 4, paddingVertical: 6, paddingHorizontal: 8 }}>
+              {/* Helvetica no tiene el símbolo de alerta: va solo el texto en rojo apagado */}
+              <Text style={{ color: C.rojo, fontSize: 10, fontFamily: "Helvetica-Bold" }}>
+                Atención: esto no está incluido en tu pedido. Surtiba no lo vende o no lo tiene por ahora.
+              </Text>
+            </View>
             <View style={[s.fila, { flexWrap: "wrap", marginTop: 6 }]}>
               {evento.resumen.insumos.map((i) => (
                 <View key={i.nombre} style={[s.fila, { width: "50%", paddingVertical: 3, paddingRight: 16, justifyContent: "space-between" }]}>

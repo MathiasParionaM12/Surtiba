@@ -18,7 +18,7 @@ import {
 import { esUuid } from "@/lib/catalogo";
 import { METODOS_PAGO_ADMIN, nombreMetodo, saldos } from "@/lib/pagos";
 import { campo, sello } from "@/lib/estilos";
-import { fecha, hoyEnLima, soles } from "@/lib/formato";
+import { enUnAnioEnLima, fecha, hoyEnLima, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -167,6 +167,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
                           name="fecha"
                           type="date"
                           min={hoy}
+                          max={enUnAnioEnLima()}
                           defaultValue={s.fecha_recojo ?? ""}
                           required
                           className={`${campo} h-10 w-44 font-mono`}

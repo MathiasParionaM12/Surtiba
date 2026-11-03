@@ -59,6 +59,12 @@ export function Cotizador({
   const [guardada, setGuardada] = useState<string>(); // código de la cotización recién guardada (COT-0012)
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();
+  // Agrega todos los productos de la cotización; si sale bien, el servidor te lleva al carrito
+  const agregarTodo = () =>
+    pasar(async () => {
+      const r = await pasarAlCarrito(entrada);
+      if (r?.error) setError(r.error);
+    });
   const ultimo = useRef(0);
   const primeraVez = useRef(true);
   const noTomanTocado = useRef(false);
@@ -198,7 +204,18 @@ export function Cotizador({
             <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
           )}
           {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} ingredientes={ingredientes} />}
-          {paso === 3 && <Resultado entrada={entrada} actualizar={actualizar} resultado={resultado} tipo={tipo} puedeAgregar={rol === "comprador"} guardada={guardada} />}
+          {paso === 3 && (
+            <Resultado
+              entrada={entrada}
+              actualizar={actualizar}
+              resultado={resultado}
+              tipo={tipo}
+              puedeAgregar={rol === "comprador"}
+              guardada={guardada}
+              alAgregarTodo={agregarTodo}
+              agregando={pasando || calculando}
+            />
+          )}
 
           <div className="mt-6">
             <AvisoForm error={error} />
@@ -211,12 +228,7 @@ export function Cotizador({
                 <button
                   type="button"
                   disabled={pasando || calculando}
-                  onClick={() =>
-                    pasar(async () => {
-                      const r = await pasarAlCarrito(entrada);
-                      if (r?.error) setError(r.error); // si sale bien, el servidor te lleva al carrito
-                    })
-                  }
+                  onClick={agregarTodo}
                   className={`${botonPrimario} w-full`}
                 >
                   <ShoppingCart className="size-4" aria-hidden="true" />

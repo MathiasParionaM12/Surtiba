@@ -14,6 +14,8 @@ Estilo: B2B formal y sobrio (referencias: Provi, Pod). Herramienta de trabajo, n
 | verde | `#14432F` | acento: enlaces, estados positivos, botón secundario |
 | resaltador | `#E8FF00` | **máximo un uso por pantalla** (ej. resaltar la métrica principal). **Nunca en botones** |
 
+**Advertencias** (3-nov-2026, `components/Advertencia.tsx`): lo que el usuario no puede pasar por alto (por ejemplo, "esto no está incluido en tu pedido") va en texto de 16 px, con ícono de alerta y borde de 2 px en rojo apagado. El fondo es blanco: el rojo nunca va de fondo. Solo para advertencias, no para errores de formulario ni textos de ayuda.
+
 Etiquetas de estado: pendiente / recibido = gris; listo para recojo / en preparación / recogido / en camino = verde; entregado = tinta; rechazado / cancelado = rojo apagado `#8A2B2B` (solo en la etiqueta, nunca en fondos grandes).
 
 **Nunca** usar azul marino ni imágenes de fiesta o consumo final.

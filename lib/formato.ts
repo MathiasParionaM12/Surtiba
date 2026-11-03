@@ -24,6 +24,22 @@ export function mananaEnLima() {
   return d.toISOString().slice(0, 10);
 }
 
+// Dentro de 1 año en Lima (AAAA-MM-DD): el máximo de todos los calendarios (pedido de Adriano, 3-nov-2026)
+export function enUnAnioEnLima() {
+  const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(new Date());
+  return `${Number(hoy.slice(0, 4)) + 1}${hoy.slice(4)}`;
+}
+
+// Una fecha AAAA-MM-DD dentro de [desde, hasta] (las fechas así se comparan como texto)
+export function fechaEnRango(f: string, desde: string, hasta: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(f) && f >= desde && f <= hasta;
+}
+
+// Mañana y dentro de 1 año, para los calendarios de componentes del navegador (useState(limitesFecha))
+export function limitesFecha() {
+  return { min: mananaEnLima(), max: enUnAnioEnLima() };
+}
+
 // Primer instante del mes actual en Lima (Perú no cambia de hora: siempre UTC-5)
 export function inicioMesLima() {
   const [anio, mes] = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima", year: "numeric", month: "2-digit" })

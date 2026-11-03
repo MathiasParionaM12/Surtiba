@@ -3,12 +3,13 @@
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { Advertencia } from "@/components/Advertencia";
 import { AvisoForm } from "@/components/AvisoForm";
 import { Sello } from "@/components/Sello";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { agregarAlCarrito } from "@/lib/acciones-pedidos";
 import { cantidadLegible, LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
-import { areaToque, botonSecundario, campo, sello } from "@/lib/estilos";
+import { areaToque, botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { LineaTiempo } from "./ui";
 
@@ -85,6 +86,8 @@ export function Resultado({
   tipo,
   puedeAgregar = false,
   guardada,
+  alAgregarTodo,
+  agregando = false,
 }: {
   entrada: EntradaCotizador;
   actualizar: (cambio: Partial<EntradaCotizador>) => void;
@@ -92,6 +95,8 @@ export function Resultado({
   tipo: string;
   puedeAgregar?: boolean; // solo los compradores agregan al carrito
   guardada?: string; // código de la cotización si se acaba de guardar
+  alAgregarTodo?: () => void; // agrega todo y te lleva al carrito (el mismo botón que está al final)
+  agregando?: boolean;
 }) {
   const [fecha] = useState(hoy);
   const marcas = new Set(r.productos.map((p) => p.marcaId)).size;
@@ -138,9 +143,7 @@ export function Resultado({
       </div>
 
       {r.avisos.map((a) => (
-        <p key={a} role="alert" className="border-l-2 border-rojo pl-3 text-sm">
-          {a}
-        </p>
+        <Advertencia key={a}>{a}</Advertencia>
       ))}
 
       {/* Números principales */}
@@ -175,6 +178,14 @@ export function Resultado({
           </p>
         </div>
       </div>
+
+      {/* Atajo: no hace falta bajar hasta el final para pasar todo al carrito */}
+      {puedeAgregar && alAgregarTodo && r.productos.length > 0 && (
+        <button type="button" onClick={alAgregarTodo} disabled={agregando} className={`${botonPrimario} w-full sm:w-auto sm:self-start`}>
+          <ShoppingCart className="size-4" aria-hidden="true" />
+          {agregando ? "Agregando al carrito…" : `Agregar las ${cajas} cajas al carrito`}
+        </button>
+      )}
 
       {/* Momentos */}
       <section>
@@ -332,13 +343,19 @@ export function Resultado({
       {r.insumos.length > 0 && (
         <section>
           <h3 className={sello}>Lo consigues por tu cuenta</h3>
-          <p className="mt-1 text-sm text-gris">Surtiba no lo vende, pero te dejamos la lista con las cantidades para que no te falte.</p>
+          <div className="mt-3">
+            <Advertencia titulo="Esto no está incluido en tu pedido">
+              Surtiba no lo vende o no lo tiene por ahora. Consíguelo por tu cuenta: te dejamos las cantidades para que no te falte.
+            </Advertencia>
+          </div>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {r.insumos.map((i) => (
               <li key={i.nombre} className="flex items-baseline justify-between gap-3 rounded-md border border-linea bg-blanco px-4 py-3 text-sm">
                 <span>
                   {i.nombre}
-                  {i.nota && <span className="block text-xs text-gris">{i.nota}</span>}
+                  {i.nota && (
+                    <span className={`block text-xs ${i.deSurtiba ? "font-medium text-rojo" : "text-gris"}`}>{i.nota}</span>
+                  )}
                 </span>
                 <span className="font-mono whitespace-nowrap">
                   {decimal.format(i.cantidad)} {i.unidad}

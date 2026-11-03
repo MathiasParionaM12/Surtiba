@@ -1,6 +1,7 @@
 "use client";
 
 import { Martini, Music, UtensilsCrossed, Wine, type LucideIcon } from "lucide-react";
+import { Advertencia } from "@/components/Advertencia";
 import { horasDeFiesta, type EntradaCotizador, type Momento, type Parametros, type Receta } from "@/lib/cotizador";
 import { campo } from "@/lib/estilos";
 import { Interruptor, LineaTiempo } from "./ui";
@@ -144,9 +145,7 @@ export function PasoMomentos({
         activo={fiesta > 0}
       />
       {fiesta < 0 && (
-        <p role="alert" className="border-l-2 border-rojo pl-3 text-sm">
-          La bienvenida y la cena duran más que todo el evento ({entrada.horas} h). Ajusta las horas.
-        </p>
+        <Advertencia>La bienvenida y la cena duran más que todo el evento ({entrada.horas} h). Ajusta las horas.</Advertencia>
       )}
     </div>
   );

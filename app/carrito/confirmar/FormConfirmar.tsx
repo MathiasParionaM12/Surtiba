@@ -22,6 +22,7 @@ const OPCIONES: { valor: Modo; titulo: string }[] = [
 
 export function FormConfirmar({
   fechaMinima,
+  fechaMaxima,
   pagasAhora,
   porEncargo,
   iniciales,
@@ -31,6 +32,7 @@ export function FormConfirmar({
   envioPorDistrito,
 }: {
   fechaMinima: string;
+  fechaMaxima: string; // hasta 1 año adelante
   pagasAhora: number; // céntimos: lo que tiene stock (se paga ahora)
   porEncargo: number; // céntimos: lo que va por encargo (se paga al confirmar)
   iniciales: Iniciales;
@@ -179,6 +181,7 @@ export function FormConfirmar({
             name="fecha_entrega"
             type="date"
             min={fechaMinima}
+            max={fechaMaxima}
             required
             value={fechaEntrega}
             onChange={(e) => setFechaEntrega(e.target.value)}
@@ -227,6 +230,7 @@ export function FormConfirmar({
             name="evento_fecha"
             type="date"
             min={minimoEvento}
+            max={fechaMaxima}
             defaultValue={v.evento_fecha}
             className={`${campo} font-mono`}
           />

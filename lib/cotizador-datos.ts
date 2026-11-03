@@ -18,6 +18,7 @@ import {
   type TragoPropio,
 } from "@/lib/cotizador";
 import { cacheLife, cacheTag } from "next/cache";
+import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
 import { obtenerUsuario } from "@/lib/sesion";
 import { clientePublico } from "@/lib/supabase/publico";
 import { createClient } from "@/lib/supabase/server";
@@ -237,7 +238,8 @@ export function limpiarEntrada(
 
   return {
     nombre: String(e.nombre ?? "").trim().slice(0, 80),
-    fecha: /^\d{4}-\d{2}-\d{2}$/.test(String(e.fecha ?? "")) ? String(e.fecha) : "",
+    // Desde mañana y hasta 1 año adelante; si no, se ignora
+    fecha: fechaEnRango(String(e.fecha ?? ""), mananaEnLima(), enUnAnioEnLima()) ? String(e.fecha) : "",
     tipoEventoId: tipo.id,
     invitados,
     noToman,

@@ -5,7 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
-import { haceDias, mananaEnLima, soles } from "@/lib/formato";
+import { enUnAnioEnLima, haceDias, mananaEnLima, soles } from "@/lib/formato";
 import { separarTelefono } from "@/lib/paises";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -116,6 +116,7 @@ async function Confirmar() {
       <div className="rounded-md border border-linea bg-blanco p-5 sm:p-8">
         <FormConfirmar
           fechaMinima={mananaEnLima()}
+          fechaMaxima={enUnAnioEnLima()}
           pagasAhora={pagasAhora}
           porEncargo={total - pagasAhora}
           iniciales={iniciales}

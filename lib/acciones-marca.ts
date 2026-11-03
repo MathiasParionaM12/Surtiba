@@ -7,6 +7,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { CATEGORIAS, esUuid } from "@/lib/catalogo";
+import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
 import { exigirRol, obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -215,7 +216,9 @@ export async function responderEncargo(_estado: EstadoForm, form: FormData): Pro
   const fecha = String(form.get("fecha") ?? "");
   const motivo = String(form.get("motivo") ?? "").trim();
   if (!esUuid(id)) return { error: "No encontramos ese encargo." };
-  if (acepta && !fecha) return { error: "Elige la fecha en que lo tendrás listo." };
+  if (acepta && !fechaEnRango(fecha, mananaEnLima(), enUnAnioEnLima())) {
+    return { error: "Elige la fecha en que lo tendrás listo: desde mañana y hasta dentro de un año." };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("marca_responder_encargo", {

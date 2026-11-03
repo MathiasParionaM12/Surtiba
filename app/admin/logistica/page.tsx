@@ -7,7 +7,7 @@ import { FormAccion } from "@/components/FormAccion";
 import { fijarRecojo, guardarEnvio, marcarEnCamino, marcarEntregado, marcarRecogido } from "@/lib/acciones-admin";
 import { tarifasEnvio } from "@/lib/envio";
 import { campo, sello } from "@/lib/estilos";
-import { fecha, hoyEnLima, mananaEnLima } from "@/lib/formato";
+import { enUnAnioEnLima, fecha, hoyEnLima, mananaEnLima } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -192,6 +192,7 @@ async function Logistica() {
                                         name="fecha"
                                         type="date"
                                         min={hoy}
+                                        max={enUnAnioEnLima()}
                                         required
                                         defaultValue={o.fecha_recojo ?? ""}
                                         className={`${campo} h-10 font-mono`}

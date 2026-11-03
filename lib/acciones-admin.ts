@@ -7,6 +7,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { COMISION_PCT, esUuid } from "@/lib/catalogo";
+import { enUnAnioEnLima, fechaEnRango, hoyEnLima } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -86,7 +87,9 @@ export async function fijarRecojo(_e: EstadoForm, form: FormData): Promise<Estad
   await exigirRol("admin");
   const subpedido = id(form, "subpedido_id");
   const fecha = texto(form, "fecha");
-  if (!subpedido || !fecha) return { error: "Elige la fecha de recojo." };
+  if (!subpedido || !fechaEnRango(fecha, hoyEnLima(), enUnAnioEnLima())) {
+    return { error: "Elige la fecha de recojo: desde hoy y hasta dentro de un año." };
+  }
   const supabase = await createClient();
   return ejecutar(supabase.rpc("admin_fijar_recojo", { p_subpedido: subpedido, p_fecha: fecha }), "Fecha de recojo guardada.");
 }

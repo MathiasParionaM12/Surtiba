@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Etiqueta } from "@/components/Etiqueta";
 import { LIMITES, PERFILES, type EntradaCotizador, type Parametros, type TipoEvento } from "@/lib/cotizador";
 import { areaToque, campo } from "@/lib/estilos";
+import { limitesFecha } from "@/lib/formato";
 import { Segmentado } from "./ui";
 
 // Resumen de los momentos de un tipo de evento: "6 h · bienvenida, cena, brindis y fiesta"
@@ -29,6 +31,8 @@ export function PasoEvento({
   sugeridoNoToman: number;
   parametros: Parametros;
 }) {
+  // Calendario del evento: desde mañana y hasta 1 año adelante (se calcula una vez, al abrir)
+  const [limites] = useState(limitesFecha);
   // Tragos por hora en la fiesta de cada tipo de público (de día se toma un poco menos)
   const hora = Number(entrada.horaInicio.split(":")[0]);
   const deDia = hora >= 6 && hora < 17;
@@ -75,7 +79,14 @@ export function PasoEvento({
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Fecha" nota="opcional" />
-          <input type="date" value={entrada.fecha} onChange={(e) => actualizar({ fecha: e.target.value })} className={`${campo} font-mono`} />
+          <input
+            type="date"
+            min={limites.min}
+            max={limites.max}
+            value={entrada.fecha}
+            onChange={(e) => actualizar({ fecha: e.target.value })}
+            className={`${campo} font-mono`}
+          />
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Invitados" obligatorio />

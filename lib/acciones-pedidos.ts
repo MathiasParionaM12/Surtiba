@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
 import { DISTRITOS } from "@/lib/distritos";
+import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
 import { PREFIJO_PERU, telefonoValido } from "@/lib/paises";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -123,7 +124,12 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   if (valores.codigo_postal && !/^\d{5}$/.test(valores.codigo_postal)) {
     return { error: "El código postal tiene 5 dígitos. Si no lo sabes, déjalo vacío.", valores };
   }
-  if (!valores.fecha_entrega) return { error: "Elige la fecha de entrega.", valores };
+  if (!fechaEnRango(valores.fecha_entrega, mananaEnLima(), enUnAnioEnLima())) {
+    return { error: "Elige una fecha de entrega desde mañana y hasta dentro de un año.", valores };
+  }
+  if (valores.evento_fecha && valores.evento_fecha > enUnAnioEnLima()) {
+    return { error: "La fecha del evento puede ser hasta dentro de un año.", valores };
+  }
   const invitados = valores.invitados ? Number(valores.invitados) : undefined;
   if (invitados !== undefined && !(Number.isInteger(invitados) && invitados > 0 && invitados <= 100000)) {
     return { error: "El número de invitados debe ser un número entero mayor que 0.", valores };
