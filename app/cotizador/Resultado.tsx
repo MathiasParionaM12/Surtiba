@@ -12,6 +12,7 @@ import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
 import { cantidadLegible, LIMITES, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
 import { areaToque, botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
+import { PrecioCliente } from "./PrecioCliente";
 import { LineaTiempo } from "./ui";
 
 const entero = new Intl.NumberFormat("en-US");
@@ -372,6 +373,9 @@ export function Resultado({
           </ul>
         </section>
       )}
+
+      {/* Lo que el comprador le cobra a su cliente final */}
+      {puedeAgregar && <PrecioCliente entrada={entrada} actualizar={actualizar} resultado={r} />}
     </div>
   );
 }

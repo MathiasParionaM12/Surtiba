@@ -71,6 +71,7 @@ export async function guardarCotizacion(entrada: EntradaCotizador): Promise<Resp
       momentos: resultado.momentos,
       insumos: resultado.insumos,
       cliente_pone: resultado.clientePone.map((l) => ({ nombre: l.nombre, botellas: l.botellas, ml: l.ml })),
+      reventa: resultado.reventa,
     },
   };
   return guardar(

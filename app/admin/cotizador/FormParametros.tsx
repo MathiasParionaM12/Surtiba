@@ -7,7 +7,7 @@ import { guardarParametros } from "@/lib/acciones-admin";
 import type { Parametros } from "@/lib/cotizador";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 
-type Campo = { nombre: keyof Parametros; texto: string; ayuda?: string };
+type Campo = { nombre: keyof Parametros; texto: string; ayuda?: string; soles?: boolean }; // soles: se guarda en céntimos
 
 const GRUPOS: { titulo: string; campos: Campo[] }[] = [
   {
@@ -40,6 +40,16 @@ const GRUPOS: { titulo: string; campos: Campo[] }[] = [
       { nombre: "margen_pct", texto: "Margen de seguridad sugerido (%)" },
     ],
   },
+  {
+    titulo: "Precio para el cliente (supuestos que el comprador edita)",
+    campos: [
+      { nombre: "invitados_por_bartender", texto: "Personas que toman por bartender" },
+      { nombre: "precio_bartender_centimos", texto: "Bartender: S/ por evento", soles: true },
+      { nombre: "vasos_por_toma", texto: "Vasos por persona que toma", ayuda: "Más 1 copa de vino (cena) y 1 de espumante (brindis)" },
+      { nombre: "precio_vaso_centimos", texto: "Vaso o copa: S/ de alquiler", soles: true },
+      { nombre: "precio_bolsa_hielo_centimos", texto: "Bolsa de hielo de 3 kg: S/", soles: true },
+    ],
+  },
 ];
 
 export function FormParametros({ parametros, recetas }: { parametros: Parametros; recetas: { id: string; nombre: string }[] }) {
@@ -66,7 +76,7 @@ export function FormParametros({ parametros, recetas }: { parametros: Parametros
                   name={c.nombre}
                   inputMode="decimal"
                   required
-                  defaultValue={String(parametros[c.nombre] ?? "")}
+                  defaultValue={c.soles ? (Number(parametros[c.nombre] ?? 0) / 100).toFixed(2) : String(parametros[c.nombre] ?? "")}
                   className={`${campo} h-10 font-mono`}
                 />
                 {c.ayuda && <span className="text-xs text-gris">{c.ayuda}</span>}

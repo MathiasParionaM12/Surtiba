@@ -18,6 +18,8 @@
 import type { Tramo } from "@/lib/catalogo";
 import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
 
+const fmt = new Intl.NumberFormat("en-US");
+
 export const LIMITES = { invitadosMax: 5000, horasMax: 12, barraMax: 8, cajasMax: 999, propiosMax: 5, ingredientesMax: 8, cantidadMax: 1000 };
 
 export type Nivel = "principal" | "secundario" | "ocasional";
@@ -52,6 +54,12 @@ export type Parametros = {
   sin_alcohol_l_hora_toma: number;
   sin_alcohol_l_hora_no_toma: number;
   margen_pct: number;
+  // Tu precio para el cliente (supuestos, 7-nov-2026). Dinero en céntimos.
+  invitados_por_bartender: number;
+  precio_bartender_centimos: number;
+  vasos_por_toma: number;
+  precio_vaso_centimos: number;
+  precio_bolsa_hielo_centimos: number;
 };
 
 // Ingrediente de un trago. "categoria" = la categoría de producto de Surtiba que lo cubre (null = no lo vende)
@@ -117,6 +125,44 @@ export type EntradaCotizador = {
   productos: Record<string, string>; // ingrediente_id -> producto_id que eligió la persona
   cajasManual: Record<string, number>; // producto_id -> cajas que eligió la persona
   clientePone?: string[]; // ingrediente_id de los licores que compra el cliente final (no van al pedido)
+  reventa?: Reventa; // lo que el comprador le cobra a su cliente final
+};
+
+// "Tu precio para el cliente" (7-nov-2026). Son los números del comprador, no precios de Surtiba:
+//   costo  = bebidas de Surtiba + otros costos (bartenders, cristalería, hielo con precio supuesto, y los que agregue)
+//   precio = costo × (1 + ganancia %)
+// Dinero en céntimos (enteros). Lo calcula el servidor igual que todo lo demás.
+export type ClaveSugerida = "bartender" | "cristaleria" | "hielo";
+export const SUGERIDOS: ClaveSugerida[] = ["bartender", "cristaleria", "hielo"];
+export const LIMITES_REVENTA = { otrosMax: 8, cantidadMax: 100000, precioMax: 10000000, gananciaMax: 300, conceptoMax: 40 };
+export type OtroCosto = { id: string; concepto: string; cantidad: number; precio: number };
+export type Reventa = {
+  ganancia: number | null; // % sobre el costo; null = todavía no la pone
+  quitados: ClaveSugerida[]; // costos sugeridos que no quiere
+  ajustes: Partial<Record<ClaveSugerida, { cantidad?: number; precio?: number }>>; // lo que cambió de los sugeridos
+  otros: OtroCosto[];
+};
+export const REVENTA_VACIA: Reventa = { ganancia: null, quitados: [], ajustes: {}, otros: [] };
+export type LineaCosto = {
+  clave: string; // "bartender", "cristaleria", "hielo" o el id de un costo agregado
+  concepto: string;
+  nota?: string;
+  cantidad: number;
+  precio: number; // céntimos por unidad
+  subtotal: number;
+  sugerida: boolean; // es uno de los costos sugeridos
+  cantidadSugerida?: number;
+  precioSupuesto?: number;
+};
+export type ResultadoReventa = {
+  lineas: LineaCosto[];
+  quitados: ClaveSugerida[];
+  bebidas: number; // lo de Surtiba
+  costo: number; // bebidas + otros costos
+  ganancia: number | null;
+  gananciaMonto: number;
+  precio: number; // lo que cobra a su cliente
+  porInvitado: number;
 };
 
 // Producto que puede entrar en una cotización
@@ -187,6 +233,7 @@ export type ResultadoCotizacion = {
   ingredientes: LineaIngrediente[]; // lo que vende Surtiba
   productos: LineaProducto[];
   clientePone: LineaCliente[];
+  reventa: ResultadoReventa;
   faltaMinimo: number; // cajas que faltan para el pedido mínimo de Surtiba (3 en total)
   productoMayor: string | null; // el producto con más cajas: ahí se suben las que faltan
   insumos: Insumo[];
@@ -426,6 +473,50 @@ export function calcular(
 
   const tragosTotales = tragos.reduce((s, t) => s + t.tragos, 0);
   const total = productos.reduce((s, l) => s + l.subtotal, 0);
+
+  // 6. Tu precio para el cliente: costos sugeridos (con precio supuesto, editables) + los que agregó + su ganancia
+  const rv = e.reventa ?? REVENTA_VACIA;
+  const copasVino = e.cena.activo ? toman : 0;
+  const copasEspumante = e.brindis.activo ? adultos : 0;
+  const vasos = arriba(toman * par.vasos_por_toma);
+  const sugeridos: Record<ClaveSugerida, Omit<LineaCosto, "subtotal" | "sugerida" | "clave">> = {
+    bartender: {
+      concepto: "Bartenders",
+      nota: `1 por cada ${par.invitados_por_bartender} personas que toman · precio por evento`,
+      cantidad: toman > 0 ? Math.ceil(toman / par.invitados_por_bartender) : 0,
+      precio: par.precio_bartender_centimos,
+    },
+    cristaleria: {
+      concepto: "Cristalería (alquiler)",
+      nota: [`${fmt.format(vasos)} vasos`, copasVino && `${fmt.format(copasVino)} copas de vino`, copasEspumante && `${fmt.format(copasEspumante)} copas de espumante`]
+        .filter(Boolean)
+        .join(" · "),
+      cantidad: vasos + copasVino + copasEspumante,
+      precio: par.precio_vaso_centimos,
+    },
+    hielo: { concepto: "Hielo", nota: "bolsas de 3 kg", cantidad: hielo > 0 ? arriba(hielo / 3) : 0, precio: par.precio_bolsa_hielo_centimos },
+  };
+  const lineas: LineaCosto[] = [
+    ...SUGERIDOS.filter((k) => !rv.quitados.includes(k)).map((k) => {
+      const s = sugeridos[k];
+      const cantidad = rv.ajustes[k]?.cantidad ?? s.cantidad;
+      const precio = rv.ajustes[k]?.precio ?? s.precio;
+      return { ...s, clave: k, cantidad, precio, subtotal: cantidad * precio, sugerida: true, cantidadSugerida: s.cantidad, precioSupuesto: s.precio };
+    }),
+    ...rv.otros.map((o) => ({ clave: o.id, concepto: o.concepto, cantidad: o.cantidad, precio: o.precio, subtotal: o.cantidad * o.precio, sugerida: false })),
+  ];
+  const costo = total + lineas.reduce((s, l) => s + l.subtotal, 0);
+  const gananciaMonto = Math.round((costo * (rv.ganancia ?? 0)) / 100);
+  const reventa: ResultadoReventa = {
+    lineas,
+    quitados: rv.quitados,
+    bebidas: total,
+    costo,
+    ganancia: rv.ganancia,
+    gananciaMonto,
+    precio: costo + gananciaMonto,
+    porInvitado: e.invitados ? Math.round((costo + gananciaMonto) / e.invitados) : 0,
+  };
   return {
     toman,
     tragosTotales,
@@ -435,6 +526,7 @@ export function calcular(
     ingredientes,
     productos,
     clientePone,
+    reventa,
     faltaMinimo,
     productoMayor,
     insumos,
@@ -466,5 +558,6 @@ export function entradaDesdeTipo(tipo: TipoEvento, par: Parametros, invitados = 
     productos: {},
     cajasManual: {},
     clientePone: base?.clientePone ?? [],
+    reventa: base?.reventa,
   };
 }

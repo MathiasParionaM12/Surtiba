@@ -163,6 +163,8 @@ Cálculo (toman = invitados − menores − adultos que no toman; factor = públ
 
 **Ajustes por la investigación (7-nov-2026, `docs/investigacion/`):** pisco sour y maracuyá sour a **60 ml** de pisco (medida IBA; antes 90); **cerveza** como trago secundario en boda, cumpleaños y quinceañero (Surtiba no la vende: sale en "Lo consigues por tu cuenta"); nuevo tipo **Quinceañero**; agua de quien no toma de 0.5 a 0.35 L/h.
 
+**Tu precio para el cliente** (al final del resultado, 7-nov-2026): costo = bebidas de Surtiba + otros costos; precio = costo × (1 + ganancia %), y se muestra **por invitado** y en total. Los otros costos vienen sugeridos con **precio supuesto** que el comprador cambia o quita: bartenders (1 por cada 50 que toman, S/ 150 por evento), cristalería en alquiler (2 vasos por persona que toma + copas de vino en la cena y de espumante en el brindis, S/ 0.80 c/u) y hielo (bolsas de 3 kg, S/ 6). Puede agregar hasta 8 costos propios (barra móvil, mozos…). La ganancia empieza vacía (no hay datos de margen en Lima). Los supuestos no tienen fuente: se confirman en las entrevistas.
+
 Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales se revisaron con la investigación de `docs/investigacion/` y siguen **por confirmar en entrevistas con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
 Se guarda (COT-0001) con "Descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Agregar todo al carrito" reemplaza las cajas de esos productos en el carrito.

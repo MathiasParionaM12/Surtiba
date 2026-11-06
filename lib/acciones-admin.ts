@@ -184,6 +184,7 @@ const CAMPOS_PARAMETROS = [
   "no_toman_pct", "factor_tranquilo", "factor_normal", "factor_fuerte", "factor_dia", "bienvenida_tragos_hora",
   "fiesta_primera_hora", "fiesta_tragos_hora", "cena_copas_hora", "brindis_copas", "hielo_kg_persona_hora",
   "factor_calor", "sin_alcohol_l_hora_toma", "sin_alcohol_l_hora_no_toma", "margen_pct",
+  "invitados_por_bartender", "precio_bartender_centimos", "vasos_por_toma", "precio_vaso_centimos", "precio_bolsa_hielo_centimos",
 ];
 
 // Supuestos generales del cotizador. La base de datos revisa que cada valor esté en su rango.
@@ -193,7 +194,8 @@ export async function guardarParametros(_e: EstadoForm, form: FormData): Promise
   for (const campo of CAMPOS_PARAMETROS) {
     const n = decimal(form, campo);
     if (!Number.isFinite(n)) return { error: "Revisa los valores: hay uno vacío o que no es un número." };
-    p[campo] = n;
+    // Los precios se escriben en soles y se guardan en céntimos (enteros)
+    p[campo] = campo.endsWith("_centimos") ? Math.round(n * 100) : n;
   }
   p.cena_receta_id = id(form, "cena_receta_id");
   p.brindis_receta_id = id(form, "brindis_receta_id");

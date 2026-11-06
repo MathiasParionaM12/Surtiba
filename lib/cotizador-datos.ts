@@ -5,6 +5,8 @@ import { esUuid, ordenarTramos } from "@/lib/catalogo";
 import {
   calcular,
   LIMITES,
+  LIMITES_REVENTA,
+  SUGERIDOS,
   type EntradaCotizador,
   type Ingrediente,
   type IngredienteReceta,
@@ -14,6 +16,7 @@ import {
   type Perfil,
   type ProductoCotizable,
   type Receta,
+  type Reventa,
   type TipoEvento,
   type TragoPropio,
 } from "@/lib/cotizador";
@@ -99,6 +102,8 @@ export async function supuestosCotizador() {
 
 function aParametros(p: Record<string, unknown>): Parametros {
   const n = (k: string) => Number(p[k]);
+  // Columnas nuevas: si la caché todavía trae la fila de antes, usa el valor inicial de la base de datos
+  const o = (k: string, inicial: number) => (p[k] === undefined || p[k] === null ? inicial : Number(p[k]));
   return {
     no_toman_pct: n("no_toman_pct"),
     factor_tranquilo: n("factor_tranquilo"),
@@ -117,6 +122,11 @@ function aParametros(p: Record<string, unknown>): Parametros {
     sin_alcohol_l_hora_toma: n("sin_alcohol_l_hora_toma"),
     sin_alcohol_l_hora_no_toma: n("sin_alcohol_l_hora_no_toma"),
     margen_pct: n("margen_pct"),
+    invitados_por_bartender: o("invitados_por_bartender", 50),
+    precio_bartender_centimos: o("precio_bartender_centimos", 15000),
+    vasos_por_toma: o("vasos_por_toma", 2),
+    precio_vaso_centimos: o("precio_vaso_centimos", 80),
+    precio_bolsa_hielo_centimos: o("precio_bolsa_hielo_centimos", 600),
   };
 }
 
@@ -192,6 +202,37 @@ function limpiarPropios(lista: unknown, ingredientes: Ingrediente[]): TragoPropi
     propios.push({ id: t.id, nombre, ingredientes: ingredientesTrago });
   }
   return propios;
+}
+
+// Tu precio para el cliente: números del comprador, revisados (enteros, en rango). Nunca son precios de Surtiba.
+function limpiarReventa(r: Reventa | undefined): Reventa | undefined {
+  if (!r || typeof r !== "object") return undefined;
+  const L = LIMITES_REVENTA;
+  const enRango = (v: unknown, max: number) => {
+    const n = entero(v);
+    return n >= 0 && n <= max ? n : undefined;
+  };
+  const ganancia = r.ganancia === null || r.ganancia === undefined ? null : (enRango(r.ganancia, L.gananciaMax) ?? null);
+  const quitados = SUGERIDOS.filter((k) => Array.isArray(r.quitados) && r.quitados.includes(k));
+  const ajustes: Reventa["ajustes"] = {};
+  for (const k of SUGERIDOS) {
+    const a = r.ajustes?.[k];
+    if (!a) continue;
+    const cantidad = a.cantidad === undefined ? undefined : enRango(a.cantidad, L.cantidadMax);
+    const precio = a.precio === undefined ? undefined : enRango(a.precio, L.precioMax);
+    if (cantidad !== undefined || precio !== undefined) ajustes[k] = { ...(cantidad !== undefined && { cantidad }), ...(precio !== undefined && { precio }) };
+  }
+  const vistos = new Set<string>();
+  const otros = (Array.isArray(r.otros) ? r.otros : [])
+    .filter((o) => typeof o?.id === "string" && /^otro-[a-z0-9-]{1,30}$/.test(o.id) && !vistos.has(o.id) && vistos.add(o.id))
+    .slice(0, L.otrosMax)
+    .map((o) => ({
+      id: o.id,
+      concepto: String(o.concepto ?? "").trim().slice(0, L.conceptoMax) || "Otro costo",
+      cantidad: enRango(o.cantidad, L.cantidadMax) ?? 0,
+      precio: enRango(o.precio, L.precioMax) ?? 0,
+    }));
+  return { ganancia, quitados, ajustes, otros };
 }
 
 export function limpiarEntrada(
@@ -271,6 +312,7 @@ export function limpiarEntrada(
     productos,
     cajasManual,
     clientePone,
+    reventa: limpiarReventa(e.reventa),
   };
 }
 

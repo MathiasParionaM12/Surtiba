@@ -155,6 +155,8 @@ export type Database = {
           bienvenida_tragos_hora: number; fiesta_primera_hora: number; fiesta_tragos_hora: number; cena_copas_hora: number;
           brindis_copas: number; cena_receta_id: string | null; brindis_receta_id: string | null; hielo_kg_persona_hora: number;
           factor_calor: number; sin_alcohol_l_hora_toma: number; sin_alcohol_l_hora_no_toma: number; margen_pct: number;
+          invitados_por_bartender: number; precio_bartender_centimos: number; vasos_por_toma: number;
+          precio_vaso_centimos: number; precio_bolsa_hielo_centimos: number;
         };
         Insert: { id?: boolean };
         Update: { id?: boolean };

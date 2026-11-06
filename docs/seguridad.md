@@ -12,7 +12,7 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 | Candado del rol | Trigger `perfiles_proteger_rol` (`supabase/sql/23_candado_rol.sql`): aunque algún día se diera un permiso amplio, nadie se cambia el rol ni la marca salvo el admin |
 | Permisos por columna | En `perfiles` el usuario solo edita nombre, empresa, RUC, tipo de negocio y WhatsApp. En `productos` el stock no se edita directo |
 | Vistas | `catalogo_publico` y `carrito_detalle` con `security_invoker = true` |
-| Dinero | Precios, stock y comisiones se calculan en el servidor. El navegador solo manda `producto_id` y `cajas` |
+| Dinero | Precios, stock y comisiones se calculan en el servidor. El navegador solo manda `producto_id` y `cajas`. Única excepción: en "Tu precio para el cliente" del cotizador, el comprador escribe **sus propios** costos y su % de ganancia; no son precios de Surtiba, no tocan pedidos y el servidor los revisa (enteros en rango) y hace la cuenta |
 | Contraseñas | Las maneja Supabase Auth, nunca nuestras tablas. Regla: mínimo 8 caracteres, con letras y números (`lib/acciones-auth.ts` y el panel de Supabase) |
 | Registro | Si el correo ya existe, el mensaje es genérico: no confirma qué correos están registrados. El de ingreso dice "Correo o contraseña incorrectos" |
 | Cabeceras | `next.config.ts`: X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy y una CSP en modo solo reporte |
