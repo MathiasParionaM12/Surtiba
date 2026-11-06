@@ -1,17 +1,18 @@
 // Cálculo del cotizador de evento (corre en el servidor; ver cotizador-datos.ts).
 // El evento se divide en momentos que van uno tras otro:
 //   bienvenida → cena con vino → brindis → fiesta (barra libre, ocupa las horas que quedan)
-// Solo toman alcohol: invitados - los que no toman. Cada momento:
+// Solo toman alcohol: invitados - menores - adultos que no toman. Cada momento:
 //   bienvenida = toman × tragos por hora × horas × factor
 //   cena       = toman × copas por hora × horas × factor
-//   brindis    = toman × copas de brindis
+//   brindis    = adultos (toman o no: todos levantan la copa) × copas de brindis
 //   fiesta     = toman × factor × (1.ª hora más fuerte si es lo primero del evento + 1 trago por hora)
-//   factor = perfil (tranquilo / normal / fuerte) × horario (de día se toma menos)
+//   factor = perfil (tranquilo / normal / fuerte) × horario (de día se toma menos, salvo que el perfil ya sea
+//            "toma poco": no se castiga dos veces, 7-nov-2026)
 // La barra reparte sus tragos por nivel: principal 3, secundario 2, ocasional 1.
 // A todo se le suma el margen de seguridad. Luego se suman los ingredientes de todos los tragos (recetario):
 // lo que vende Surtiba (pisco, ron, vino…) busca su producto; lo demás va a "lo consigues por tu cuenta".
 // Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
-// Todos los valores salen de parametros_cotizador: SUPUESTOS POR VALIDAR CON CATERINGS.
+// Todos los valores salen de parametros_cotizador. Se revisaron con la investigación de docs/investigacion/ (nov-2026).
 
 import type { Tramo } from "@/lib/catalogo";
 import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
@@ -100,7 +101,8 @@ export type EntradaCotizador = {
   fecha: string; // AAAA-MM-DD o vacío
   tipoEventoId: string;
   invitados: number;
-  noToman: number;
+  noToman: number; // adultos que no toman alcohol
+  menores?: number; // menores de edad: no toman ni brindan (las cotizaciones viejas no lo tienen = 0)
   horaInicio: string; // "19:00"
   horas: number;
   aireLibre: boolean;
@@ -249,11 +251,14 @@ export function calcular(
   const propios: Receta[] = (e.propios ?? []).map((t) => ({ id: t.id, nombre: t.nombre, categoria: "otro", ingredientes: t.ingredientes }));
   const recetaPorId = new Map([...recetas, ...propios].map((r) => [r.id, r]));
   const productoPorId = new Map(catalogo.map((p) => [p.id, p]));
-  const toman = Math.max(0, e.invitados - e.noToman);
+  const menores = Math.min(Math.max(0, e.menores ?? 0), e.invitados);
+  const adultos = e.invitados - menores;
+  const toman = Math.max(0, adultos - e.noToman);
   const horaInicio = Number(e.horaInicio.split(":")[0]);
   const deDia = horaInicio >= 6 && horaInicio < 17;
   const factorPerfil = { tranquilo: par.factor_tranquilo, normal: par.factor_normal, fuerte: par.factor_fuerte }[e.perfil];
-  const factor = factorPerfil * (deDia ? par.factor_dia : 1);
+  // De día se toma menos, pero si el público ya es "toma poco" no se castiga dos veces (antes daba ×0.64)
+  const factor = factorPerfil * (deDia && e.perfil !== "tranquilo" ? par.factor_dia : 1);
   const margen = 1 + e.margen / 100;
   const reparto = repartoBarra(e.barra);
 
@@ -297,7 +302,7 @@ export function calcular(
   if (e.brindis.activo) {
     if (!par.brindis_receta_id || !recetaPorId.has(par.brindis_receta_id)) avisos.push("El brindis no tiene un trago configurado. Avísale a Surtiba.");
     agregarMomento(
-      { clave: "brindis", nombre: "Brindis", desde: reloj, hasta: null, horas: 0, tragos: toman * par.brindis_copas * margen },
+      { clave: "brindis", nombre: "Brindis", desde: reloj, hasta: null, horas: 0, tragos: adultos * par.brindis_copas * margen },
       par.brindis_receta_id ? [{ recetaId: par.brindis_receta_id, parte: 1 }] : [],
     );
   }
@@ -398,8 +403,9 @@ export function calcular(
   // 5. Lo que consigues por tu cuenta: hielo, agua y gaseosas, y los ingredientes que Surtiba no vende
   const insumos: Insumo[] = [];
   const hielo = arriba(e.invitados * e.horas * par.hielo_kg_persona_hora * (e.aireLibre ? par.factor_calor : 1) * margen);
-  if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `unas ${arriba(hielo / 5)} bolsas de 5 kg` });
-  const agua = arriba((toman * par.sin_alcohol_l_hora_toma + e.noToman * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
+  // En Lima el hielo se vende en bolsas de 3 kg (algunos mayoristas piden un mínimo de bolsas)
+  if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `${arriba(hielo / 3)} bolsas de 3 kg` });
+  const agua = arriba((toman * par.sin_alcohol_l_hora_toma + (e.noToman + menores) * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
   if (agua > 0) insumos.push({ nombre: "Agua y gaseosas para tomar solas", cantidad: agua, unidad: "litros" });
   porTuCuenta.sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
   for (const i of porTuCuenta) insumos.push({ nombre: i.nombre, cantidad: i.cantidad, unidad: i.unidad, nota: i.nota, deSurtiba: i.deSurtiba });
@@ -430,7 +436,8 @@ export function entradaDesdeTipo(tipo: TipoEvento, par: Parametros, invitados = 
     fecha: base?.fecha ?? "",
     tipoEventoId: tipo.id,
     invitados,
-    noToman: Math.round((invitados * par.no_toman_pct) / 100),
+    noToman: Math.round(((invitados - (base?.menores ?? 0)) * par.no_toman_pct) / 100),
+    menores: base?.menores ?? 0,
     horaInicio: base?.horaInicio ?? "19:00",
     horas: tipo.horas,
     aireLibre: base?.aireLibre ?? false,

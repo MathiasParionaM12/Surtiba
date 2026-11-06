@@ -41,6 +41,7 @@ type EventoV2 = {
     fecha: string;
     invitados: number;
     no_toman: number;
+    menores?: number;
     hora_inicio: string;
     horas: number;
     margen: number;
@@ -253,7 +254,7 @@ function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
       <Text style={s.sello}>Evento</Text>
       <Text style={{ marginTop: 4, fontSize: 12, fontFamily: "Helvetica-Bold" }}>{e.nombre || e.tipo}</Text>
       <Text style={[s.gris, { marginTop: 2 }]}>
-        {[e.nombre && e.tipo, e.fecha && fecha(e.fecha), `${entero.format(e.invitados)} invitados (${entero.format(e.invitados - e.no_toman)} toman alcohol)`, `${e.hora_inicio}–${fin}`, e.aire_libre ? "aire libre o verano" : "interior"]
+        {[e.nombre && e.tipo, e.fecha && fecha(e.fecha), `${entero.format(e.invitados)} invitados (${entero.format(Math.max(0, e.invitados - (e.menores ?? 0) - e.no_toman))} toman alcohol${e.menores ? `, ${entero.format(e.menores)} menores` : ""})`, `${e.hora_inicio}–${fin}`, e.aire_libre ? "aire libre o verano" : "interior"]
           .filter(Boolean)
           .join(" · ")}
       </Text>

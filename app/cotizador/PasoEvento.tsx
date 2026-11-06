@@ -20,6 +20,7 @@ export function PasoEvento({
   tipos,
   cambiarTipo,
   cambiarInvitados,
+  cambiarMenores,
   sugeridoNoToman,
   parametros,
 }: {
@@ -28,6 +29,7 @@ export function PasoEvento({
   tipos: TipoEvento[];
   cambiarTipo: (id: string) => void;
   cambiarInvitados: (valor: string) => void;
+  cambiarMenores: (valor: string) => void;
   sugeridoNoToman: number;
   parametros: Parametros;
 }) {
@@ -37,7 +39,7 @@ export function PasoEvento({
   const hora = Number(entrada.horaInicio.split(":")[0]);
   const deDia = hora >= 6 && hora < 17;
   const factor = { tranquilo: parametros.factor_tranquilo, normal: parametros.factor_normal, fuerte: parametros.factor_fuerte };
-  const porHora = (p: keyof typeof factor) => parametros.fiesta_tragos_hora * factor[p] * (deDia ? parametros.factor_dia : 1);
+  const porHora = (p: keyof typeof factor) => parametros.fiesta_tragos_hora * factor[p] * (deDia && p !== "tranquilo" ? parametros.factor_dia : 1);
   const decimal = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
   return (
@@ -101,24 +103,38 @@ export function PasoEvento({
           />
         </label>
         <label className="flex flex-col gap-2">
-          <Etiqueta texto="¿Cuántos no toman alcohol?" />
+          <Etiqueta texto="Adultos que no toman alcohol" />
           <input
             type="number"
             inputMode="numeric"
             min={0}
-            max={entrada.invitados}
+            max={entrada.invitados - (entrada.menores ?? 0)}
             value={entrada.noToman}
             onChange={(e) => actualizar({ noToman: Math.max(0, Math.trunc(Number(e.target.value)) || 0) })}
             className={`${campo} font-mono`}
           />
           <span className="text-xs text-gris">
-            Niños, conductores y quienes no toman. Sugerido: {sugeridoNoToman}.{" "}
+            Conductores y quienes no toman. Sugerido: {sugeridoNoToman} (20 % de los adultos).{" "}
             {entrada.noToman !== sugeridoNoToman && (
               <button type="button" onClick={() => actualizar({ noToman: sugeridoNoToman })} className={`${areaToque} font-medium enlace text-verde hover:text-tinta`}>
                 Usar sugerido
               </button>
             )}
           </span>
+        </label>
+        {/* Menores (quinceañeros, eventos familiares): no toman ni brindan; sí cuentan para el agua y el hielo */}
+        <label className="flex flex-col gap-2">
+          <Etiqueta texto="Menores de edad" nota="opcional" />
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={entrada.invitados}
+            value={entrada.menores ?? 0}
+            onChange={(e) => cambiarMenores(e.target.value)}
+            className={`${campo} font-mono`}
+          />
+          <span className="text-xs text-gris">No toman ni brindan. En un quinceañero, cuenta aquí a los amigos de la quinceañera.</span>
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Hora de inicio" />

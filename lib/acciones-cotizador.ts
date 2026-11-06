@@ -60,6 +60,7 @@ export async function guardarCotizacion(entrada: EntradaCotizador): Promise<Resp
       fecha: limpia.fecha,
       invitados: limpia.invitados,
       no_toman: limpia.noToman,
+      menores: limpia.menores ?? 0,
       hora_inicio: limpia.horaInicio,
       horas: limpia.horas,
       perfil: limpia.perfil,

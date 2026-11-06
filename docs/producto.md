@@ -148,19 +148,22 @@ El admin ya no puede saltarse pasos (la base lo bloquea aunque se llame directo)
 **Solo con cuenta** (comprador; el admin también lo ve). Sin sesión, `/cotizador` explica qué hace con un ejemplo y pide crear cuenta.
 
 Asistente en **3 pasos** (desde el 6-nov-2026; antes eran 4):
-1. **Evento:** tipo (llena los valores típicos), nombre y fecha (opcionales), invitados, **cuántos no toman alcohol** (sugerido: 20 %), hora de inicio, duración, lugar (interior / aire libre o verano) y **¿Cómo es tu público?** (toma poco / normal / toma bastante, cada uno con sus tragos por hora; lo sugiere el tipo de evento).
+1. **Evento:** tipo (llena los valores típicos), nombre y fecha (opcionales), invitados, **adultos que no toman alcohol** (sugerido: 20 % de los adultos), **menores de edad** (opcional; no toman ni brindan), hora de inicio, duración, lugar (interior / aire libre o verano) y **¿Cómo es tu público?** (toma poco / normal / toma bastante, cada uno con sus tragos por hora; lo sugiere el tipo de evento).
    - **Momentos del evento** (sección plegable dentro de este paso; antes era un paso aparte). Ya vienen sugeridos según el tipo de evento y se abren solo para cambiarlos. Uno tras otro: **bienvenida** (con su trago o los de la barra), **cena con vino**, **brindis** (espumante) y **fiesta**, que ocupa las horas que quedan.
 2. **Barra:** el comprador busca los tragos del recetario (por nombre o por ingrediente, ej. "pisco") o usa **"Crear mi trago"**: nombre e ingredientes por trago, elegidos de la lista o escritos a mano (hasta 5 tragos propios de 8 ingredientes; viven solo en su cotización y el servidor los revisa y decide qué ingredientes vende Surtiba). Marca cada uno como **principal (3), secundario (2) u ocasional (1)**; no se usan porcentajes. Además elige **"¿Pedimos un poco extra por si acaso?"**: lo justo, +10 % o +20 % (el sugerido lo fija el admin), con cuántos tragos de más significa.
 3. **Resultado:** tragos por momento, costo total y por invitado, y el detalle por ingredientes (recetario, 21-oct-2026). Se suman los ingredientes de todos los tragos: **"Lo que necesitas de Surtiba"** (pisco, ron, vino… con el producto recomendado o elegido; en los licores el comprador elige cuál), **"Lo que pedirías a Surtiba"** (cajas editables, cada producto con su botón *Agregar*) y **"Lo consigues por tu cuenta"** (hielo, agua y gaseosas, y todo lo que Surtiba no vende o no tiene por ahora, con cantidades y para qué tragos).
 
-Cálculo (solo cuentan los que toman; factor = público × horario, de día se toma menos):
+Cálculo (toman = invitados − menores − adultos que no toman; factor = público × horario: de día se toma menos, salvo que el público ya sea "toma poco", para no castigar dos veces):
 - bienvenida = toman × tragos por hora × horas × factor
 - cena = toman × copas por hora × horas × factor
-- brindis = toman × copas de brindis
+- brindis = **todos los adultos** × copas de brindis (aunque no tomen, levantan la copa)
 - fiesta = toman × factor × tragos por hora (la 1.ª hora más fuerte solo si la fiesta es lo primero)
 - todo × (1 + margen). Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
+- Agua y gaseosas: 0.35 L por hora para quien no toma (adultos y menores). Hielo en **bolsas de 3 kg** (como se vende en Lima).
 
-Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales son **supuestos por validar con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
+**Ajustes por la investigación (7-nov-2026, `docs/investigacion/`):** pisco sour y maracuyá sour a **60 ml** de pisco (medida IBA; antes 90); **cerveza** como trago secundario en boda, cumpleaños y quinceañero (Surtiba no la vende: sale en "Lo consigues por tu cuenta"); nuevo tipo **Quinceañero**; agua de quien no toma de 0.5 a 0.35 L/h.
+
+Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales se revisaron con la investigación de `docs/investigacion/` y siguen **por confirmar en entrevistas con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
 Se guarda (COT-0001) con "Descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Agregar todo al carrito" reemplaza las cajas de esos productos en el carrito.
 

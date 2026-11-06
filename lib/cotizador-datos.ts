@@ -204,8 +204,10 @@ export function limpiarEntrada(
   if (!tipo) return "Elige el tipo de evento.";
   const invitados = entero(e.invitados);
   if (!(invitados >= 1 && invitados <= LIMITES.invitadosMax)) return `Los invitados van de 1 a ${LIMITES.invitadosMax}.`;
+  const menores = entero(e.menores ?? 0);
+  if (!(menores >= 0 && menores <= invitados)) return "Los menores de edad van de 0 al total de invitados.";
   const noToman = entero(e.noToman);
-  if (!(noToman >= 0 && noToman <= invitados)) return "Los que no toman alcohol van de 0 al total de invitados.";
+  if (!(noToman >= 0 && noToman <= invitados - menores)) return "Los adultos que no toman van de 0 al total de adultos (invitados menos menores).";
   const horas = entero(e.horas);
   if (!(horas >= 1 && horas <= LIMITES.horasMax)) return `La duración va de 1 a ${LIMITES.horasMax} horas.`;
   const horaInicio = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(e.horaInicio)) ? String(e.horaInicio) : "19:00";
@@ -243,6 +245,7 @@ export function limpiarEntrada(
     tipoEventoId: tipo.id,
     invitados,
     noToman,
+    menores,
     horaInicio,
     horas,
     aireLibre: e.aireLibre === true,

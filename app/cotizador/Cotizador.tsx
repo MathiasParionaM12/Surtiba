@@ -95,15 +95,31 @@ export function Cotizador({
     if ("noToman" in cambio) noTomanTocado.current = true;
     setEntrada((e) => ({ ...e, ...cambio }));
   };
-  const sugeridoNoToman = Math.round((entrada.invitados * parametros.no_toman_pct) / 100);
+  // El 20 % sugerido es sobre los adultos: los menores se cuentan aparte (no toman ni brindan)
+  const adultosDe = (e: EntradaCotizador) => Math.max(0, e.invitados - (e.menores ?? 0));
+  const sugeridoNoToman = Math.round((adultosDe(entrada) * parametros.no_toman_pct) / 100);
   const cambiarInvitados = (valor: string) => {
     const invitados = Math.min(LIMITES.invitadosMax, Math.max(0, Math.trunc(Number(valor)) || 0));
     setEntrada((e) => ({
       ...e,
       invitados,
       // Si la persona no tocó "no toman", se mantiene el sugerido
-      noToman: noTomanTocado.current ? Math.min(e.noToman, invitados) : Math.round((invitados * parametros.no_toman_pct) / 100),
+      menores: Math.min(e.menores ?? 0, invitados),
+      noToman: noTomanTocado.current
+        ? Math.min(e.noToman, adultosDe({ ...e, invitados }))
+        : Math.round((adultosDe({ ...e, invitados }) * parametros.no_toman_pct) / 100),
     }));
+  };
+  const cambiarMenores = (valor: string) => {
+    setEntrada((e) => {
+      const menores = Math.min(e.invitados, Math.max(0, Math.trunc(Number(valor)) || 0));
+      const adultos = e.invitados - menores;
+      return {
+        ...e,
+        menores,
+        noToman: noTomanTocado.current ? Math.min(e.noToman, adultos) : Math.round((adultos * parametros.no_toman_pct) / 100),
+      };
+    });
   };
   const cambiarTipo = (id: string) => {
     const tipo = tipos.find((t) => t.id === id);
@@ -199,6 +215,7 @@ export function Cotizador({
               tipos={tipos}
               cambiarTipo={cambiarTipo}
               cambiarInvitados={cambiarInvitados}
+              cambiarMenores={cambiarMenores}
               sugeridoNoToman={sugeridoNoToman}
               parametros={parametros}
               />
