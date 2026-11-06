@@ -26,7 +26,7 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si no llega al pedido mínimo (3 cajas en total). Si un producto no alcanza el stock, pide decidir **antes de pagar** (5-nov-2026): **pedir lo que falta por encargo**, **cambiarlo por otro con stock** (hasta 3 de la misma categoría) o **llevar solo lo que hay**. Botón **"Descargar cotización (PDF)"** |
-| Confirmar pedido | Quién recibe (nombre y celular +51), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Del evento, **solo la fecha** (opcional, el mismo día de la entrega o después; KISS, 5-nov-2026): si tiene una cotización de las 2 últimas semanas sin pedido, sale de ella. Se autocompleta con el perfil (su dirección habitual) y el último pedido |
+| Confirmar pedido | Quién recibe (nombre y celular +51), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia) y nota. **Ya no elige el día de entrega** (6-nov-2026): pone la **fecha de su evento** (opcional; si tiene una cotización de las 2 últimas semanas sin pedido, sale de ella) y ve "Te lo llevamos el jueves 19 de noviembre". Casilla **"Lo quiero lo antes posible"**. Si no se llega antes del evento, se le avisa y no puede pagar hasta marcar esa casilla o cambiar la fecha. Se autocompleta con el perfil (su dirección habitual) y el último pedido |
 | **Libro de Reclamaciones** (22-oct-2026) | `/libro-de-reclamaciones`, enlazado con ícono en el pie de todas las páginas. Para cualquiera, con o sin cuenta: reclamo o queja, datos (documento, domicilio, correo), producto o servicio, pedido y monto (opcionales), qué pasó y qué pide. Recibe un código correlativo (REC-2026-0001) y la fecha límite de respuesta (15 días hábiles, de lunes a viernes). Ve su copia para imprimir o guardar en PDF (todavía no se envía por correo). Con cuenta, ve sus hojas y la respuesta |
 | Condiciones y privacidad (22-oct-2026) | `/condiciones` (precios con IGV, encargos, pago simulado, entrega, cancelaciones y devoluciones) y `/privacidad` (Ley 29733: qué datos, para qué, quién los ve, dónde están y derechos ARCO). Los datos de Surtiba (razón social, RUC, dirección, correo) dicen "Por definir" hasta que existan: se llenan en `lib/empresa.ts` |
 | **Mi perfil** (22-oct-2026) | Desde su nombre y su foto en el encabezado. Foto o logo (privada: solo la ven él y Surtiba), nombre, empresa, tipo de negocio, WhatsApp, RUC, dirección de entrega habitual y cambiar contraseña (pide la actual). No se guardan métodos de pago ni tarjetas |
@@ -51,7 +51,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 | Inicio | Solo **lo que necesita atención** (5-nov-2026): solicitudes de marca, reclamos por responder, órdenes listas, pedidos para enviar o en camino, encargos esperando y pagos pendientes. Si no hay nada: "Todo al día". Los números están en Métricas |
 | Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
 | Pedidos | Todos los pedidos en pestañas por etapa (22-oct-2026): Por atender, Por recoger, En camino, Cerrados y Todos, cada una con su número. Filtros por marca y pago y buscador por código o comprador, que se aplican al instante. Ve los datos del comprador |
-| Logística | **Hoja de ruta por día** (22-oct-2026): resumen (recojos y entregas de hoy, atrasados, recojos sin fecha) y luego **Hoy** (con lo atrasado), **Mañana** y **Más adelante** (con los recojos sin fecha). En cada día, **Recoger** (agrupado por marca, con fecha de recojo y botón "Recogido") y **Entregar** (dirección completa, quién recibe, cuántas marcas faltan recoger y los botones "En camino" y "Entregado") |
+| Logística | **Por día de entrega** (6-nov-2026): resumen (próxima entrega, órdenes por recoger y pedidos para ese día, atrasados) y luego un bloque por día (los atrasados primero). En cada día: **Recoger** (la víspera, agrupado por marca, con **"Recogí todo de esta marca"**, que también recoge lo que la marca no marcó como listo y avisa en rojo) y **Entregar** (dirección, quién recibe, cuántas marcas faltan y **"Entregado"**). "En camino" pasa solo cuando no falta recoger nada. Abajo: **días de entrega y anticipación** y **envío por zona** |
 | **Reclamos** (22-oct-2026) | Hojas por responder (la que vence antes primero, en rojo si venció) y respondidas. Cada hoja se responde una sola vez y el comprador recibe un aviso |
 | **Métricas** (21-oct-2026) | Ventas del mes (entregado) vs el anterior, cajas, pedidos y ticket promedio, comisión generada y exonerada, vendido por semana (8 semanas); embudo de 30 días (vieron un producto → carrito → empezaron a pedir → pedido → pagado → entregado) y cotización → pedido; operación (horas hasta listo, recojo y entrega; atrasos); ranking de marcas; compradores activos, nuevos y recurrentes, por tipo de negocio y distrito; productos más vendidos, más cotizados y nunca vendidos. Todo de `admin_insights()` |
 | Pagos | Marcar un pedido como pagado y con qué método: transferencia, Yape, Plin o efectivo. Sin pasarela |
@@ -64,6 +64,13 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - Con sesión de comprador: la escala completa.
 - Esto se controla en la base de datos (una vista o función que solo devuelve el primer tramo), no solo ocultándolo en pantalla.
 - RLS filtra filas, no columnas. Para ocultar columnas (stock al visitante, contactos y dirección de las marcas) se usan **vistas**.
+
+### Entregas (decidido el 5/6-nov-2026)
+- **Solo martes y jueves.** Hay que pedir con **2 días de anticipación** (jueves → hasta el martes; martes → hasta el domingo). El admin cambia los días y la anticipación en Logística (`entregas_config`).
+- **El comprador no elige el día**: Surtiba le asigna la **última entrega antes de su evento**; sin evento, o con "Lo quiero lo antes posible", la **más cercana**. Si no se llega antes del evento, `crear_pedido` no deja pagar (salvo con esa casilla).
+- **El recojo es la víspera** de la entrega y se asigna solo (ya no se pone a mano).
+- **Encargos:** la entrega es la primera después de que todas sus marcas lo tengan listo (respetando el evento); se recalcula cuando las marcas confirman y cuando el comprador paga.
+- La regla está en `privado.entrega_asignada` (`41_entregas_martes_jueves.sql`) y la misma, para mostrarla antes de pagar, en `lib/entregas.ts`. Los feriados no se descuentan.
 
 ### Envío (decidido el 22-oct-2026)
 - **Fijo por pedido según la zona del distrito**, sin importar las cajas: zona 1 (Lima Centro y Moderna: Barranco, Breña, Jesús María, La Victoria, Cercado, Lince, Magdalena, Miraflores, Pueblo Libre, Rímac, San Borja, San Isidro, San Luis, San Miguel, Surco, Surquillo) **S/ 20**; zona 2 (el resto de Lima y el Callao) **S/ 35**. Son supuestos: el admin los cambia en Logística.
@@ -184,5 +191,5 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 ## Decisiones pendientes (no inventarlas; preguntar a Mathias)
 - % de comisión definitivo (el experimento mostró que 12% es alto). **Por ahora es fija de 7 %** para todas las marcas (era 5 % desde el 14-oct-2026; subió el 22-oct-2026).
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
-- Zonas y horarios de entrega
+- Horarios de entrega (los días ya están: martes y jueves)
 - Valores iniciales del cotizador

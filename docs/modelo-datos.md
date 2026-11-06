@@ -195,6 +195,8 @@ Los **tragos propios** del comprador ("Crear mi trago") no tienen tabla: viajan 
 
 **eventos** (21-oct-2026, embudo del admin): `tipo` (vio_producto · agrego_carrito · inicio_pedido), producto_id, perfil_id (si hay sesión), creado_en. Se registran solo con `registrar_evento` (visitantes incluidos; la base pone el perfil). Solo el admin los lee. Sin cookies ni datos personales (`supabase/sql/31_eventos.sql`). Se borran solos a los 90 días.
 
+**entregas_config** (6-nov-2026, una sola fila): `dias` (1 = lunes … 7 = domingo; hoy {2,4}) y `corte_dias` (anticipación; hoy 2). La lee cualquiera; la cambia el admin con `admin_guardar_entregas`. `pedidos.fecha_entrega_deseada` ahora es la **fecha asignada** (martes o jueves), `pedidos.lo_antes` guarda si pidió "lo antes posible" y `subpedidos.fecha_recojo` es la víspera, puesta por `crear_pedido` o, en los encargos, por el trigger `pedidos_entrega_de_encargo`.
+
 **carrito.encargo** (5-nov-2026): `true` si el comprador aceptó pedir por encargo lo que pasa del stock de esa línea. Cambiar la cantidad lo vuelve a `false` (hay que decidir otra vez).
 
 **zonas_envio** y **distritos_envio** (22-oct-2026, `supabase/sql/36_envio_por_zona.sql`): el monto fijo por pedido de cada zona (1 y 2) y la zona de cada distrito. Los lee cualquiera; el monto lo cambia solo el admin con `admin_guardar_envio`. `crear_pedido` copia el monto en `pedidos.envio_centimos`.
