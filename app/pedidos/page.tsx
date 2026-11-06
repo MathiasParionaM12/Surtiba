@@ -26,6 +26,32 @@ export default function PaginaPedidos() {
   );
 }
 
+type Pedido = {
+  id: string;
+  codigo: string;
+  estado: string;
+  tipo: string;
+  total_centimos: number;
+  pagado_centimos: number;
+  creado_en: string;
+  fecha_entrega_deseada: string;
+  evento_nombre: string | null;
+  subpedidos: { total_cajas: number; estado: string }[];
+};
+
+const porPagar = (p: Pedido) => p.estado !== "cancelado" && p.estado !== "por_confirmar" && p.total_centimos > p.pagado_centimos;
+
+// Secciones con separador (6-nov-2026): primero lo que necesita algo de ti, al final lo cerrado.
+// Cada pedido va en la primera sección que le corresponde.
+const SECCIONES: { titulo: string; incluye: (p: Pedido) => boolean; plegada?: boolean }[] = [
+  { titulo: "Para pagar", incluye: porPagar },
+  { titulo: "En camino", incluye: (p) => p.estado === "en_camino" },
+  { titulo: "En preparación", incluye: (p) => p.estado === "recibido" || p.estado === "en_preparacion" },
+  { titulo: "Esperando a la marca", incluye: (p) => p.estado === "por_confirmar" },
+  { titulo: "Entregados", incluye: (p) => p.estado === "entregado" },
+  { titulo: "Cancelados", incluye: (p) => p.estado === "cancelado", plegada: true },
+];
+
 async function ListaPedidos() {
   const usuario = await obtenerUsuario();
   if (!usuario) redirect("/ingresar");
@@ -44,48 +70,82 @@ async function ListaPedidos() {
     );
   }
 
+  const usados = new Set<string>();
+  const secciones = SECCIONES.map((s) => {
+    const lista = pedidos.filter((p) => !usados.has(p.id) && s.incluye(p));
+    lista.forEach((p) => usados.add(p.id));
+    return { ...s, lista };
+  }).filter((s) => s.lista.length > 0);
+
   return (
-    <ul className="escalonado mt-8 flex flex-col gap-3">
-      {pedidos.map((p) => {
-        const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
-        const cajas = vigentes.reduce((s, x) => s + x.total_cajas, 0);
+    <div className="mt-8 flex flex-col gap-10">
+      {secciones.map((s) => {
+        const lista = (
+          <ul className="escalonado mt-3 flex flex-col gap-3">
+            {s.lista.map((p) => (
+              <FilaPedido key={p.id} p={p} />
+            ))}
+          </ul>
+        );
         return (
-          <li key={p.id}>
-            <Link
-              href={`/pedidos/${p.id}`}
-              className="grid grid-cols-2 gap-3 rounded-md border border-linea bg-blanco p-4 transition-colors hover:border-gris sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-6 sm:p-5"
-            >
-              <div className="col-span-2 sm:col-span-1">
-                <p className="font-mono font-medium">
-                  {p.codigo}
-                  {p.tipo === "encargo" && (
-                    <span className="ml-2 rounded-sm border border-linea px-1.5 py-0.5 font-sans text-[11px] font-normal text-gris">Encargo</span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-sm text-gris">
-                  {p.evento_nombre ? `${p.evento_nombre} · ` : ""}Pedido el {fecha(p.creado_en)}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-xs text-gris">Entrega</p>
-                <p className="font-mono">{fecha(p.fecha_entrega_deseada)}</p>
-              </div>
-              <div className="text-sm sm:text-right">
-                <p className="text-xs text-gris">
-                  {vigentes.length} {vigentes.length === 1 ? "marca" : "marcas"} · {cajas} cajas
-                </p>
-                <p className="font-mono font-medium">{soles(p.total_centimos)}</p>
-              </div>
-              <div className="col-span-2 flex flex-col items-start gap-1 sm:col-span-1">
-                <EtiquetaEstado estado={p.estado} />
-                {p.estado !== "cancelado" && p.estado !== "por_confirmar" && p.total_centimos > p.pagado_centimos && (
-                  <span className="text-xs font-medium">Por pagar: {soles(p.total_centimos - p.pagado_centimos)}</span>
-                )}
-              </div>
-            </Link>
-          </li>
+          <section key={s.titulo}>
+            {s.plegada ? (
+              <details>
+                <summary className={`${sello} cursor-pointer border-b border-linea pb-2 hover:text-tinta`}>
+                  {s.titulo} · {s.lista.length}
+                </summary>
+                {lista}
+              </details>
+            ) : (
+              <>
+                <h2 className={`${sello} border-b border-linea pb-2`}>
+                  {s.titulo} · {s.lista.length}
+                </h2>
+                {lista}
+              </>
+            )}
+          </section>
         );
       })}
-    </ul>
+    </div>
+  );
+}
+
+function FilaPedido({ p }: { p: Pedido }) {
+  const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
+  const cajas = vigentes.reduce((s, x) => s + x.total_cajas, 0);
+  return (
+    <li>
+      <Link
+        href={`/pedidos/${p.id}`}
+        className="grid grid-cols-2 gap-3 rounded-md border border-linea bg-blanco p-4 transition-colors hover:border-gris sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-6 sm:p-5"
+      >
+        <div className="col-span-2 sm:col-span-1">
+          <p className="font-mono font-medium">
+            {p.codigo}
+            {p.tipo === "encargo" && (
+              <span className="ml-2 rounded-sm border border-linea px-1.5 py-0.5 font-sans text-[11px] font-normal text-gris">Encargo</span>
+            )}
+          </p>
+          <p className="mt-0.5 text-sm text-gris">
+            {p.evento_nombre ? `${p.evento_nombre} · ` : ""}Pedido el {fecha(p.creado_en)}
+          </p>
+        </div>
+        <div className="text-sm">
+          <p className="text-xs text-gris">Entrega</p>
+          <p className="font-mono">{fecha(p.fecha_entrega_deseada)}</p>
+        </div>
+        <div className="text-sm sm:text-right">
+          <p className="text-xs text-gris">
+            {vigentes.length} {vigentes.length === 1 ? "marca" : "marcas"} · {cajas} {cajas === 1 ? "caja" : "cajas"}
+          </p>
+          <p className="font-mono font-medium">{soles(p.total_centimos)}</p>
+        </div>
+        <div className="col-span-2 flex flex-col items-start gap-1 sm:col-span-1">
+          <EtiquetaEstado estado={p.estado} />
+          {porPagar(p) && <span className="text-xs font-medium">Por pagar: {soles(p.total_centimos - p.pagado_centimos)}</span>}
+        </div>
+      </Link>
+    </li>
   );
 }

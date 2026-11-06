@@ -43,12 +43,13 @@ export async function MenuSesion() {
   return (
     <div className="flex min-w-0 items-center gap-2 sm:gap-3">
       {usuario.rol === "comprador" ? (
-        // El comprador entra a "Mi perfil" desde su nombre y su foto
-        <Link href="/perfil" aria-label="Mi perfil" className="group flex min-w-0 items-center gap-2.5 rounded-md">
-          <span className="hidden min-w-0 text-right leading-tight md:block">
-            <span className="block max-w-48 truncate text-sm font-medium group-hover:text-verde">{nombre}</span>
-            <span className="block font-mono text-[11px] tracking-[0.1em] text-gris uppercase">Mi perfil</span>
-          </span>
+        // El comprador entra a "Mi perfil" desde el ícono de su cuenta (solo la foto o la inicial: ocupa menos, 6-nov-2026)
+        <Link
+          href="/perfil"
+          aria-label={`Mi perfil · ${nombre}`}
+          title={`${nombre} · Mi perfil`}
+          className="rounded-full transition-shadow hover:ring-2 hover:ring-verde focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-verde"
+        >
           <FotoPerfil nombre={nombre} foto={foto} />
         </Link>
       ) : (
