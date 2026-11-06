@@ -8,7 +8,7 @@ import { Etiqueta } from "@/components/Etiqueta";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { confirmarPedido } from "@/lib/acciones-pedidos";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
-import { entregaAsignada, fechaLarga, textoDias, type ConfigEntregas } from "@/lib/entregas";
+import { diasEntre, entregaAsignada, fechaLarga, textoDias, type ConfigEntregas } from "@/lib/entregas";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { METODOS_PAGO } from "@/lib/pagos";
@@ -164,9 +164,17 @@ export function FormConfirmar({
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium">Te lo llevamos el</span>
           {entrega ? (
-            <p className="rounded-md border border-verde bg-blanco px-3 py-2.5 font-medium text-verde first-letter:uppercase">
-              {fechaLarga(entrega)}
-            </p>
+            <div className="rounded-md border border-verde bg-blanco px-3 py-2.5">
+              <p className="font-medium text-verde first-letter:uppercase">{fechaLarga(entrega)}</p>
+              {/* Por qué ese día: la última entrega antes del evento, o la más cercana */}
+              <p className="mt-0.5 text-xs text-gris">
+                {evento && !loAntes
+                  ? `Tu evento es el ${fechaLarga(evento)}: es la última entrega antes${
+                      diasEntre(entrega, evento) === 1 ? ", un día antes." : `, ${diasEntre(entrega, evento)} días antes.`
+                    }`
+                  : "Es la entrega más cercana."}
+              </p>
+            </div>
           ) : (
             <Advertencia>
               No llegamos antes de tu evento: la primera entrega posible es el {fechaLarga(primera ?? "")}. Marca «Lo quiero lo antes

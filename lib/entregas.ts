@@ -17,6 +17,8 @@ export function sumarDias(f: string, n: number) {
   return aTexto(d);
 }
 export const diaSemana = (f: string) => aFecha(f).getUTCDay() || 7; // 1 = lunes … 7 = domingo
+// Días de "desde" a "hasta" (AAAA-MM-DD)
+export const diasEntre = (desde: string, hasta: string) => Math.round((aFecha(hasta).getTime() - aFecha(desde).getTime()) / 86400000);
 
 // La misma regla que privado.entrega_asignada. Devuelve null si no se llega antes del evento.
 export function entregaAsignada(minimo: string, evento: string | null, loAntes: boolean, cfg: ConfigEntregas) {
