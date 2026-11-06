@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
+import { Check, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import {
   LIMITES,
@@ -73,6 +73,15 @@ export function PasoBarra({
   const encontrados = q
     ? sinUsar.filter((r) => normalizar(r.nombre).includes(q) || r.ingredientes.some((i) => normalizar(i.nombre).includes(q)))
     : [];
+
+  // Licores que vende Surtiba en esta barra. Los que ya pone el cliente siguen en la lista para poder desmarcarlos.
+  const pone = entrada.clientePone ?? [];
+  const licores = [
+    ...resultado.ingredientes.map((i) => ({ id: i.ingredienteId, nombre: i.nombre })),
+    ...(resultado.clientePone ?? []).map((l) => ({ id: l.ingredienteId, nombre: l.nombre })),
+  ].sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const alternarCliente = (id: string) =>
+    actualizar({ clientePone: pone.includes(id) ? pone.filter((x) => x !== id) : [...pone, id] });
 
   const cambiarNivel = (recetaId: string, nivel: Nivel) =>
     actualizar({ barra: entrada.barra.map((b) => (b.recetaId === recetaId ? { ...b, nivel } : b)) });
@@ -243,6 +252,37 @@ export function PasoBarra({
           </div>
         )}
       </section>
+
+      {licores.length > 0 && (
+        <section className="flex flex-col gap-3 border-t border-linea pt-6">
+          <div>
+            <h3 className="font-medium">¿Tu cliente pone algún licor?</h3>
+            <p className="mt-0.5 text-sm text-gris">
+              Marca lo que compra tu cliente: sale de tu pedido y del total, y te decimos cuántas botellas necesita.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {licores.map((l) => {
+              const activo = pone.includes(l.id);
+              return (
+                <button
+                  key={l.id}
+                  type="button"
+                  aria-pressed={activo}
+                  onClick={() => alternarCliente(l.id)}
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors sm:min-h-9 ${
+                    activo ? "border-tinta bg-tinta text-blanco" : "border-linea bg-blanco hover:border-gris"
+                  }`}
+                >
+                  {activo && <Check className="size-3.5" aria-hidden="true" />}
+                  {l.nombre}
+                </button>
+              );
+            })}
+          </div>
+          {pone.length > 0 && <p className="text-xs text-gris">En el resultado ves sus botellas en «Lo pone tu cliente».</p>}
+        </section>
+      )}
 
       <section className="flex flex-col gap-3 border-t border-linea pt-6">
         <div>

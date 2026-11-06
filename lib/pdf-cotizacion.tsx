@@ -50,6 +50,7 @@ type EventoV2 = {
     tragos?: { receta: string; tragos: number; lleva: string; propio: boolean }[];
     momentos: Momento[];
     insumos: Insumo[];
+    cliente_pone?: { nombre: string; botellas: number; ml: number }[];
   };
 };
 
@@ -185,6 +186,24 @@ export function PdfCotizacion({
             <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 12 }}>{soles(total)}</Text>
           </View>
         </View>
+
+        {/* Los licores que compra el cliente final del comprador */}
+        {evento?.version === 2 && (evento.resumen.cliente_pone?.length ?? 0) > 0 && (
+          <View wrap={false} style={{ marginTop: 24 }}>
+            <Text style={s.sello}>Lo pone tu cliente</Text>
+            <Text style={[s.gris, { marginTop: 4 }]}>No está en este pedido ni en el total. Botellas de 750 ml.</Text>
+            <View style={[s.fila, { flexWrap: "wrap", marginTop: 6 }]}>
+              {evento.resumen.cliente_pone!.map((l) => (
+                <View key={l.nombre} style={[s.fila, { width: "50%", paddingVertical: 3, paddingRight: 16, justifyContent: "space-between" }]}>
+                  <Text>{l.nombre}</Text>
+                  <Text>
+                    {entero.format(l.botellas)} botellas ({decimal.format(l.ml / 1000)} L)
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Lo que el comprador consigue por su cuenta (cotizador por momentos) */}
         {evento?.version === 2 && evento.resumen.insumos.length > 0 && (

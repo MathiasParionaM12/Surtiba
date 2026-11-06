@@ -324,6 +324,28 @@ export function Resultado({
         </div>
       </section>
 
+      {/* Lo que compra el cliente final del comprador: no entra al pedido */}
+      {r.clientePone.length > 0 && (
+        <section>
+          <h3 className={sello}>Lo pone tu cliente</h3>
+          <p className="mt-1 text-sm text-gris">No está en tu pedido ni en el total. Pásale esta lista a tu cliente (botellas de 750 ml).</p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {r.clientePone.map((l) => (
+              <li key={l.ingredienteId} className="flex items-baseline justify-between gap-3 rounded-md border border-linea bg-blanco px-4 py-3 text-sm">
+                <span>
+                  {l.nombre}
+                  <span className="block text-xs text-gris">para {lista(l.para)}</span>
+                </span>
+                <span className="text-right font-mono whitespace-nowrap">
+                  {entero.format(l.botellas)} botellas
+                  <span className="block text-xs text-gris">{decimal.format(l.ml / 1000)} litros</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Lo que Surtiba no vende */}
       {r.insumos.length > 0 && (
         <section>

@@ -11,6 +11,7 @@
 // La barra reparte sus tragos por nivel: principal 3, secundario 2, ocasional 1.
 // A todo se le suma el margen de seguridad. Luego se suman los ingredientes de todos los tragos (recetario):
 // lo que vende Surtiba (pisco, ron, vino…) busca su producto; lo demás va a "lo consigues por tu cuenta".
+// Lo que el comprador marca como "lo pone tu cliente" no busca producto: va a su propia lista, en botellas de 750 ml.
 // Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
 // Todos los valores salen de parametros_cotizador. Se revisaron con la investigación de docs/investigacion/ (nov-2026).
 
@@ -115,6 +116,7 @@ export type EntradaCotizador = {
   propios: TragoPropio[];
   productos: Record<string, string>; // ingrediente_id -> producto_id que eligió la persona
   cajasManual: Record<string, number>; // producto_id -> cajas que eligió la persona
+  clientePone?: string[]; // ingrediente_id de los licores que compra el cliente final (no van al pedido)
 };
 
 // Producto que puede entrar en una cotización
@@ -155,6 +157,10 @@ export type LineaIngrediente = {
   opciones: { id: string; nombre: string; marca: string }[];
 };
 
+// Un licor que pone el cliente final del comprador: no entra al pedido ni al total
+export const ML_BOTELLA_CLIENTE = 750;
+export type LineaCliente = { ingredienteId: string; nombre: string; ml: number; botellas: number; para: string[] };
+
 export type LineaProducto = {
   productoId: string;
   nombre: string;
@@ -180,6 +186,7 @@ export type ResultadoCotizacion = {
   tragos: LineaTrago[];
   ingredientes: LineaIngrediente[]; // lo que vende Surtiba
   productos: LineaProducto[];
+  clientePone: LineaCliente[];
   faltaMinimo: number; // cajas que faltan para el pedido mínimo de Surtiba (3 en total)
   productoMayor: string | null; // el producto con más cajas: ahí se suben las que faltan
   insumos: Insumo[];
@@ -347,11 +354,17 @@ export function calcular(
   // Lo que vende Surtiba busca su producto; lo demás va a "lo consigues por tu cuenta"
   const ingredientes: LineaIngrediente[] = [];
   const porTuCuenta: (Insumo & { orden: number })[] = [];
+  const pone = new Set(e.clientePone ?? []);
+  const clientePone: LineaCliente[] = [];
   const mlPorProducto = new Map<string, { ml: number; para: string[] }>();
   for (const [id, { ing, total, para }] of porIngrediente) {
     const candidatos = ing.categoria && ing.unidad === "ml" ? catalogo.filter((p) => p.categoria === ing.categoria) : [];
     if (!ing.categoria || ing.unidad !== "ml") {
       porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible(ing.unidad, total), nota: `para ${lista(para)}`, orden: ing.orden });
+      continue;
+    }
+    if (pone.has(id)) {
+      clientePone.push({ ingredienteId: id, nombre: ing.nombre, ml: total, botellas: arriba(total / ML_BOTELLA_CLIENTE), para });
       continue;
     }
     const elegidoId = e.productos[id];
@@ -379,6 +392,7 @@ export function calcular(
     }
   }
   ingredientes.sort((a, b) => b.ml - a.ml);
+  clientePone.sort((a, b) => b.ml - a.ml);
 
   // 3. Cada producto: botellas, cajas y precio según la escala
   const productos: LineaProducto[] = [];
@@ -420,6 +434,7 @@ export function calcular(
     tragos,
     ingredientes,
     productos,
+    clientePone,
     faltaMinimo,
     productoMayor,
     insumos,
@@ -450,5 +465,6 @@ export function entradaDesdeTipo(tipo: TipoEvento, par: Parametros, invitados = 
     propios: [],
     productos: {},
     cajasManual: {},
+    clientePone: base?.clientePone ?? [],
   };
 }

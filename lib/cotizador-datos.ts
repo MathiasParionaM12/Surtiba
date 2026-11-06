@@ -232,6 +232,13 @@ export function limpiarEntrada(
   for (const [ingrediente, producto] of Object.entries(e.productos ?? {})) {
     if (idsIngredientes.has(ingrediente) && esUuid(producto)) productos[ingrediente] = producto;
   }
+  // Licores que pone el cliente final: solo los que vende Surtiba (con categoría, en ml) y que están en algún trago
+  const idsDeSurtiba = new Set(
+    [...recetas, ...propios].flatMap((r) => r.ingredientes.filter((i) => i.categoria && i.unidad === "ml").map((i) => i.id)),
+  );
+  const clientePone = [...new Set(Array.isArray(e.clientePone) ? e.clientePone : [])]
+    .filter((id): id is string => typeof id === "string" && idsDeSurtiba.has(id))
+    .slice(0, 30);
   const cajasManual: Record<string, number> = {};
   for (const [id, cajas] of Object.entries(e.cajasManual ?? {})) {
     const n = entero(cajas);
@@ -263,6 +270,7 @@ export function limpiarEntrada(
     propios: propios.filter((t) => barra.some((b) => b.recetaId === t.id)),
     productos,
     cajasManual,
+    clientePone,
   };
 }
 
