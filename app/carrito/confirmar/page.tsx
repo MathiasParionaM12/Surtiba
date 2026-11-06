@@ -37,7 +37,7 @@ async function Confirmar() {
 
   const supabase = await createClient();
   const [{ data }, { data: perfil }, { data: ultimo }, { data: cotizacion }, tarifas] = await Promise.all([
-    supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
+    supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, encargo, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase
       .from("perfiles")
       .select("nombre, whatsapp, direccion, direccion_detalle, distrito, codigo_postal, referencia")
@@ -64,6 +64,8 @@ async function Confirmar() {
   ]);
   const lineas = data ?? [];
   if (lineas.length === 0) redirect("/carrito");
+  // Lo que pasa del stock se decide en el carrito (encargo, cambio o solo lo que hay): si falta decidir, vuelve allá
+  if (lineas.some((l) => l.cajas! > Math.max(0, l.stock_cajas!) && !l.encargo)) redirect("/carrito");
 
   // Autocompletar: quién recibe sale del último pedido o del perfil. La dirección, de la que guardó
   // en "Mi perfil"; si no guardó ninguna, de su último pedido.

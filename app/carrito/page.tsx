@@ -10,6 +10,7 @@ import { cambiarCajas, quitarDelCarrito } from "@/lib/acciones-pedidos";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
 import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
 import { Advertencia } from "@/components/Advertencia";
+import { EnEncargo, SinStock, type OpcionCambio } from "./SinStock";
 import { botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
@@ -75,10 +76,38 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
     if (l.precio_caja_centimos === null) return "No tiene precio para esa cantidad.";
     return null;
   };
-  // Cuántas cajas salen ahora (con stock) y cuántas van por encargo
+  // Cuántas cajas salen ahora (con stock) y cuántas faltan. Lo que falta hay que decidirlo en el carrito
+  // (encargo, cambio o solo lo que hay); el encargo cuenta solo si el comprador lo aceptó.
   const partes = (l: (typeof lineas)[number]) => {
     const ahora = Math.min(l.cajas!, Math.max(0, l.stock_cajas!));
-    return { ahora, encargo: l.cajas! - ahora };
+    const faltan = l.cajas! - ahora;
+    return { ahora, faltan, encargo: l.encargo ? faltan : 0, sinDecidir: faltan > 0 && !l.encargo };
+  };
+  const sinDecidir = lineas.filter((l) => partes(l).sinDecidir);
+
+  // Para cambiar lo que falta: productos de la misma categoría, con stock para cubrirlo y que no estén en el carrito
+  // (RLS: el comprador solo recibe productos aprobados y activos de marcas activas)
+  const categorias = [...new Set(sinDecidir.map((l) => l.categoria!))];
+  const { data: candidatos } = categorias.length
+    ? await supabase
+        .from("productos")
+        .select("id, nombre, categoria, stock_cajas, marcas(nombre_comercial), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)")
+        .in("categoria", categorias)
+        .gt("stock_cajas", 0)
+        .order("nombre")
+    : { data: [] };
+  const enCarrito = new Set(lineas.map((l) => l.producto_id));
+  const opcionesPara = (l: (typeof lineas)[number]): OpcionCambio[] => {
+    const faltan = partes(l).faltan;
+    return (candidatos ?? [])
+      .filter((c) => c.categoria === l.categoria && !enCarrito.has(c.id) && c.stock_cajas >= faltan)
+      .slice(0, 3)
+      .map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        marca: c.marcas?.nombre_comercial ?? "",
+        precio: c.escalas_precio.find((e) => faltan >= e.desde_cajas && (e.hasta_cajas === null || faltan <= e.hasta_cajas))?.precio_caja_centimos ?? null,
+      }));
   };
   // Todo se calcula antes de dibujar: totales por marca, problemas y siguiente tramo
   const grupos = [...marcas.entries()].map(([marcaId, grupo]) => {
@@ -103,10 +132,10 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
   const totalCajas = lineas.reduce((suma, l) => suma + l.cajas!, 0);
   // Pedido mínimo: 3 cajas en total, sumando todas las marcas
   const faltanMinimo = Math.max(0, PEDIDO_MINIMO_CAJAS - totalCajas);
-  const hayProblemas = faltanMinimo > 0 || grupos.some((g) => g.items.some((i) => i.problema));
+  const hayProblemas = faltanMinimo > 0 || sinDecidir.length > 0 || grupos.some((g) => g.items.some((i) => i.problema));
   // Se paga ahora solo la compra directa; el encargo se paga cuando la marca lo confirme
   const pagasAhora = lineas.reduce((s, l) => s + partes(l).ahora * (l.precio_caja_centimos ?? 0), 0);
-  const porEncargo = total - pagasAhora;
+  const porEncargo = lineas.reduce((s, l) => s + partes(l).encargo * (l.precio_caja_centimos ?? 0), 0);
 
   const repetido = Number(avisos.repetido ?? NaN);
   const omitidos = Number(avisos.omitidos ?? 0);
@@ -172,14 +201,10 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
                           </div>
                         )}
                         {problema && <p className="mt-1 border-l-2 border-rojo pl-2 text-xs">{problema}</p>}
-                        {!problema && partes(l).encargo > 0 && (
-                          <p className="mt-1 border-l-2 border-linea pl-2 text-xs">
-                            {partes(l).ahora > 0
-                              ? `${partes(l).ahora} ahora + ${partes(l).encargo} por encargo`
-                              : "Todo por encargo"}{" "}
-                            <span className="text-gris">· la marca confirma el encargo y recién ahí lo pagas</span>
-                          </p>
+                        {!problema && partes(l).sinDecidir && (
+                          <SinStock productoId={l.producto_id!} stock={partes(l).ahora} faltan={partes(l).faltan} opciones={opcionesPara(l)} />
                         )}
+                        {!problema && partes(l).encargo > 0 && <EnEncargo productoId={l.producto_id!} ahora={partes(l).ahora} faltan={partes(l).encargo} />}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -259,13 +284,17 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
             )}
           </dl>
           <p className="mt-2 text-xs text-gris">
-            {porEncargo > 0 ? "Lo que pasa del stock va por encargo: al confirmar eliges si lo recibes aparte o todo junto." : null}
+            {porEncargo > 0 ? "Lo que va por encargo llega aparte y lo pagas cuando la marca lo confirme, sin otro envío." : null}
           </p>
 
           {hayProblemas ? (
             <>
               <p className="mt-5 border-l-2 border-rojo pl-3 text-sm">
-                {faltanMinimo > 0 ? `Agrega ${faltanMinimo === 1 ? "1 caja más" : `${faltanMinimo} cajas más`} para continuar.` : "Corrige lo marcado en tu carrito para continuar."}
+                {faltanMinimo > 0
+                  ? `Agrega ${faltanMinimo === 1 ? "1 caja más" : `${faltanMinimo} cajas más`} para continuar.`
+                  : sinDecidir.length > 0
+                    ? "Decide qué hacer con lo que no hay en stock para continuar."
+                    : "Corrige lo marcado en tu carrito para continuar."}
               </p>
               <button type="button" disabled className={`${botonPrimario} mt-4 w-full`}>
                 Continuar con el pedido

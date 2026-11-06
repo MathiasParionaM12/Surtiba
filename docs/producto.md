@@ -25,7 +25,7 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 | Detalle de producto | Escala de precios completa, stock disponible y registro sanitario. **Calcula tu margen** (21-oct-2026): pone a cuánto lo vendería, por trago (bares, caterings, eventos) o por botella (por ejemplo, una licorería), y cuántas cajas compraría; ve su costo, su ganancia por unidad y por caja y su margen. Es una estimación en el navegador: no cambia precios ni pedidos |
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
-| Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |
+| Carrito | Agrupado por marca, con subtotal por marca. Avisa si no llega al pedido mínimo (3 cajas en total). Si un producto no alcanza el stock, pide decidir **antes de pagar** (5-nov-2026): **pedir lo que falta por encargo**, **cambiarlo por otro con stock** (hasta 3 de la misma categoría) o **llevar solo lo que hay**. Botón **"Descargar cotización (PDF)"** |
 | Confirmar pedido | Quién recibe (nombre y celular +51), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Del evento, **solo la fecha** (opcional, el mismo día de la entrega o después; KISS, 5-nov-2026): si tiene una cotización de las 2 últimas semanas sin pedido, sale de ella. Se autocompleta con el perfil (su dirección habitual) y el último pedido |
 | **Libro de Reclamaciones** (22-oct-2026) | `/libro-de-reclamaciones`, enlazado con ícono en el pie de todas las páginas. Para cualquiera, con o sin cuenta: reclamo o queja, datos (documento, domicilio, correo), producto o servicio, pedido y monto (opcionales), qué pasó y qué pide. Recibe un código correlativo (REC-2026-0001) y la fecha límite de respuesta (15 días hábiles, de lunes a viernes). Ve su copia para imprimir o guardar en PDF (todavía no se envía por correo). Con cuenta, ve sus hojas y la respuesta |
 | Condiciones y privacidad (22-oct-2026) | `/condiciones` (precios con IGV, encargos, pago simulado, entrega, cancelaciones y devoluciones) y `/privacidad` (Ley 29733: qué datos, para qué, quién los ve, dónde están y derechos ARCO). Los datos de Surtiba (razón social, RUC, dirección, correo) dicen "Por definir" hasta que existan: se llenan en `lib/empresa.ts` |
@@ -86,7 +86,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ### Stock
 - La marca declara cuántas cajas tiene de cada producto.
 - Se puede pedir más de lo disponible: **lo que falta se convierte en un pedido por encargo** aparte (ver "Pedidos por encargo y pago").
-- **Al pagar la compra directa, el stock se descuenta** (se reserva) en la misma transacción. Un encargo no reserva stock: la marca lo produce. Excepción: en **"todo junto"** se aparta lo que hay en stock.
+- **Al pagar la compra directa, el stock se descuenta** (se reserva) en la misma transacción. Un encargo no reserva stock: la marca lo produce. (Los encargos "todo junto" anteriores al 5-nov-2026 sí apartaron lo que había en stock.)
 - Si un subpedido se rechaza o se cancela, vuelve al stock exactamente lo que se había apartado.
 - Si dos compradores piden la última caja al mismo tiempo, solo uno se la lleva en compra directa; al otro esa caja le queda por encargo.
 
@@ -96,11 +96,11 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
   - Cada marca **acepta** (indicando la fecha en que lo tendrá listo) o **rechaza** con motivo.
   - Cuando todas respondieron y alguna aceptó, el pedido pasa a **"confirmado · por pagar"** y el cliente ve el aviso *"Tu pedido está confirmado y en producción. Págalo para continuar"* (más un número en "Mis pedidos").
   - Al pagar, sigue el flujo normal. La marca no puede marcarlo "Listo para recojo" antes del pago. Si todas rechazan, se cancela.
-- **El comprador elige** (decidido el 14-oct-2026), solo si falta stock y algo sí hay:
-  - **"Lo que hay ahora + el resto por encargo"** (lo de arriba): dos pedidos, pagos y entregas por separado.
-  - **"Todo junto cuando esté completo"**: **un solo pedido por encargo** con todo el carrito. Se aparta lo que hay en stock; **cada marca del pedido confirma** su parte con fecha (o la rechaza y lo apartado vuelve a su stock). Cuando todas respondieron, el cliente **paga todo en un solo pago** y llega junto.
+- **Se decide en el carrito** (5-nov-2026, reemplaza la elección del 14-oct): por cada producto que no alcanza, el comprador elige **encargo** (la columna `carrito.encargo`), **cambio por otro con stock** o **solo lo que hay**. `crear_pedido` no deja pagar si queda algo sin decidir (`40_sin_stock_en_el_carrito.sql`).
+  - Lo que tiene stock es compra directa (se paga y sale); lo aceptado por encargo va en un **pedido aparte** que la marca confirma y se paga después, sin otro envío.
+  - **Se quitó "todo junto"** (un solo pedido por encargo con todo el carrito).
 - Ambos pedidos usan el precio del tramo según el **total** de cajas pedidas del producto. El pedido mínimo se cuenta sobre el total.
-- **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
+- **Si una marca no atiende algo ya pagado, Surtiba devuelve la plata** ("Te devolvemos S/ X", por fuera de la app). Ya no se agregan reemplazos a un pedido pagado (se borró `agregar_reemplazo`): el detalle del pedido sugiere productos parecidos que van al carrito, para un pedido nuevo.
 
 ### Aprobación de productos (5-nov-2026)
 - Lo que **crea una marca** queda **en revisión** y no aparece en el catálogo, el directorio ni el cotizador hasta que el admin lo aprueba en **Panel Surtiba → Productos por aprobar** (`/admin/productos`, también en su Inicio).

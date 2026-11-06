@@ -14,12 +14,6 @@ import { METODOS_PAGO } from "@/lib/pagos";
 // Valores con los que empieza el formulario (perfil del comprador y su último pedido)
 export type Iniciales = Record<string, string>;
 
-type Modo = "separado" | "junto";
-const OPCIONES: { valor: Modo; titulo: string }[] = [
-  { valor: "separado", titulo: "Lo que hay ahora + el resto por encargo" },
-  { valor: "junto", titulo: "Todo junto cuando esté completo" },
-];
-
 export function FormConfirmar({
   fechaMinima,
   fechaMaxima,
@@ -42,7 +36,6 @@ export function FormConfirmar({
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(confirmarPedido, {});
   // Si el servidor devolvió un error, se muestran los valores que la persona ya escribió
   const v = estado.valores ?? iniciales;
-  const [modo, setModo] = useState<Modo>(v.modo === "junto" ? "junto" : "separado");
   // El evento no puede ser antes de la entrega: su calendario empieza en la fecha de entrega elegida
   const [fechaEntrega, setFechaEntrega] = useState(v.fecha_entrega ?? "");
   const minimoEvento = fechaEntrega && fechaEntrega > fechaMinima ? fechaEntrega : fechaMinima;
@@ -52,9 +45,8 @@ export function FormConfirmar({
   const envio = envioPorDistrito[distrito] ?? 0;
   const productos = pagasAhora + porEncargo;
   const total = productos + envio;
-  const hayEleccion = pagasAhora > 0 && porEncargo > 0;
-  // Con "todo junto" no se paga nada ahora: se paga todo cuando las marcas confirmen
-  const pagaAhora = pagasAhora > 0 && !(hayEleccion && modo === "junto");
+  // Se paga ahora lo que tiene stock; si todo es por encargo, se paga cuando las marcas confirmen
+  const pagaAhora = pagasAhora > 0;
 
   return (
     <form key={JSON.stringify(v)} action={accion} className="flex flex-col gap-8">
@@ -188,36 +180,12 @@ export function FormConfirmar({
       </fieldset>
 
 
-      {/* Si falta stock y hay algo disponible, el comprador elige cómo recibirlo */}
-      {hayEleccion && (
-        <fieldset className="border-t border-linea pt-6">
-          <legend className={`${sello} mb-4 pt-6`}>¿Cómo lo quieres recibir?</legend>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {OPCIONES.map((o) => (
-              <label
-                key={o.valor}
-                className="flex cursor-pointer gap-3 rounded-md border border-linea bg-blanco p-4 text-sm has-[:checked]:border-tinta"
-              >
-                <input
-                  type="radio"
-                  name="modo"
-                  value={o.valor}
-                  checked={modo === o.valor}
-                  onChange={() => setModo(o.valor)}
-                  className="mt-0.5 accent-verde"
-                />
-                <span>
-                  <span className="font-medium">{o.titulo}</span>
-                  <span className="mt-1 block text-gris">
-                    {o.valor === "separado"
-                      ? `Pagas ${soles(pagasAhora + envio)} ahora (con el envío) y eso sale primero. El resto (${soles(porEncargo)}) lo pagas cuando la marca lo confirme, sin otro envío. Pueden llegar en fechas distintas.`
-                      : `No pagas ahora. Apartamos lo que hay en stock y las marcas confirman lo que falta. Pagas todo (${soles(total)}, con el envío) en un solo pago y llega junto.`}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+      {/* Lo que va por encargo ya se decidió en el carrito: llega aparte y se paga cuando la marca confirme */}
+      {pagaAhora && porEncargo > 0 && (
+        <p className="border-l-2 border-verde pl-3 text-sm">
+          Lo que hay en stock sale primero. El encargo ({soles(porEncargo)}) llega aparte y lo pagas cuando la marca lo confirme, sin
+          otro envío.
+        </p>
       )}
 
       {/* Pago: solo de lo que tiene stock. El encargo se paga cuando la marca lo confirme. */}

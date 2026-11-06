@@ -10,9 +10,9 @@ export type Database = {
   public: {
     Tables: {
       carrito: {
-        Row: { agregado_en: string; cajas: number; comprador_id: string; producto_id: string };
-        Insert: { agregado_en?: string; cajas: number; comprador_id: string; producto_id: string };
-        Update: { agregado_en?: string; cajas?: number; comprador_id?: string; producto_id?: string };
+        Row: { agregado_en: string; cajas: number; comprador_id: string; encargo: boolean; producto_id: string };
+        Insert: { agregado_en?: string; cajas: number; comprador_id: string; encargo?: boolean; producto_id: string };
+        Update: { agregado_en?: string; cajas?: number; comprador_id?: string; encargo?: boolean; producto_id?: string };
         Relationships: [
           { foreignKeyName: "carrito_comprador_id_fkey"; columns: ["comprador_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
           { foreignKeyName: "carrito_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "productos"; referencedColumns: ["id"] },
@@ -282,7 +282,7 @@ export type Database = {
           activo: boolean | null; cajas: number | null; categoria: string | null; comprador_id: string | null; marca: string | null;
           marca_activa: boolean | null; marca_id: string | null; ml: number | null; nombre: string | null; pedido_minimo_cajas: number | null;
           precio_caja_centimos: number | null; producto_id: string | null; stock_cajas: number | null; subtotal_centimos: number | null;
-          unidades_por_caja: number | null;
+          unidades_por_caja: number | null; encargo: boolean | null;
         };
         Relationships: [];
       };
@@ -320,7 +320,6 @@ export type Database = {
       admin_cancelar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
       admin_cancelar_pedido: { Args: { p_pedido: string; p_motivo: string }; Returns: undefined };
       admin_marcar_pagado: { Args: { p_pedido: string; p_metodo: string }; Returns: undefined };
-      agregar_reemplazo: { Args: { p_pedido: string; p_producto: string; p_cajas: number }; Returns: string };
       rechazar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
       guardar_producto: {
         Args: {

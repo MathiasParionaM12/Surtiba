@@ -36,7 +36,7 @@ export async function pasarAlCarrito(entrada: EntradaCotizador): Promise<Respues
   const supabase = await createClient();
   const { error: errorCarrito } = await supabase
     .from("carrito")
-    .upsert(resultado.productos.map((p) => ({ comprador_id: usuario.id, producto_id: p.productoId, cajas: p.cajas })));
+    .upsert(resultado.productos.map((p) => ({ comprador_id: usuario.id, producto_id: p.productoId, cajas: p.cajas, encargo: false })));
   if (errorCarrito) return { error: "No pudimos pasarlo al carrito. Intenta de nuevo." };
 
   revalidatePath("/", "layout");
