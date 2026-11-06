@@ -85,7 +85,7 @@ export type Database = {
           direccion_detalle: string | null; distrito: string | null; codigo_postal: string | null; referencia: string | null;
           recibe_nombre: string | null; recibe_telefono: string | null; tipo: string; pagado_centimos: number;
           envio_centimos: number; estado: string; evento_fecha: string | null; evento_nombre: string | null; evento_tipo: string | null;
-          fecha_entrega_deseada: string; id: string; invitados: number | null; lo_antes: boolean; nota: string | null; pagado_en: string | null;
+          fecha_entrega_deseada: string; id: string; invitados: number | null; lo_antes: boolean; mismo_dia: boolean; nota: string | null; pagado_en: string | null;
           pago_estado: string; pago_metodo: string | null; subtotal_centimos: number; total_centimos: number;
         };
         Insert: {
@@ -319,7 +319,7 @@ export type Database = {
         };
         Returns: undefined;
       };
-      admin_marcar_recogido: { Args: { p_subpedido: string }; Returns: undefined };
+      admin_marcar_recogido: { Args: { p_subpedido: string; p_sin_listo?: boolean }; Returns: undefined };
       admin_en_camino: { Args: { p_pedido: string }; Returns: undefined };
       admin_entregar: { Args: { p_pedido: string }; Returns: undefined };
       admin_cancelar_subpedido: { Args: { p_subpedido: string; p_motivo: string }; Returns: undefined };
@@ -422,6 +422,7 @@ export type Database = {
           p_nota?: string;
           p_evento_fecha?: string;
           p_lo_antes?: boolean;
+          p_mismo_dia?: boolean;
         };
         Returns: { pedido_id: string; codigo: string; tipo: string }[];
       };

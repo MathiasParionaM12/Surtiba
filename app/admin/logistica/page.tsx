@@ -9,7 +9,7 @@ import { fechaLarga, NOMBRE_DIA, sumarDias, textoDias } from "@/lib/entregas";
 import { configEntregas } from "@/lib/entregas-config";
 import { tarifasEnvio } from "@/lib/envio";
 import { campo, sello } from "@/lib/estilos";
-import { hoyEnLima } from "@/lib/formato";
+import { hoyEnLima, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -48,7 +48,7 @@ async function Logistica() {
       .order("codigo"),
     supabase
       .from("pedidos")
-      .select("id, codigo, estado, fecha_entrega_deseada, distrito, direccion_entrega, direccion_detalle, referencia, recibe_nombre, recibe_telefono, perfiles(empresa), subpedidos(estado)")
+      .select("id, codigo, estado, fecha_entrega_deseada, distrito, direccion_entrega, direccion_detalle, referencia, recibe_nombre, recibe_telefono, total_centimos, pagado_centimos, perfiles(empresa), subpedidos(estado)")
       .in("estado", ["recibido", "en_preparacion", "en_camino"])
       .order("codigo"),
     tarifasEnvio(),
@@ -65,6 +65,8 @@ async function Logistica() {
       grupo: grupoDe(p.fecha_entrega_deseada),
       recogidos: vigentes.filter((s) => s.estado === "recogido").length,
       total: vigentes.length,
+      // Candado: sin pago completo no se entrega
+      falta: Math.max(0, p.total_centimos - p.pagado_centimos),
     };
   });
   const grupos = [...new Set([...recojos.map((r) => r.grupo), ...entregasAbiertas.map((e) => e.grupo)])].sort((a, b) =>
@@ -127,6 +129,7 @@ async function Logistica() {
                   <div className="mt-3 flex flex-col gap-3">
                     {[...marcas.entries()].map(([clave, m]) => {
                       const sinListo = m.ordenes.filter((o) => o.estado === "pendiente").length;
+                      const listas = m.ordenes.length - sinListo;
                       return (
                         <article key={clave} className="overflow-hidden rounded-md border border-linea bg-blanco">
                           <header className="border-b border-linea px-4 py-3">
@@ -153,10 +156,17 @@ async function Logistica() {
                           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                             <span className={`text-xs ${sinListo > 0 ? "text-rojo" : "text-gris"}`}>
                               {sinListo > 0
-                                ? `${sinListo === 1 ? "1 orden no está marcada" : `${sinListo} órdenes no están marcadas`} como lista: confirma con la marca.`
+                                ? `${sinListo === 1 ? "1 orden no está marcada" : `${sinListo} órdenes no están marcadas`} como lista: pídele a la marca que la marque, o recógela desde el pedido confirmando que la recibiste.`
                                 : `Recojo el ${fechaLarga(m.dia)}.`}
                             </span>
-                            <FormAccion accion={recogerMarca} ocultos={{ marca_id: m.marcaId, fecha_recojo: m.dia }} texto="Recogí todo de esta marca" />
+                            {/* Candado: solo se recoge lo que la marca marcó "listo" */}
+                            {listas > 0 && (
+                              <FormAccion
+                                accion={recogerMarca}
+                                ocultos={{ marca_id: m.marcaId, fecha_recojo: m.dia }}
+                                texto={sinListo > 0 ? `Recogí las ${listas} listas` : "Recogí todo de esta marca"}
+                              />
+                            )}
                           </div>
                         </article>
                       );
@@ -199,7 +209,11 @@ async function Logistica() {
                             )}
                           </div>
                         </div>
-                        {p.estado === "en_camino" && <FormAccion accion={marcarEntregado} ocultos={{ pedido_id: p.id }} texto="Entregado" />}
+                        {p.falta > 0 ? (
+                          <span className="rounded-md border-2 border-rojo px-2 py-1 text-xs font-medium text-rojo">Falta pago {soles(p.falta)}</span>
+                        ) : (
+                          p.estado === "en_camino" && <FormAccion accion={marcarEntregado} ocultos={{ pedido_id: p.id }} texto="Entregado" />
+                        )}
                       </li>
                     ))}
                   </ul>

@@ -111,8 +111,13 @@ export async function marcarRecogido(_e: EstadoForm, form: FormData): Promise<Es
   await exigirRol("admin");
   const subpedido = id(form, "subpedido_id");
   if (!subpedido) return { error: "No encontramos esa orden." };
+  // Si la marca no la marcó lista, el admin tiene que confirmar que se la entregaron (doble confirmación)
+  const sinListo = form.get("sin_listo") === "si";
+  if (form.get("pide_confirmacion") === "si" && !sinListo) {
+    return { error: "Marca la casilla para confirmar que la marca te entregó esta orden." };
+  }
   const supabase = await createClient();
-  return ejecutar(supabase.rpc("admin_marcar_recogido", { p_subpedido: subpedido }), "Marcado como recogido.");
+  return ejecutar(supabase.rpc("admin_marcar_recogido", { p_subpedido: subpedido, p_sin_listo: sinListo }), "Marcado como recogido.");
 }
 
 export async function marcarEnCamino(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
@@ -159,6 +164,8 @@ export async function marcarPagado(_e: EstadoForm, form: FormData): Promise<Esta
   await exigirRol("admin");
   const pedido = id(form, "pedido_id");
   if (!pedido) return { error: "No encontramos ese pedido." };
+  // Doble confirmación: registrar un pago a mano es delicado
+  if (form.get("confirmo") !== "si") return { error: "Marca la casilla para confirmar que recibiste el pago." };
   const supabase = await createClient();
   return ejecutar(
     supabase.rpc("admin_marcar_pagado", { p_pedido: pedido, p_metodo: texto(form, "metodo") }),

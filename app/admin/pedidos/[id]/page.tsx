@@ -66,6 +66,8 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
   const todoRecogido = vigentes.length > 0 && vigentes.every((s) => s.estado === "recogido");
   const algoRecogido = vigentes.some((s) => s.estado === "recogido");
+  // Candado (6-nov-2026): nada se recoge, sale ni se entrega si el pedido no está pagado completo
+  const pagado = falta === 0 && p.pagado_centimos > 0;
 
   return (
     <>
@@ -80,13 +82,19 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* Siguiente paso del pedido */}
-      {abierto && todoRecogido && (
+      {(abierto || p.estado === "en_camino") && !pagado && (
+        <div className="mt-6 rounded-md border-2 border-rojo bg-blanco p-4 text-sm text-rojo">
+          <p className="font-medium">Bloqueado: falta el pago de {soles(falta)}.</p>
+          <p className="mt-1">No se puede recoger, enviar ni entregar hasta que el cliente pague. Si te pagó por fuera, márcalo pagado abajo.</p>
+        </div>
+      )}
+      {abierto && todoRecogido && pagado && (
         <div className="mt-6 rounded-md border border-verde bg-blanco p-4">
           <p className="mb-3 text-sm">Todas las marcas ya fueron recogidas. Puedes enviar el pedido.</p>
           <FormAccion accion={marcarEnCamino} ocultos={{ pedido_id: id }} texto="Marcar en camino" />
         </div>
       )}
-      {p.estado === "en_camino" && (
+      {p.estado === "en_camino" && pagado && (
         <div className="mt-6 rounded-md border border-verde bg-blanco p-4">
           <p className="mb-3 text-sm">Al marcarlo entregado se calcula la comisión de cada marca.</p>
           <FormAccion accion={marcarEntregado} ocultos={{ pedido_id: id }} texto="Marcar entregado" />
@@ -162,9 +170,28 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
                     <p className="text-sm">
                       Recojo: <span className="font-mono">{s.fecha_recojo ? fecha(s.fecha_recojo) : "por asignar"}</span>
                     </p>
-                    <FormAccion accion={marcarRecogido} ocultos={{ subpedido_id: s.id }} texto="Marcar recogido" variante={s.estado === "listo_recojo" ? "primario" : "secundario"} />
+                    {pagado && s.estado === "listo_recojo" && (
+                      <FormAccion accion={marcarRecogido} ocultos={{ subpedido_id: s.id }} texto="Marcar recogido" />
+                    )}
                   </div>
-                  {s.estado === "pendiente" && <p className="text-xs text-gris">La marca aún no la marcó como lista. Si ya la tienes, igual puedes marcarla recogida.</p>}
+                  {/* Sin "listo" de la marca: solo con doble confirmación */}
+                  {pagado && s.estado === "pendiente" && (
+                    <div className="rounded-md border border-linea bg-papel p-3">
+                      <p className="text-sm">La marca todavía no la marcó como lista.</p>
+                      <FormAccion
+                        accion={marcarRecogido}
+                        ocultos={{ subpedido_id: s.id, pide_confirmacion: "si" }}
+                        texto="Recoger sin «listo»"
+                        variante="secundario"
+                        className="mt-2"
+                      >
+                        <label className="flex items-center gap-2 text-sm">
+                          <input type="checkbox" name="sin_listo" value="si" className="accent-verde" />
+                          Confirmo que la marca me entregó esta orden
+                        </label>
+                      </FormAccion>
+                    </div>
+                  )}
                   <details className="text-sm">
                     <summary className="cursor-pointer text-gris hover:text-tinta">Cancelar esta parte</summary>
                     <FormAccion
@@ -250,6 +277,10 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
                 <>
                   <p className="font-medium">Falta pagar {soles(falta)}</p>
                   <FormAccion accion={marcarPagado} ocultos={{ pedido_id: id }} texto="Marcar pagado">
+                    <label className="flex basis-full items-center gap-2 text-sm">
+                      <input type="checkbox" name="confirmo" value="si" className="accent-verde" />
+                      Confirmo que recibí {soles(falta)}
+                    </label>
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-gris">Método</span>
                       <select name="metodo" required defaultValue="" className={`${campo} h-10 w-40`}>

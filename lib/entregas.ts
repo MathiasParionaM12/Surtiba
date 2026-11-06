@@ -21,7 +21,8 @@ export const diaSemana = (f: string) => aFecha(f).getUTCDay() || 7; // 1 = lunes
 export const diasEntre = (desde: string, hasta: string) => Math.round((aFecha(hasta).getTime() - aFecha(desde).getTime()) / 86400000);
 
 // La misma regla que privado.entrega_asignada. Devuelve null si no se llega antes del evento.
-export function entregaAsignada(minimo: string, evento: string | null, loAntes: boolean, cfg: ConfigEntregas) {
+// mismoDia: si el evento cae un día de entrega, entregar ese mismo día (en la mañana) en vez de la entrega anterior
+export function entregaAsignada(minimo: string, evento: string | null, loAntes: boolean, cfg: ConfigEntregas, mismoDia = false) {
   let primera: string | null = null;
   for (let i = 0; i < 14; i++) {
     const d = sumarDias(minimo, i);
@@ -32,6 +33,7 @@ export function entregaAsignada(minimo: string, evento: string | null, loAntes: 
   }
   if (!primera) return null;
   if (!evento || loAntes) return primera;
+  if (mismoDia && cfg.dias.includes(diaSemana(evento)) && evento >= primera) return evento;
   if (primera >= evento) return null;
   for (let d = sumarDias(evento, -1); d > primera; d = sumarDias(d, -1)) {
     if (cfg.dias.includes(diaSemana(d))) return d;

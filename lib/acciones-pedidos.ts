@@ -156,6 +156,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     codigo_postal: leer("codigo_postal"),
     referencia: leer("referencia"),
     lo_antes: form.get("lo_antes") === "si" ? "si" : "",
+    mismo_dia: form.get("mismo_dia") === "si" ? "si" : "",
     nota: leer("nota"),
     evento_fecha: leer("evento_fecha"),
     metodo_pago: leer("metodo_pago"),
@@ -189,6 +190,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     p_nota: valores.nota || undefined,
     p_evento_fecha: valores.evento_fecha || undefined,
     p_lo_antes: valores.lo_antes === "si",
+    p_mismo_dia: valores.mismo_dia === "si",
   });
 
   if (error) {

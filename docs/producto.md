@@ -68,9 +68,16 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 ### Entregas (decidido el 5/6-nov-2026)
 - **Solo martes y jueves.** Hay que pedir con **2 días de anticipación** (jueves → hasta el martes; martes → hasta el domingo). El admin cambia los días y la anticipación en Logística (`entregas_config`).
 - **El comprador no elige el día**: Surtiba le asigna la **última entrega antes de su evento**; sin evento, o con "Lo quiero lo antes posible", la **más cercana**. Si no se llega antes del evento, `crear_pedido` no deja pagar (salvo con esa casilla).
+- **Si el evento cae un día de entrega** (martes o jueves), el comprador elige: **la entrega anterior** (por defecto, con margen) o **el mismo día, en la mañana**. Si no hay entrega anterior posible, queda el mismo día (`pedidos.mismo_dia`, `42_candados_y_mismo_dia.sql`).
 - **El recojo es la víspera** de la entrega y se asigna solo (ya no se pone a mano).
 - **Encargos:** la entrega es la primera después de que todas sus marcas lo tengan listo (respetando el evento); se recalcula cuando las marcas confirman y cuando el comprador paga.
 - La regla está en `privado.entrega_asignada` (`41_entregas_martes_jueves.sql`) y la misma, para mostrarla antes de pagar, en `lib/entregas.ts`. Los feriados no se descuentan.
+
+### Candados del admin (6-nov-2026)
+El admin ya no puede saltarse pasos (la base lo bloquea aunque se llame directo):
+- **Recoger:** solo lo que la marca marcó **"listo"**. "Recogí todo de esta marca" recoge solo lo listo. Si la marca entregó una orden sin marcarla, se recoge desde el pedido con **doble confirmación** ("Confirmo que la marca me entregó esta orden").
+- **Recoger, en camino y entregado** exigen que el pedido esté **pagado completo**; si no, el pedido muestra "Bloqueado: falta el pago de S/ X" y Logística "Falta pago".
+- **Marcar pagado a mano** pide confirmar "Recibí S/ X".
 
 ### Envío (decidido el 22-oct-2026)
 - **Fijo por pedido según la zona del distrito**, sin importar las cajas: zona 1 (Lima Centro y Moderna: Barranco, Breña, Jesús María, La Victoria, Cercado, Lince, Magdalena, Miraflores, Pueblo Libre, Rímac, San Borja, San Isidro, San Luis, San Miguel, Surco, Surquillo) **S/ 20**; zona 2 (el resto de Lima y el Callao) **S/ 35**. Son supuestos: el admin los cambia en Logística.

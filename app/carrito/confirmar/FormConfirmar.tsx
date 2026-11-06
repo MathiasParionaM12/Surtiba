@@ -8,7 +8,7 @@ import { Etiqueta } from "@/components/Etiqueta";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { confirmarPedido } from "@/lib/acciones-pedidos";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
-import { diasEntre, entregaAsignada, fechaLarga, textoDias, type ConfigEntregas } from "@/lib/entregas";
+import { diaSemana, diasEntre, entregaAsignada, fechaLarga, textoDias, type ConfigEntregas } from "@/lib/entregas";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { METODOS_PAGO } from "@/lib/pagos";
@@ -45,8 +45,14 @@ export function FormConfirmar({
   // La entrega se asigna: la última antes del evento, o la más cercana (la misma regla que la base de datos)
   const [evento, setEvento] = useState(v.evento_fecha ?? "");
   const [loAntes, setLoAntes] = useState(v.lo_antes === "si");
-  const entrega = entregaAsignada(primerDia, evento || null, loAntes, config);
   const primera = entregaAsignada(primerDia, null, true, config);
+  // Si el evento cae un día de entrega (martes o jueves), el comprador elige: ese mismo día o la entrega anterior.
+  // Si no hay entrega anterior posible, solo queda el mismo día.
+  const eventoEsDiaDeEntrega = !!evento && !loAntes && !!primera && config.dias.includes(diaSemana(evento)) && evento >= primera;
+  const anterior = eventoEsDiaDeEntrega ? entregaAsignada(primerDia, evento, false, config, false) : null;
+  const [prefiereMismoDia, setPrefiereMismoDia] = useState(v.mismo_dia === "si");
+  const mismoDia = eventoEsDiaDeEntrega && (prefiereMismoDia || !anterior);
+  const entrega = entregaAsignada(primerDia, evento || null, loAntes, config, mismoDia);
 
   // Envío fijo según el distrito: uno solo por compra (va en lo que pagas ahora; si no hay, en el encargo)
   const [distrito, setDistrito] = useState(v.distrito ?? "");
@@ -168,11 +174,13 @@ export function FormConfirmar({
               <p className="font-medium text-verde first-letter:uppercase">{fechaLarga(entrega)}</p>
               {/* Por qué ese día: la última entrega antes del evento, o la más cercana */}
               <p className="mt-0.5 text-xs text-gris">
-                {evento && !loAntes
-                  ? `Tu evento es el ${fechaLarga(evento)}: es la última entrega antes${
-                      diasEntre(entrega, evento) === 1 ? ", un día antes." : `, ${diasEntre(entrega, evento)} días antes.`
-                    }`
-                  : "Es la entrega más cercana."}
+                {mismoDia
+                  ? "El mismo día de tu evento, en la mañana."
+                  : evento && !loAntes
+                    ? `Tu evento es el ${fechaLarga(evento)}: es la última entrega antes${
+                        diasEntre(entrega, evento) === 1 ? ", un día antes." : `, ${diasEntre(entrega, evento)} días antes.`
+                      }`
+                    : "Es la entrega más cercana."}
               </p>
             </div>
           ) : (
@@ -181,6 +189,31 @@ export function FormConfirmar({
               posible» si igual te sirve.
             </Advertencia>
           )}
+          {/* El evento cae martes o jueves: ¿ese mismo día o la entrega anterior? */}
+          {eventoEsDiaDeEntrega && anterior && (
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="mb-1 text-sm">Tu evento cae un día de entrega. ¿Cuándo te lo llevamos?</legend>
+              {[
+                { valor: false, texto: `La entrega anterior: ${fechaLarga(anterior)}`, ayuda: "Con margen por si algo falla." },
+                { valor: true, texto: `El mismo día: ${fechaLarga(evento)}, en la mañana`, ayuda: "Llega justo para tu evento." },
+              ].map((o) => (
+                <label key={String(o.valor)} className="flex cursor-pointer items-start gap-2 rounded-md border border-linea px-3 py-2 text-sm has-[:checked]:border-tinta">
+                  <input
+                    type="radio"
+                    name="eleccion_dia"
+                    checked={prefiereMismoDia === o.valor}
+                    onChange={() => setPrefiereMismoDia(o.valor)}
+                    className="mt-0.5 accent-verde"
+                  />
+                  <span>
+                    <span className="first-letter:uppercase">{o.texto}</span>
+                    <span className="block text-xs text-gris">{o.ayuda}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
+          {mismoDia && <input type="hidden" name="mismo_dia" value="si" />}
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="lo_antes" value="si" checked={loAntes} onChange={(e) => setLoAntes(e.target.checked)} className="accent-verde" />
             Lo quiero lo antes posible
