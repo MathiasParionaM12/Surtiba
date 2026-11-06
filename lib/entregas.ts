@@ -2,20 +2,11 @@
 // El comprador no elige la fecha: Surtiba le asigna la ÚLTIMA entrega antes de su evento; sin evento (o si
 // marca "lo antes posible"), la MÁS CERCANA. Hay que pedir con anticipación (2 días). El recojo es la víspera.
 // Esto es solo para MOSTRARLO antes de pagar: la fecha que vale la pone crear_pedido en la base, con la misma regla.
-import { cacheLife, cacheTag } from "next/cache";
-import { clientePublico } from "@/lib/supabase/publico";
+// Sirve en el navegador y en el servidor; la configuración se carga en lib/entregas-config.ts (solo servidor).
 
 export type ConfigEntregas = { dias: number[]; corteDias: number }; // dias: 1 = lunes … 7 = domingo
 
 export const NOMBRE_DIA = ["", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-
-export async function configEntregas(): Promise<ConfigEntregas> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("entregas");
-  const { data } = await clientePublico().from("entregas_config").select("dias, corte_dias").single();
-  return { dias: data?.dias ?? [2, 4], corteDias: data?.corte_dias ?? 2 };
-}
 
 // Fechas AAAA-MM-DD a mediodía UTC: así sumar días no cambia de fecha por la zona horaria
 const aFecha = (f: string) => new Date(`${f}T12:00:00Z`);
