@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, ChevronUp, ShoppingCart } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronUp, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
@@ -26,7 +26,9 @@ import { PasoEvento } from "./PasoEvento";
 import { PasoMomentos } from "./PasoMomentos";
 import { Resultado } from "./Resultado";
 
-const PASOS = ["Tu evento", "Momentos", "Barra", "Resultado"];
+// 3 pasos (KISS, 6-nov-2026): los momentos del evento van dentro de "Tu evento", ya sugeridos según el tipo
+const PASOS = ["Tu evento", "Barra", "Resultado"];
+const RESULTADO = PASOS.length - 1;
 const entero = new Intl.NumberFormat("en-US");
 
 export function Cotizador({
@@ -48,9 +50,9 @@ export function Cotizador({
   rol: Rol;
   abierta?: string; // código de la cotización que se volvió a abrir
 }) {
-  const [paso, setPaso] = useState(abierta ? 3 : 0);
+  const [paso, setPaso] = useState(abierta ? RESULTADO : 0);
   // El paso más lejano al que llegó la persona: a los pasos de arriba solo se puede ir hasta ahí
-  const [alcanzado, setAlcanzado] = useState(abierta ? 3 : 0);
+  const [alcanzado, setAlcanzado] = useState(abierta ? RESULTADO : 0);
   const [avisar, setAvisar] = useState(false); // mostrar qué le falta al paso actual
   const [entrada, setEntrada] = useState(entradaInicial);
   const [resultado, setResultado] = useState(resultadoInicial);
@@ -110,8 +112,8 @@ export function Cotizador({
   // Qué le falta a cada paso para poder seguir (null = está completo)
   const pendiente = (n: number): string | null => {
     if (n === 0 && entrada.invitados < 1) return "Escribe cuántos invitados tendrá tu evento.";
-    if (n === 1 && horasDeFiesta(entrada) < 0) return "La bienvenida y la cena duran más que todo el evento. Ajusta las horas.";
-    if (n === 2 && entrada.barra.length === 0) return "Elige al menos un trago para la barra.";
+    if (n === 0 && horasDeFiesta(entrada) < 0) return "La bienvenida y la cena duran más que todo el evento. Ajusta las horas en «Momentos del evento».";
+    if (n === 1 && entrada.barra.length === 0) return "Elige al menos un trago para la barra.";
     return null;
   };
   const irA = (n: number) => {
@@ -190,7 +192,8 @@ export function Cotizador({
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0">
           {paso === 0 && (
-            <PasoEvento
+            <>
+              <PasoEvento
               entrada={entrada}
               actualizar={actualizar}
               tipos={tipos}
@@ -198,13 +201,26 @@ export function Cotizador({
               cambiarInvitados={cambiarInvitados}
               sugeridoNoToman={sugeridoNoToman}
               parametros={parametros}
-            />
+              />
+              {/* Momentos: ya vienen sugeridos según el tipo de evento; se abren solo si quieres ajustarlos */}
+              <details open={horasDeFiesta(entrada) < 0} className="group mt-8 rounded-md border border-linea bg-blanco">
+                <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3">
+                  <span>
+                    <span className="font-medium">Momentos del evento</span>
+                    <span className="block text-xs text-gris">
+                      {resultado.momentos.map((m) => m.nombre).join(" · ")}. Los sugerimos según el tipo: ábrelo si quieres cambiarlos.
+                    </span>
+                  </span>
+                  <ChevronDown className="size-4 shrink-0 text-gris transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="border-t border-linea p-4">
+                  <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
+                </div>
+              </details>
+            </>
           )}
-          {paso === 1 && (
-            <PasoMomentos entrada={entrada} actualizar={actualizar} recetas={recetas} momentos={resultado.momentos} parametros={parametros} />
-          )}
-          {paso === 2 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} ingredientes={ingredientes} />}
-          {paso === 3 && (
+          {paso === 1 && <PasoBarra entrada={entrada} actualizar={actualizar} recetas={recetas} parametros={parametros} resultado={resultado} ingredientes={ingredientes} />}
+          {paso === RESULTADO && (
             <Resultado
               entrada={entrada}
               actualizar={actualizar}
@@ -223,7 +239,7 @@ export function Cotizador({
 
           {/* Anterior / siguiente y, al final, las acciones */}
           <div className="mt-8 flex flex-col gap-3 border-t border-linea pt-6">
-            {paso === 3 && esComprador && resultado.productos.length > 0 && (
+            {paso === RESULTADO && esComprador && resultado.productos.length > 0 && (
               <div className="grid gap-2 sm:grid-cols-2">
                 <button
                   type="button"
@@ -237,7 +253,7 @@ export function Cotizador({
                 <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Descargar PDF" alGuardar={setGuardada} />
               </div>
             )}
-            {paso === 3 && esComprador && (
+            {paso === RESULTADO && esComprador && (
               <p className="text-xs text-gris">
                 Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Al descargar el PDF, la cotización se guarda en{" "}
                 <Link href="/cotizaciones" className="font-medium enlace text-verde hover:text-tinta">
@@ -246,7 +262,7 @@ export function Cotizador({
                 .
               </p>
             )}
-            {paso === 3 && rol === "admin" && (
+            {paso === RESULTADO && rol === "admin" && (
               <p className="text-xs text-gris">Solo los compradores pueden agregarlo al carrito y guardar la cotización.</p>
             )}
             {avisoPaso && (
@@ -262,9 +278,9 @@ export function Cotizador({
               ) : (
                 <span />
               )}
-              {paso < 3 && (
+              {paso < RESULTADO && (
                 <button type="button" onClick={avanzar} className={botonPrimario}>
-                  {paso === 2 ? "Ver resultado" : "Siguiente"}
+                  {paso === RESULTADO - 1 ? "Ver resultado" : "Siguiente"}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </button>
               )}
@@ -282,8 +298,8 @@ export function Cotizador({
             <span className="text-xs text-gris">{calculando ? "Calculando…" : ""}</span>
           </div>
           <ResumenDatos resultado={resultado} invitados={entrada.invitados} calculando={calculando} />
-          {paso < 3 && alcanzado === 3 && (
-            <button type="button" onClick={() => irA(3)} className={`${botonSecundario} w-full`}>
+          {paso < RESULTADO && alcanzado === RESULTADO && (
+            <button type="button" onClick={() => irA(RESULTADO)} className={`${botonSecundario} w-full`}>
               Volver al resultado
             </button>
           )}
@@ -326,9 +342,9 @@ export function Cotizador({
               aria-hidden="true"
             />
           </button>
-          {paso < 3 ? (
+          {paso < RESULTADO ? (
             <button type="button" onClick={avanzar} className={`${botonPrimario} shrink-0`}>
-              {paso === 2 ? "Ver resultado" : "Siguiente"}
+              {paso === RESULTADO - 1 ? "Ver resultado" : "Siguiente"}
               <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           ) : (
