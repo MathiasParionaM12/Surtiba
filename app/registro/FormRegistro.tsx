@@ -2,11 +2,11 @@
 
 import { useActionState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
+import { CampoCelular } from "@/components/CampoCelular";
 import { Etiqueta } from "@/components/Etiqueta";
 import { registrarse, type EstadoForm } from "@/lib/acciones-auth";
 import { TIPOS_NEGOCIO } from "@/lib/cuenta";
 import { botonPrimario, campo } from "@/lib/estilos";
-import { PAISES, PREFIJO_PERU } from "@/lib/paises";
 
 export function FormRegistro() {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(registrarse, {});
@@ -40,38 +40,7 @@ export function FormRegistro() {
         </select>
       </label>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="whatsapp">
-          <Etiqueta texto="WhatsApp" obligatorio />
-        </label>
-        <div className="flex gap-2">
-          <div className="w-28 shrink-0">
-            <select
-              name="prefijo"
-              aria-label="País del WhatsApp"
-              defaultValue={v.prefijo ?? PREFIJO_PERU}
-              className={`${campo} font-mono`}
-            >
-              {PAISES.map((p) => (
-                <option key={p.codigo} value={p.prefijo}>
-                  {p.codigo} {p.prefijo}
-                </option>
-              ))}
-            </select>
-          </div>
-          <input
-            id="whatsapp"
-            name="whatsapp"
-            type="tel"
-            inputMode="numeric"
-            autoComplete="tel-national"
-            placeholder="987654321"
-            required
-            defaultValue={v.whatsapp}
-            className={`${campo} min-w-0 font-mono`}
-          />
-        </div>
-      </div>
+      <CampoCelular nombre="whatsapp" etiqueta="WhatsApp" valor={v.whatsapp} />
 
       <label className="flex flex-col gap-2 sm:col-span-2">
         <Etiqueta texto="RUC" nota="opcional, 11 dígitos" />

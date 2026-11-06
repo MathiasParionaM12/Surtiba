@@ -6,7 +6,6 @@ const PESTANAS = [
   { href: "/marca", texto: "Resumen" },
   { href: "/marca/ordenes", texto: "Órdenes" },
   { href: "/marca/productos", texto: "Productos" },
-  { href: "/marca/stock", texto: "Stock" },
   { href: "/marca/mi-marca", texto: "Mi marca" },
 ];
 

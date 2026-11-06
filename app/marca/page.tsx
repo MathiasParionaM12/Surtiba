@@ -167,7 +167,7 @@ async function Resumen() {
                         .join(" y ")}`}
                     . Con más stock, eso se vende como compra directa y sale antes.
                   </p>
-                  <Link href="/marca/stock" className="enlace mt-2 inline-block text-sm font-medium text-verde hover:text-tinta">
+                  <Link href="/marca/productos" className="enlace mt-2 inline-block text-sm font-medium text-verde hover:text-tinta">
                     Actualizar stock →
                   </Link>
                 </>
@@ -241,7 +241,7 @@ async function Resumen() {
               {agotados.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-4 border-b border-linea px-4 py-3 last:border-b-0">
                   <span>{p.nombre}</span>
-                  <Link href="/marca/stock" className="text-sm font-medium enlace text-verde hover:text-tinta">
+                  <Link href="/marca/productos" className="text-sm font-medium enlace text-verde hover:text-tinta">
                     Actualizar stock
                   </Link>
                 </li>

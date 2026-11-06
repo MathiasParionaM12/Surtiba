@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
+import { CampoCelular } from "@/components/CampoCelular";
 import { Etiqueta } from "@/components/Etiqueta";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { confirmarPedido } from "@/lib/acciones-pedidos";
@@ -9,7 +10,6 @@ import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { METODOS_PAGO } from "@/lib/pagos";
-import { PAISES } from "@/lib/paises";
 
 // Valores con los que empieza el formulario (perfil del comprador y su último pedido)
 export type Iniciales = Record<string, string>;
@@ -27,7 +27,6 @@ export function FormConfirmar({
   porEncargo,
   iniciales,
   autocompletado,
-  tiposEvento,
   cotizacion,
   envioPorDistrito,
 }: {
@@ -37,8 +36,7 @@ export function FormConfirmar({
   porEncargo: number; // céntimos: lo que va por encargo (se paga al confirmar)
   iniciales: Iniciales;
   autocompletado: boolean;
-  tiposEvento: string[]; // los del cotizador; además está "Otro"
-  cotizacion: string | null; // código de la cotización con la que se llenaron los datos del evento
+  cotizacion: string | null; // código de la cotización de la que salió la fecha del evento
   envioPorDistrito: Record<string, number>; // céntimos; solo para mostrar (lo cobra crear_pedido en la base)
 }) {
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(confirmarPedido, {});
@@ -48,7 +46,6 @@ export function FormConfirmar({
   // El evento no puede ser antes de la entrega: su calendario empieza en la fecha de entrega elegida
   const [fechaEntrega, setFechaEntrega] = useState(v.fecha_entrega ?? "");
   const minimoEvento = fechaEntrega && fechaEntrega > fechaMinima ? fechaEntrega : fechaMinima;
-  const tipos = v.evento_tipo && !tiposEvento.includes(v.evento_tipo) && v.evento_tipo !== "Otro" ? [...tiposEvento, v.evento_tipo] : tiposEvento;
 
   // Envío fijo según el distrito: uno solo por compra (va en lo que pagas ahora; si no hay, en el encargo)
   const [distrito, setDistrito] = useState(v.distrito ?? "");
@@ -73,33 +70,7 @@ export function FormConfirmar({
           <Etiqueta texto="Nombre y apellido" obligatorio />
           <input name="recibe_nombre" autoComplete="name" required defaultValue={v.recibe_nombre} className={campo} />
         </label>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="telefono">
-            <Etiqueta texto="Celular" obligatorio />
-          </label>
-          <div className="flex gap-2">
-            <div className="w-28 shrink-0">
-              <select name="prefijo" aria-label="País del celular" defaultValue={v.prefijo} className={`${campo} font-mono`}>
-                {PAISES.map((p) => (
-                  <option key={p.codigo} value={p.prefijo}>
-                    {p.codigo} {p.prefijo}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <input
-              id="telefono"
-              name="telefono"
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel-national"
-              placeholder="987654321"
-              required
-              defaultValue={v.telefono}
-              className={`${campo} min-w-0 font-mono`}
-            />
-          </div>
-        </div>
+        <CampoCelular nombre="telefono" etiqueta="Celular" valor={v.telefono} />
       </fieldset>
 
       {/* Dirección */}
@@ -189,6 +160,21 @@ export function FormConfirmar({
           />
           <span className="text-xs text-gris">Desde mañana.</span>
         </label>
+        {/* Del evento solo importa la fecha (KISS, 5-nov-2026): con ella coordinamos la entrega */}
+        <label className="flex flex-col gap-2">
+          <Etiqueta texto="Fecha de tu evento" nota="opcional" />
+          <input
+            name="evento_fecha"
+            type="date"
+            min={minimoEvento}
+            max={fechaMaxima}
+            defaultValue={v.evento_fecha}
+            className={`${campo} font-mono`}
+          />
+          <span className="text-xs text-gris">
+            {cotizacion ? `La tomamos de tu cotización ${cotizacion}. ` : ""}El mismo día de la entrega o después.
+          </span>
+        </label>
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Nota para Surtiba" nota="opcional" />
           <textarea
@@ -201,54 +187,6 @@ export function FormConfirmar({
         </label>
       </fieldset>
 
-      {/* Evento */}
-      <fieldset className="grid grid-cols-1 gap-5 border-t border-linea pt-6 sm:grid-cols-2">
-        <legend className={`${sello} mb-4 pt-6`}>Datos del evento (opcional)</legend>
-        <p className="-mt-1 text-sm text-gris sm:col-span-2">
-          {cotizacion
-            ? `Los llenamos con tu cotización ${cotizacion}: revísalos. `
-            : ""}
-          Con el nombre reconoces este pedido en «Mis pedidos», y con la fecha coordinamos la entrega antes de tu evento.
-        </p>
-        <label className="flex flex-col gap-2">
-          <Etiqueta texto="Nombre del evento" />
-          <input name="evento_nombre" maxLength={80} placeholder="Ej.: Boda Pérez" defaultValue={v.evento_nombre} className={campo} />
-        </label>
-        <label className="flex flex-col gap-2">
-          <Etiqueta texto="Tipo de evento" />
-          <select name="evento_tipo" defaultValue={v.evento_tipo ?? ""} className={campo}>
-            <option value="">Elige el tipo</option>
-            {tipos.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-            <option>Otro</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-2">
-          <Etiqueta texto="Fecha del evento" />
-          <input
-            name="evento_fecha"
-            type="date"
-            min={minimoEvento}
-            max={fechaMaxima}
-            defaultValue={v.evento_fecha}
-            className={`${campo} font-mono`}
-          />
-          <span className="text-xs text-gris">El mismo día de la entrega o después.</span>
-        </label>
-        <label className="flex flex-col gap-2">
-          <Etiqueta texto="Invitados" />
-          <input
-            name="invitados"
-            type="number"
-            min={1}
-            max={100000}
-            inputMode="numeric"
-            defaultValue={v.invitados}
-            className={`${campo} font-mono`}
-          />
-        </label>
-      </fieldset>
 
       {/* Si falta stock y hay algo disponible, el comprador elige cómo recibirlo */}
       {hayEleccion && (

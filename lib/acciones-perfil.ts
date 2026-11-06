@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { revisarClave, TIPOS_NEGOCIO } from "@/lib/cuenta";
 import { DISTRITOS } from "@/lib/distritos";
-import { PAISES, PREFIJO_PERU } from "@/lib/paises";
+import { celularValido, ERROR_CELULAR, limpiarCelular, PREFIJO_PERU } from "@/lib/celular";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,8 +19,7 @@ export async function guardarPerfil(_estado: EstadoForm, form: FormData): Promis
     nombre: leer(form, "nombre"),
     empresa: leer(form, "empresa"),
     tipo_negocio: leer(form, "tipo_negocio"),
-    prefijo: leer(form, "prefijo") || PREFIJO_PERU,
-    whatsapp: leer(form, "whatsapp").replace(/[\s-]/g, ""),
+    whatsapp: limpiarCelular(leer(form, "whatsapp")),
     ruc: leer(form, "ruc").replace(/\s/g, ""),
     direccion: leer(form, "direccion"),
     direccion_detalle: leer(form, "direccion_detalle"),
@@ -33,13 +32,7 @@ export async function guardarPerfil(_estado: EstadoForm, form: FormData): Promis
   if (!v.nombre || !v.empresa) return { error: "Completa tu nombre y el nombre de tu empresa.", valores };
   if (v.nombre.length > 80 || v.empresa.length > 80) return { error: "El nombre o la empresa es demasiado largo.", valores };
   if (!TIPOS_NEGOCIO.some((t) => t.valor === v.tipo_negocio)) return { error: "Elige el tipo de negocio.", valores };
-  if (!PAISES.some((p) => p.prefijo === v.prefijo)) return { error: "Elige el país de tu WhatsApp.", valores };
-  if (v.prefijo === PREFIJO_PERU && !/^9\d{8}$/.test(v.whatsapp)) {
-    return { error: "Escribe un celular peruano de 9 dígitos que empiece con 9. Ejemplo: 987654321.", valores };
-  }
-  if (v.prefijo !== PREFIJO_PERU && !/^\d{6,14}$/.test(v.whatsapp)) {
-    return { error: "Escribe tu número de WhatsApp solo con dígitos, sin el prefijo del país.", valores };
-  }
+  if (!celularValido(v.whatsapp)) return { error: ERROR_CELULAR, valores };
   if (v.ruc && !/^\d{11}$/.test(v.ruc)) return { error: "El RUC tiene 11 dígitos. Si no lo tienes a la mano, déjalo vacío.", valores };
 
   // La dirección es opcional; si escribes una parte, hacen falta la calle y el distrito
@@ -60,7 +53,7 @@ export async function guardarPerfil(_estado: EstadoForm, form: FormData): Promis
       nombre: v.nombre,
       empresa: v.empresa,
       tipo_negocio: v.tipo_negocio,
-      whatsapp: `${v.prefijo}${v.whatsapp}`,
+      whatsapp: `${PREFIJO_PERU}${v.whatsapp}`,
       ruc: v.ruc || null,
       direccion: hayDireccion ? v.direccion : null,
       direccion_detalle: hayDireccion ? v.direccion_detalle || null : null,

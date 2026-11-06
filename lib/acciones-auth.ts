@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { revisarClave, TIPOS_NEGOCIO } from "@/lib/cuenta";
 import { DISTRITOS } from "@/lib/distritos";
-import { PAISES, PREFIJO_PERU, telefonoValido } from "@/lib/paises";
+import { celularValido, ERROR_CELULAR, limpiarCelular, PREFIJO_PERU } from "@/lib/celular";
 import { rutaInicio, type Rol } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -70,20 +70,13 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
   const nombre = leer(form, "nombre");
   const empresa = leer(form, "empresa");
   const tipoNegocio = leer(form, "tipo_negocio");
-  const prefijo = leer(form, "prefijo") || PREFIJO_PERU;
-  const numero = leer(form, "whatsapp").replace(/[\s-]/g, "");
+  const numero = limpiarCelular(leer(form, "whatsapp"));
   const ruc = leer(form, "ruc").replace(/\s/g, "");
-  const valores = { email, nombre, empresa, tipo_negocio: tipoNegocio, prefijo, whatsapp: numero, ruc };
+  const valores = { email, nombre, empresa, tipo_negocio: tipoNegocio, whatsapp: numero, ruc };
 
   if (!nombre || !empresa) return { error: "Completa tu nombre y el nombre de tu empresa.", valores };
   if (!TIPOS_NEGOCIO.some((t) => t.valor === tipoNegocio)) return { error: "Elige el tipo de negocio.", valores };
-  if (!PAISES.some((p) => p.prefijo === prefijo)) return { error: "Elige el país de tu WhatsApp.", valores };
-  if (prefijo === PREFIJO_PERU && !/^9\d{8}$/.test(numero)) {
-    return { error: "Escribe un celular peruano de 9 dígitos que empiece con 9. Ejemplo: 987654321.", valores };
-  }
-  if (prefijo !== PREFIJO_PERU && !/^\d{6,14}$/.test(numero)) {
-    return { error: "Escribe tu número de WhatsApp solo con dígitos, sin el prefijo del país.", valores };
-  }
+  if (!celularValido(numero)) return { error: ERROR_CELULAR, valores };
   if (ruc && !/^\d{11}$/.test(ruc)) {
     return { error: "El RUC tiene 11 dígitos. Si no lo tienes a la mano, déjalo vacío.", valores };
   }
@@ -93,7 +86,7 @@ export async function registrarse(_estado: EstadoForm, form: FormData): Promise<
   if (password !== password2) return { error: "Las contraseñas no coinciden. Escríbelas de nuevo.", valores };
 
   // Se guarda en formato internacional: +51987654321
-  const whatsapp = `${prefijo}${numero}`;
+  const whatsapp = `${PREFIJO_PERU}${numero}`;
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -127,8 +120,7 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
   const password = String(form.get("password") ?? "");
   const password2 = String(form.get("password2") ?? "");
   const nombre = leer(form, "nombre");
-  const prefijo = leer(form, "prefijo") || PREFIJO_PERU;
-  const numero = leer(form, "whatsapp").replace(/[\s-]/g, "");
+  const numero = limpiarCelular(leer(form, "whatsapp"));
   const nombreComercial = leer(form, "nombre_comercial");
   const razonSocial = leer(form, "razon_social");
   const ruc = leer(form, "ruc").replace(/\s/g, "");
@@ -136,14 +128,12 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
   const distrito = leer(form, "distrito");
   const pedidoMinimo = leer(form, "pedido_minimo");
   const valores = {
-    email, nombre, prefijo, whatsapp: numero, nombre_comercial: nombreComercial,
+    email, nombre, whatsapp: numero, nombre_comercial: nombreComercial,
     razon_social: razonSocial, ruc, direccion, distrito, pedido_minimo: pedidoMinimo,
   };
 
   if (!nombre) return { error: "Escribe tu nombre.", valores };
-  if (!telefonoValido(prefijo, numero)) {
-    return { error: "Escribe un celular válido. En Perú: 9 dígitos que empiezan con 9.", valores };
-  }
+  if (!celularValido(numero)) return { error: ERROR_CELULAR, valores };
   if (!nombreComercial || !razonSocial) return { error: "Completa el nombre comercial y la razón social de tu marca.", valores };
   if (!/^\d{11}$/.test(ruc)) return { error: "El RUC de tu marca tiene 11 dígitos.", valores };
   if (!direccion) return { error: "Escribe la dirección donde Surtiba recogerá tus pedidos.", valores };
@@ -164,7 +154,7 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
       data: {
         tipo: "vender",
         nombre,
-        whatsapp: `${prefijo}${numero}`,
+        whatsapp: `${PREFIJO_PERU}${numero}`,
         nombre_comercial: nombreComercial,
         razon_social: razonSocial,
         ruc,

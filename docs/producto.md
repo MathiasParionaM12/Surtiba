@@ -20,13 +20,13 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 
 | Pantalla | Qué tiene |
 |---|---|
-| Registro / login | Correo y contraseña. Datos: nombre, empresa, tipo de negocio (catering, organizador de eventos, wedding planner, bar/restaurante u otro), WhatsApp y RUC (opcional) |
+| Registro / login | Correo y contraseña. Datos: nombre, empresa, tipo de negocio (catering, organizador de eventos, wedding planner, bar/restaurante u otro), WhatsApp (solo Perú: el +51 va fijo desde el 5-nov-2026) y RUC (opcional) |
 | Catálogo | Filtros por categoría y buscador; en «Más filtros» (21-oct-2026): precio máximo por caja, marca, presentación (ml), grado de alcohol, disponibilidad (con stock o por encargo, solo con sesión) y orden. Quedan en la dirección para compartirla. Antes: filtros por categoría y marca. Precio "desde", corazón de favorito y stock disponible ("Agotado" si es 0) |
 | Detalle de producto | Escala de precios completa, stock disponible y registro sanitario. **Calcula tu margen** (21-oct-2026): pone a cuánto lo vendería, por trago (bares, caterings, eventos) o por botella (por ejemplo, una licorería), y cuántas cajas compraría; ve su costo, su ganancia por unidad y por caja y su margen. Es una estimación en el navegador: no cambia precios ni pedidos |
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si una marca no llega a su pedido mínimo o si no hay stock suficiente. Botón **"Descargar cotización (PDF)"** |
-| Confirmar pedido | Quién recibe (nombre y celular con prefijo de país), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Datos del evento opcionales: nombre, tipo (de la lista del cotizador u "Otro"), fecha (el mismo día de la entrega o después) e invitados; si tiene una cotización de las 2 últimas semanas sin pedido, se llenan con ella (22-oct-2026). Se autocompleta con el perfil (su dirección habitual) y el último pedido |
+| Confirmar pedido | Quién recibe (nombre y celular +51), dirección completa (calle y número, dpto./oficina, distrito de Lima o Callao, código postal y referencia), fecha deseada de entrega (desde mañana) y nota. Del evento, **solo la fecha** (opcional, el mismo día de la entrega o después; KISS, 5-nov-2026): si tiene una cotización de las 2 últimas semanas sin pedido, sale de ella. Se autocompleta con el perfil (su dirección habitual) y el último pedido |
 | **Libro de Reclamaciones** (22-oct-2026) | `/libro-de-reclamaciones`, enlazado con ícono en el pie de todas las páginas. Para cualquiera, con o sin cuenta: reclamo o queja, datos (documento, domicilio, correo), producto o servicio, pedido y monto (opcionales), qué pasó y qué pide. Recibe un código correlativo (REC-2026-0001) y la fecha límite de respuesta (15 días hábiles, de lunes a viernes). Ve su copia para imprimir o guardar en PDF (todavía no se envía por correo). Con cuenta, ve sus hojas y la respuesta |
 | Condiciones y privacidad (22-oct-2026) | `/condiciones` (precios con IGV, encargos, pago simulado, entrega, cancelaciones y devoluciones) y `/privacidad` (Ley 29733: qué datos, para qué, quién los ve, dónde están y derechos ARCO). Los datos de Surtiba (razón social, RUC, dirección, correo) dicen "Por definir" hasta que existan: se llenan en `lib/empresa.ts` |
 | **Mi perfil** (22-oct-2026) | Desde su nombre y su foto en el encabezado. Foto o logo (privada: solo la ven él y Surtiba), nombre, empresa, tipo de negocio, WhatsApp, RUC, dirección de entrega habitual y cambiar contraseña (pide la actual). No se guardan métodos de pago ni tarjetas |
@@ -43,13 +43,12 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 | Inicio / **Mis números** | **Hoy** (encargos por responder, órdenes por preparar, listas esperando recojo); cajas vendidas del mes, ventas del mes (S/) con la comparación con el mes anterior y su línea de 4 semanas, comisión por pagar, órdenes pendientes; **Para vender más** (21-oct-2026): productos estrella (90 días), lo que le pidieron por encargo (30 días), en cuántas cotizaciones salió (30 días) y su cumplimiento (encargos aceptados, no atendidas, días hasta «Listo»). Solo totales: nunca datos de compradores |
 | Órdenes | Solo sus subpedidos: código, productos, cajas, total y fecha de recojo. **Sin datos del comprador** |
 | Detalle de la orden | Botones **"Listo para recojo"** y **"No puedo atenderla"** (con motivo obligatorio) |
-| Mis productos | Crear y editar productos, fotos y **escala de precios** |
-| Stock | Actualizar las cajas disponibles de cada producto, de forma rápida (una tabla editable) |
+| Productos | Su lista con las **cajas en stock editables** en la misma tabla y un solo "Guardar stock" (la pestaña Stock se juntó aquí el 5-nov-2026). En "Editar": datos, fotos y **escala de precios** |
 
 ### Admin (equipo Surtiba)
 | Pantalla | Qué tiene |
 |---|---|
-| Inicio | Cajas vendidas del mes (métrica principal), pedidos del mes, compradores activos, comisión del mes |
+| Inicio | Solo **lo que necesita atención** (5-nov-2026): solicitudes de marca, reclamos por responder, órdenes listas, pedidos para enviar o en camino, encargos esperando y pagos pendientes. Si no hay nada: "Todo al día". Los números están en Métricas |
 | Marcas | Revisar solicitudes de "Quiero vender" (aprobar con % de comisión y pedido mínimo, o rechazar con motivo). Editar marcas: comisión, pedido mínimo, contacto, activar/desactivar. Puede editar sus productos |
 | Pedidos | Todos los pedidos en pestañas por etapa (22-oct-2026): Por atender, Por recoger, En camino, Cerrados y Todos, cada una con su número. Filtros por marca y pago y buscador por código o comprador, que se aplican al instante. Ve los datos del comprador |
 | Logística | **Hoja de ruta por día** (22-oct-2026): resumen (recojos y entregas de hoy, atrasados, recojos sin fecha) y luego **Hoy** (con lo atrasado), **Mañana** y **Más adelante** (con los recojos sin fecha). En cada día, **Recoger** (agrupado por marca, con fecha de recojo y botón "Recogido") y **Entregar** (dirección completa, quién recibe, cuántas marcas faltan recoger y los botones "En camino" y "Entregado") |

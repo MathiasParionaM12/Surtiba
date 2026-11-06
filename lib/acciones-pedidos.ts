@@ -9,7 +9,7 @@ import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
 import { DISTRITOS } from "@/lib/distritos";
 import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
-import { PREFIJO_PERU, telefonoValido } from "@/lib/paises";
+import { celularValido, limpiarCelular, PREFIJO_PERU } from "@/lib/celular";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -98,8 +98,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   const leer = (campo: string) => String(form.get(campo) ?? "").trim();
   const valores = {
     recibe_nombre: leer("recibe_nombre"),
-    prefijo: leer("prefijo") || PREFIJO_PERU,
-    telefono: leer("telefono").replace(/[\s-]/g, ""),
+    telefono: limpiarCelular(leer("telefono")),
     direccion: leer("direccion"),
     direccion_detalle: leer("direccion_detalle"),
     distrito: leer("distrito"),
@@ -107,16 +106,13 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     referencia: leer("referencia"),
     fecha_entrega: leer("fecha_entrega"),
     nota: leer("nota"),
-    evento_nombre: leer("evento_nombre"),
-    evento_tipo: leer("evento_tipo"),
     evento_fecha: leer("evento_fecha"),
-    invitados: leer("invitados"),
     metodo_pago: leer("metodo_pago"),
     modo: leer("modo") === "junto" ? "junto" : "separado",
   };
 
   if (!valores.recibe_nombre) return { error: "Escribe el nombre de quien recibe el pedido.", valores };
-  if (!telefonoValido(valores.prefijo, valores.telefono)) {
+  if (!celularValido(valores.telefono)) {
     return { error: "Escribe un celular válido para quien recibe. En Perú: 9 dígitos que empiezan con 9.", valores };
   }
   if (!valores.direccion) return { error: "Escribe la calle y el número de la dirección.", valores };
@@ -130,19 +126,12 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   if (valores.evento_fecha && valores.evento_fecha > enUnAnioEnLima()) {
     return { error: "La fecha del evento puede ser hasta dentro de un año.", valores };
   }
-  const invitados = valores.invitados ? Number(valores.invitados) : undefined;
-  if (invitados !== undefined && !(Number.isInteger(invitados) && invitados > 0 && invitados <= 100000)) {
-    return { error: "El número de invitados debe ser un número entero mayor que 0.", valores };
-  }
   // Fechas AAAA-MM-DD: se comparan como texto. El evento no puede ser antes de la entrega.
   if (valores.evento_fecha && !/^\d{4}-\d{2}-\d{2}$/.test(valores.evento_fecha)) {
     return { error: "Elige la fecha del evento en el calendario.", valores };
   }
   if (valores.evento_fecha && valores.evento_fecha < valores.fecha_entrega) {
     return { error: "La fecha del evento no puede ser antes de la entrega. Si el evento es antes, cambia la fecha de entrega.", valores };
-  }
-  if (valores.evento_nombre.length > 80 || valores.evento_tipo.length > 60) {
-    return { error: "El nombre o el tipo del evento es demasiado largo.", valores };
   }
 
   // Toda la lógica (stock, precios, mínimos, subpedidos) corre en la función crear_pedido, en una transacción
@@ -152,16 +141,13 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     p_direccion: valores.direccion,
     p_distrito: valores.distrito,
     p_recibe_nombre: valores.recibe_nombre,
-    p_recibe_telefono: `${valores.prefijo}${valores.telefono}`,
+    p_recibe_telefono: `${PREFIJO_PERU}${valores.telefono}`,
     p_metodo_pago: valores.metodo_pago || undefined,
     p_direccion_detalle: valores.direccion_detalle || undefined,
     p_codigo_postal: valores.codigo_postal || undefined,
     p_referencia: valores.referencia || undefined,
     p_nota: valores.nota || undefined,
-    p_evento_nombre: valores.evento_nombre || undefined,
-    p_evento_tipo: valores.evento_tipo || undefined,
     p_evento_fecha: valores.evento_fecha || undefined,
-    p_invitados: invitados,
     p_modo: valores.modo as "separado" | "junto",
   });
 

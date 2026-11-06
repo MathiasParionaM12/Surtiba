@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
-import { separarTelefono } from "@/lib/paises";
+import { numeroLocal } from "@/lib/celular";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { FormClave } from "./FormClave";
@@ -37,7 +37,6 @@ async function Perfil() {
   const foto = p?.foto_ruta
     ? ((await supabase.storage.from("perfiles").createSignedUrl(p.foto_ruta, 3600)).data?.signedUrl ?? null)
     : null;
-  const telefono = separarTelefono(p?.whatsapp);
   const nombre = p?.empresa ?? p?.nombre ?? usuario.email;
 
   return (
@@ -55,8 +54,7 @@ async function Perfil() {
             nombre: p?.nombre ?? "",
             empresa: p?.empresa ?? "",
             tipo_negocio: p?.tipo_negocio ?? "",
-            prefijo: telefono.prefijo,
-            whatsapp: telefono.numero,
+            whatsapp: numeroLocal(p?.whatsapp),
             ruc: p?.ruc ?? "",
             direccion: p?.direccion ?? "",
             direccion_detalle: p?.direccion_detalle ?? "",

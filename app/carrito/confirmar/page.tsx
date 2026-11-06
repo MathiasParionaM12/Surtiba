@@ -6,7 +6,7 @@ import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
 import { enUnAnioEnLima, haceDias, mananaEnLima, soles } from "@/lib/formato";
-import { separarTelefono } from "@/lib/paises";
+import { numeroLocal } from "@/lib/celular";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +36,7 @@ async function Confirmar() {
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
 
   const supabase = await createClient();
-  const [{ data }, { data: perfil }, { data: ultimo }, { data: tipos }, { data: cotizacion }, tarifas] = await Promise.all([
+  const [{ data }, { data: perfil }, { data: ultimo }, { data: cotizacion }, tarifas] = await Promise.all([
     supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase
       .from("perfiles")
@@ -51,8 +51,7 @@ async function Confirmar() {
       .order("creado_en", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase.from("tipos_evento").select("nombre").eq("activo", true).order("orden"),
-    // Su última cotización de las 2 últimas semanas que aún no se volvió pedido: llena los datos del evento
+    // Su última cotización de las 2 últimas semanas que aún no se volvió pedido: de ahí sale la fecha del evento
     supabase
       .from("cotizaciones")
       .select("codigo, evento")
@@ -68,12 +67,10 @@ async function Confirmar() {
 
   // Autocompletar: quién recibe sale del último pedido o del perfil. La dirección, de la que guardó
   // en "Mi perfil"; si no guardó ninguna, de su último pedido.
-  const telefono = separarTelefono(ultimo?.recibe_telefono ?? perfil?.whatsapp);
   const dePerfil = !!perfil?.direccion;
   const iniciales: Iniciales = {
     recibe_nombre: ultimo?.recibe_nombre ?? perfil?.nombre ?? "",
-    prefijo: telefono.prefijo,
-    telefono: telefono.numero,
+    telefono: numeroLocal(ultimo?.recibe_telefono ?? perfil?.whatsapp),
     direccion: (dePerfil ? perfil?.direccion : ultimo?.direccion_entrega) ?? "",
     direccion_detalle: (dePerfil ? perfil?.direccion_detalle : ultimo?.direccion_detalle) ?? "",
     distrito: (dePerfil ? perfil?.distrito : ultimo?.distrito) ?? "",
@@ -82,18 +79,11 @@ async function Confirmar() {
   };
   const autocompletado = !!(ultimo || perfil?.nombre || perfil?.whatsapp || dePerfil);
 
-  // Datos del evento desde la cotización (la fecha solo si todavía se puede entregar antes)
+  // La fecha del evento sale de la cotización, si todavía se puede entregar antes
   const resumen = (cotizacion?.evento as { resumen?: Record<string, unknown> } | null)?.resumen ?? {};
-  const texto = (x: unknown) => (typeof x === "string" ? x.trim() : "");
-  const fechaEvento = texto(resumen.fecha);
-  const evento = {
-    evento_nombre: texto(resumen.nombre),
-    evento_tipo: texto(resumen.tipo),
-    evento_fecha: fechaEvento >= mananaEnLima() ? fechaEvento : "",
-    invitados: typeof resumen.invitados === "number" && resumen.invitados > 0 ? String(resumen.invitados) : "",
-  };
-  const conEvento = Object.values(evento).some(Boolean);
-  if (conEvento) Object.assign(iniciales, evento);
+  const fechaEvento = typeof resumen.fecha === "string" ? resumen.fecha.trim() : "";
+  const conEvento = fechaEvento >= mananaEnLima();
+  if (conEvento) iniciales.evento_fecha = fechaEvento;
 
   // Resumen por marca (los precios ya vienen calculados por la base de datos)
   const porMarca = new Map<string, { cajas: number; total: number }>();
@@ -121,7 +111,6 @@ async function Confirmar() {
           porEncargo={total - pagasAhora}
           iniciales={iniciales}
           autocompletado={autocompletado}
-          tiposEvento={(tipos ?? []).map((t) => t.nombre)}
           cotizacion={conEvento ? (cotizacion?.codigo ?? null) : null}
           envioPorDistrito={tarifas.porDistrito}
         />

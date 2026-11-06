@@ -2,11 +2,11 @@
 
 import { useActionState } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
+import { CampoCelular } from "@/components/CampoCelular";
 import { Etiqueta } from "@/components/Etiqueta";
 import { registrarVendedor, type EstadoForm } from "@/lib/acciones-auth";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
-import { PAISES, PREFIJO_PERU } from "@/lib/paises";
 import { PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
 
 export function FormVender() {
@@ -77,32 +77,7 @@ export function FormVender() {
           <Etiqueta texto="Tu nombre" obligatorio />
           <input name="nombre" autoComplete="name" required defaultValue={v.nombre} className={campo} />
         </label>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="whatsapp">
-            <Etiqueta texto="WhatsApp" obligatorio />
-          </label>
-          <div className="flex gap-2">
-            <div className="w-28 shrink-0">
-              <select name="prefijo" aria-label="País del WhatsApp" defaultValue={v.prefijo ?? PREFIJO_PERU} className={`${campo} font-mono`}>
-                {PAISES.map((p) => (
-                  <option key={p.codigo} value={p.prefijo}>
-                    {p.codigo} {p.prefijo}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <input
-              id="whatsapp"
-              name="whatsapp"
-              type="tel"
-              inputMode="numeric"
-              placeholder="987654321"
-              required
-              defaultValue={v.whatsapp}
-              className={`${campo} min-w-0 font-mono`}
-            />
-          </div>
-        </div>
+        <CampoCelular nombre="whatsapp" etiqueta="WhatsApp" valor={v.whatsapp} />
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Correo" obligatorio />
           <input name="email" type="email" autoComplete="email" required defaultValue={v.email} className={campo} />
