@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Advertencia } from "@/components/Advertencia";
 import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { esUuid, ordenarTramos, urlFoto } from "@/lib/catalogo";
@@ -38,7 +39,7 @@ async function Editar({
   const supabase = await createClient();
   const { data: p } = await supabase
     .from("productos")
-    .select("id, nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, activo, foto_url, escalas_precio(desde_cajas, precio_caja_centimos)")
+    .select("id, nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, activo, foto_url, revision, motivo_revision, escalas_precio(desde_cajas, precio_caja_centimos)")
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
@@ -48,8 +49,21 @@ async function Editar({
       <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">{p.nombre}</h1>
       {(avisos.creado || avisos.guardado) && (
         <p role="status" className="mt-4 border-l-2 border-verde pl-3 text-sm">
-          {avisos.creado ? "Producto creado. Ahora puedes subir su foto." : "Cambios guardados."}
+          {avisos.creado ? "Producto creado y enviado a revisión. Ahora puedes subir su foto." : "Cambios guardados."}
         </p>
+      )}
+      {/* Aprobación: lo nuevo aparece en el catálogo recién cuando Surtiba lo aprueba */}
+      {p.revision === "pendiente" && (
+        <p className="mt-4 border-l-2 border-gris pl-3 text-sm text-gris">
+          En revisión: Surtiba lo revisa antes de mostrarlo en el catálogo. Te avisamos en la campana.
+        </p>
+      )}
+      {p.revision === "rechazado" && (
+        <div className="mt-4">
+          <Advertencia titulo="Surtiba no aprobó este producto">
+            {p.motivo_revision} Corrígelo y guarda: vuelve a revisión.
+          </Advertencia>
+        </div>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">

@@ -37,7 +37,7 @@ async function ListaProductos() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("productos")
-    .select("id, nombre, categoria, ml, stock_cajas, activo, foto_url, escalas_precio(desde_cajas, precio_caja_centimos)")
+    .select("id, nombre, categoria, ml, stock_cajas, activo, foto_url, revision, escalas_precio(desde_cajas, precio_caja_centimos)")
     .order("nombre");
 
   if (!data || data.length === 0) {
@@ -62,6 +62,7 @@ async function ListaProductos() {
           foto: urlFoto(p.foto_url),
           stock: p.stock_cajas,
           activo: p.activo,
+          revision: p.revision,
         };
       })}
     />

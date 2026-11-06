@@ -135,6 +135,7 @@ export type Database = {
         Row: {
           activo: boolean; categoria: string; creado_en: string; foto_url: string | null; grado: number; id: string; marca_id: string;
           ml: number; nombre: string; registro_sanitario: string | null; stock_cajas: number; unidades_por_caja: number;
+          revision: string; motivo_revision: string | null;
         };
         Insert: {
           activo?: boolean; categoria: string; creado_en?: string; foto_url?: string | null; grado: number; id?: string; marca_id: string;
@@ -371,6 +372,10 @@ export type Database = {
           p_monto_centimos: number | null; p_descripcion_bien: string; p_detalle: string; p_pedido: string;
         };
         Returns: Json;
+      };
+      admin_revisar_producto: {
+        Args: { p_producto: string; p_aprueba: boolean; p_motivo?: string | null };
+        Returns: undefined;
       };
       admin_guardar_envio: {
         Args: { p_zona: number; p_monto_centimos: number };

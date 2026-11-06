@@ -16,6 +16,7 @@ export type FilaProducto = {
   foto: string | null;
   stock: number;
   activo: boolean;
+  revision: string; // pendiente · aprobado · rechazado
 };
 
 // Productos de la marca con su stock editable en la misma lista (antes eran 2 pestañas: KISS, 5-nov-2026).
@@ -55,7 +56,9 @@ export function TablaProductos({ productos }: { productos: FilaProducto[] }) {
                 />
               </span>
             </label>
-            <span className={`${sello} w-16 text-right`}>{p.activo ? "Activo" : "Inactivo"}</span>
+            <span className={`${sello} w-24 text-right ${p.revision === "rechazado" ? "text-rojo" : ""}`}>
+              {p.revision === "pendiente" ? "En revisión" : p.revision === "rechazado" ? "Rechazado" : p.activo ? "Activo" : "Inactivo"}
+            </span>
             <Link href={`/marca/productos/${p.id}`} className="text-sm font-medium enlace text-verde hover:text-tinta">
               Editar
             </Link>

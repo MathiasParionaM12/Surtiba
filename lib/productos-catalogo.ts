@@ -32,6 +32,7 @@ export async function productosConSesion(esComprador: boolean): Promise<Producto
       .select(
         "id, nombre, categoria, ml, grado, unidades_por_caja, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, precio_caja_centimos)",
       )
+      .eq("revision", "aprobado") // el admin ve todo: aquí solo lo aprobado
       .order("nombre"),
     // RLS: cada comprador recibe solo sus favoritos (la marca y el admin, ninguno)
     supabase.from("favoritos").select("producto_id"),

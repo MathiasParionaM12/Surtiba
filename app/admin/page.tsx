@@ -24,8 +24,9 @@ async function Inicio() {
   const supabase = await createClient();
 
   // RLS: el admin ve todo. Solo conteos.
-  const [solicitudes, reclamos, listas, { data: abiertos }, pagos, encargosMarca, encargosPago] = await Promise.all([
+  const [solicitudes, porAprobar, reclamos, listas, { data: abiertos }, pagos, encargosMarca, encargosPago] = await Promise.all([
     supabase.from("solicitudes_marca").select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
+    supabase.from("productos").select("*", { count: "exact", head: true }).eq("revision", "pendiente"),
     supabase.from("reclamos").select("*", { count: "exact", head: true }).is("respuesta", null),
     supabase.from("subpedidos").select("*", { count: "exact", head: true }).eq("estado", "listo_recojo"),
     supabase.from("pedidos").select("id, estado, subpedidos(estado)").in("estado", ["recibido", "en_preparacion", "en_camino"]),
@@ -47,6 +48,7 @@ async function Inicio() {
 
   const tareas = [
     { cantidad: solicitudes.count ?? 0, texto: "solicitudes de marca por revisar", href: "/admin/marcas" },
+    { cantidad: porAprobar.count ?? 0, texto: "productos nuevos por aprobar", href: "/admin/productos" },
     { cantidad: reclamos.count ?? 0, texto: "hojas de reclamación por responder", href: "/admin/reclamos" },
     { cantidad: listas.count ?? 0, texto: "órdenes listas para recoger", href: "/admin/logistica" },
     { cantidad: paraSalir, texto: "pedidos completos para enviar", href: "/admin/logistica" },

@@ -270,3 +270,19 @@ export async function guardarEnvio(_e: EstadoForm, form: FormData): Promise<Esta
     "envio",
   );
 }
+
+// Aprobar o rechazar (con motivo) un producto nuevo de una marca. Al aprobarlo aparece en el catálogo.
+export async function revisarProducto(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const producto = id(form, "producto_id");
+  const aprueba = form.get("decision") === "aprobar";
+  const motivo = texto(form, "motivo");
+  if (!producto) return { error: "No encontramos ese producto." };
+  if (!aprueba && motivo.length < 5) return { error: "Escribe el motivo del rechazo para que la marca pueda corregirlo." };
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.rpc("admin_revisar_producto", { p_producto: producto, p_aprueba: aprueba, p_motivo: aprueba ? null : motivo }),
+    aprueba ? "Producto aprobado: ya está en el catálogo." : "Producto rechazado. La marca recibió el motivo.",
+    "catalogo",
+  );
+}

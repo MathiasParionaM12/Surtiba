@@ -43,7 +43,7 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 | Inicio / **Mis números** | **Hoy** (encargos por responder, órdenes por preparar, listas esperando recojo); cajas vendidas del mes, ventas del mes (S/) con la comparación con el mes anterior y su línea de 4 semanas, comisión por pagar, órdenes pendientes; **Para vender más** (21-oct-2026): productos estrella (90 días), lo que le pidieron por encargo (30 días), en cuántas cotizaciones salió (30 días) y su cumplimiento (encargos aceptados, no atendidas, días hasta «Listo»). Solo totales: nunca datos de compradores |
 | Órdenes | Solo sus subpedidos: código, productos, cajas, total y fecha de recojo. **Sin datos del comprador** |
 | Detalle de la orden | Botones **"Listo para recojo"** y **"No puedo atenderla"** (con motivo obligatorio) |
-| Productos | Su lista con las **cajas en stock editables** en la misma tabla y un solo "Guardar stock" (la pestaña Stock se juntó aquí el 5-nov-2026). En "Editar": datos, fotos y **escala de precios** |
+| Productos | Su lista con las **cajas en stock editables** en la misma tabla y un solo "Guardar stock" (la pestaña Stock se juntó aquí el 5-nov-2026). En "Editar": datos, fotos y **escala de precios**. Cada producto nuevo dice "En revisión" hasta que Surtiba lo aprueba; si lo rechaza, ve el motivo |
 
 ### Admin (equipo Surtiba)
 | Pantalla | Qué tiene |
@@ -101,6 +101,12 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
   - **"Todo junto cuando esté completo"**: **un solo pedido por encargo** con todo el carrito. Se aparta lo que hay en stock; **cada marca del pedido confirma** su parte con fecha (o la rechaza y lo apartado vuelve a su stock). Cuando todas respondieron, el cliente **paga todo en un solo pago** y llega junto.
 - Ambos pedidos usan el precio del tramo según el **total** de cajas pedidas del producto. El pedido mínimo se cuenta sobre el total.
 - **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
+
+### Aprobación de productos (5-nov-2026)
+- Lo que **crea una marca** queda **en revisión** y no aparece en el catálogo, el directorio ni el cotizador hasta que el admin lo aprueba en **Panel Surtiba → Productos por aprobar** (`/admin/productos`, también en su Inicio).
+- El admin **aprueba** o **rechaza con motivo**; la marca recibe un aviso. Si corrige uno rechazado y guarda, vuelve a revisión.
+- Editar un producto ya aprobado (precio, stock, fotos, datos) no pide aprobación otra vez. Lo que crea el admin entra aprobado.
+- Los productos que ya existían quedaron aprobados.
 
 ### Pedido mínimo
 **Desde el 5-nov-2026 (Mathias): 3 cajas en total por pedido, de cualquier marca.** No se puede pedir 1 caja sola; 3 cajas de 3 marcas distintas, sí. Ya no hay mínimo por marca (se quitó del registro "Quiero vender", del panel de la marca y del admin).
@@ -162,7 +168,7 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 
 ## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
-- **Aprobación de productos:** cada producto que suba una marca queda "en revisión" hasta que el admin lo acepte; recién ahí aparece en el catálogo.
+- ~~**Aprobación de productos**~~ → construida el 5-nov-2026 (ver "Aprobación de productos" en Reglas de negocio).
 - ~~**Pago al comprar**~~ → ya construido en la fase 7 (ver "Pedidos por encargo y pago").
 - **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija para todas: 5 % desde el 14-oct-2026 y **7 % desde el 22-oct-2026** (Surtiba cubre el recojo; `COMISION_PCT` en `lib/catalogo.ts`).
 

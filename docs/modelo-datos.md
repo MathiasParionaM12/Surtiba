@@ -71,6 +71,7 @@ Separada de `marcas` para no usar vistas que se salten RLS.
 | comision_pct | numeric(5,2) | ej. 5.00. Se copia al subpedido al crearlo |
 
 ### productos
+Desde el 5-nov-2026 también `revision` (`pendiente` · `aprobado` · `rechazado`, por defecto pendiente) y `motivo_revision`. Compradores y visitantes ven solo lo aprobado (RLS y `catalogo_publico`). La marca no puede cambiar `revision`: escribe directo solo `stock_cajas` y `foto_url`; lo demás pasa por `guardar_producto` y el admin revisa con `admin_revisar_producto` (`supabase/sql/39_revision_productos.sql`).
 | Columna | Tipo | Nota |
 |---|---|---|
 | id | uuid PK | |

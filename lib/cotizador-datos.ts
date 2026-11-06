@@ -127,7 +127,8 @@ async function catalogoConSesion(): Promise<ProductoCotizable[]> {
     .select(
       "id, nombre, categoria, ml, unidades_por_caja, stock_cajas, marca_id, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
-    .eq("activo", true);
+    .eq("activo", true)
+    .eq("revision", "aprobado");
   return (data ?? [])
     .filter((p) => p.marcas?.activa && p.escalas_precio.some((e) => e.desde_cajas === 1))
     .map((p) => ({
