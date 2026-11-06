@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { botonSecundario, sello } from "@/lib/estilos";
+import { configEntregas, sumarDias } from "@/lib/entregas";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
-import { enUnAnioEnLima, haceDias, mananaEnLima, soles } from "@/lib/formato";
+import { enUnAnioEnLima, haceDias, hoyEnLima, mananaEnLima, soles } from "@/lib/formato";
 import { numeroLocal } from "@/lib/celular";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
@@ -36,7 +37,7 @@ async function Confirmar() {
   if (usuario.rol !== "comprador") redirect(rutaInicio(usuario.rol));
 
   const supabase = await createClient();
-  const [{ data }, { data: perfil }, { data: ultimo }, { data: cotizacion }, tarifas] = await Promise.all([
+  const [{ data }, { data: perfil }, { data: ultimo }, { data: cotizacion }, tarifas, entregas] = await Promise.all([
     supabase.from("carrito_detalle").select("marca, cajas, stock_cajas, encargo, precio_caja_centimos, subtotal_centimos").order("marca"),
     supabase
       .from("perfiles")
@@ -61,6 +62,7 @@ async function Confirmar() {
       .limit(1)
       .maybeSingle(),
     tarifasEnvio(),
+    configEntregas(),
   ]);
   const lineas = data ?? [];
   if (lineas.length === 0) redirect("/carrito");
@@ -115,6 +117,8 @@ async function Confirmar() {
           autocompletado={autocompletado}
           cotizacion={conEvento ? (cotizacion?.codigo ?? null) : null}
           envioPorDistrito={tarifas.porDistrito}
+          config={entregas}
+          primerDia={sumarDias(hoyEnLima(), entregas.corteDias)}
         />
       </div>
 

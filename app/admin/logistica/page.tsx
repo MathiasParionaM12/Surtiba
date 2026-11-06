@@ -4,21 +4,23 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoTabla } from "@/components/Esqueleto";
 import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { FormAccion } from "@/components/FormAccion";
-import { fijarRecojo, guardarEnvio, marcarEnCamino, marcarEntregado, marcarRecogido } from "@/lib/acciones-admin";
+import { guardarEntregas, guardarEnvio, marcarEntregado, recogerMarca } from "@/lib/acciones-admin";
+import { configEntregas, fechaLarga, NOMBRE_DIA, sumarDias, textoDias } from "@/lib/entregas";
 import { tarifasEnvio } from "@/lib/envio";
 import { campo, sello } from "@/lib/estilos";
-import { enUnAnioEnLima, fecha, hoyEnLima, mananaEnLima } from "@/lib/formato";
+import { hoyEnLima } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Logística · Panel Surtiba" };
 
-// Hoja de ruta: qué recoger en cada marca y qué entregar, ordenado por día (hoy, mañana, más adelante).
+// Hoja de ruta por día de entrega (martes y jueves, 6-nov-2026): la víspera se recoge en cada marca con un clic
+// ("Recogí todo de esta marca") y el pedido pasa solo a "en camino"; el día de entrega se marca "Entregado".
 export default function PaginaLogistica() {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Logística</h1>
-      <p className="mt-2 text-gris">La hoja de ruta: recoger en cada marca y entregar el pedido completo al comprador.</p>
+      <p className="mt-2 text-gris">Por día de entrega: la víspera recoges en cada marca y ese día entregas.</p>
       <Carga fallback={<EsqueletoTabla filas={5} />}>
         <Logistica />
       </Carga>
@@ -27,57 +29,53 @@ export default function PaginaLogistica() {
 }
 
 type Privado = { direccion_recojo: string | null; contacto_nombre: string | null; contacto_whatsapp: string | null };
-type Dia = "hoy" | "manana" | "despues";
-const DIAS: { clave: Dia; titulo: string; ayuda: string }[] = [
-  { clave: "hoy", titulo: "Hoy", ayuda: "Incluye lo atrasado." },
-  { clave: "manana", titulo: "Mañana", ayuda: "" },
-  { clave: "despues", titulo: "Más adelante", ayuda: "Incluye los recojos sin fecha: ponles una." },
-];
 
 async function Logistica() {
   await exigirRol("admin");
   const supabase = await createClient();
   const hoy = hoyEnLima();
-  const manana = mananaEnLima();
-  // Lo atrasado va con hoy; sin fecha, con "más adelante"
-  const diaDe = (f: string | null): Dia => (!f ? "despues" : f <= hoy ? "hoy" : f === manana ? "manana" : "despues");
 
-  const [{ data: porRecoger }, { data: abiertos }, tarifas] = await Promise.all([
+  const [{ data: porRecoger }, { data: abiertos }, tarifas, entregas] = await Promise.all([
+    // Órdenes por recoger de pedidos ya pagados (los encargos sin pagar no se recogen)
     supabase
       .from("subpedidos")
       .select(
-        "id, codigo, estado, total_cajas, fecha_recojo, pedido_id, marca_id, marcas(nombre_comercial, marcas_privado(direccion_recojo, contacto_nombre, contacto_whatsapp))",
+        "id, codigo, estado, total_cajas, fecha_recojo, pedido_id, marca_id, pedidos!inner(estado, fecha_entrega_deseada), marcas(nombre_comercial, marcas_privado(direccion_recojo, contacto_nombre, contacto_whatsapp))",
       )
       .in("estado", ["pendiente", "listo_recojo"])
+      .in("pedidos.estado", ["recibido", "en_preparacion"])
       .order("codigo"),
     supabase
       .from("pedidos")
       .select("id, codigo, estado, fecha_entrega_deseada, distrito, direccion_entrega, direccion_detalle, referencia, recibe_nombre, recibe_telefono, perfiles(empresa), subpedidos(estado)")
       .in("estado", ["recibido", "en_preparacion", "en_camino"])
-      .order("fecha_entrega_deseada"),
+      .order("codigo"),
     tarifasEnvio(),
+    configEntregas(),
   ]);
-  const distritosDe = (zona: number) => Object.keys(tarifas.zonaDe).filter((d) => tarifas.zonaDe[d] === zona).sort();
 
-  const recojos = (porRecoger ?? []).map((s) => ({ ...s, dia: diaDe(s.fecha_recojo), atrasado: !!s.fecha_recojo && s.fecha_recojo < hoy }));
-  const entregas = (abiertos ?? []).map((p) => {
+  // Lo atrasado se junta en un solo grupo arriba; lo demás, por fecha de entrega
+  const grupoDe = (fecha: string) => (fecha < hoy ? "atrasado" : fecha);
+  const recojos = (porRecoger ?? []).map((s) => ({ ...s, grupo: grupoDe(s.pedidos.fecha_entrega_deseada) }));
+  const entregasAbiertas = (abiertos ?? []).map((p) => {
     const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
-    const recogidos = vigentes.filter((s) => s.estado === "recogido").length;
     return {
       ...p,
-      dia: diaDe(p.fecha_entrega_deseada),
-      atrasado: p.fecha_entrega_deseada < hoy,
-      recogidos,
+      grupo: grupoDe(p.fecha_entrega_deseada),
+      recogidos: vigentes.filter((s) => s.estado === "recogido").length,
       total: vigentes.length,
-      completo: vigentes.length > 0 && recogidos === vigentes.length,
     };
   });
+  const grupos = [...new Set([...recojos.map((r) => r.grupo), ...entregasAbiertas.map((e) => e.grupo)])].sort((a, b) =>
+    a === "atrasado" ? -1 : b === "atrasado" ? 1 : a.localeCompare(b),
+  );
+  const proxima = grupos.find((g) => g !== "atrasado");
 
   const resumen = [
-    { valor: recojos.filter((r) => r.dia === "hoy").length, texto: "recojos hoy" },
-    { valor: entregas.filter((e) => e.dia === "hoy").length, texto: "entregas hoy" },
-    { valor: recojos.filter((r) => r.atrasado).length + entregas.filter((e) => e.atrasado).length, texto: "atrasados", alerta: true },
-    { valor: recojos.filter((r) => !r.fecha_recojo).length, texto: "recojos sin fecha", alerta: true },
+    { valor: proxima ? fechaLarga(proxima) : "—", texto: "próxima entrega", fecha: true },
+    { valor: proxima ? recojos.filter((r) => r.grupo === proxima).length : 0, texto: "órdenes por recoger para esa entrega" },
+    { valor: proxima ? entregasAbiertas.filter((e) => e.grupo === proxima).length : 0, texto: "pedidos para esa entrega" },
+    { valor: recojos.filter((r) => r.grupo === "atrasado").length + entregasAbiertas.filter((e) => e.grupo === "atrasado").length, texto: "atrasados", alerta: true },
   ];
 
   return (
@@ -86,70 +84,36 @@ async function Logistica() {
         {resumen.map((r) => (
           <div
             key={r.texto}
-            className={`rounded-md border bg-blanco px-4 py-3 ${r.alerta && r.valor > 0 ? "border-rojo" : "border-linea"}`}
+            className={`rounded-md border bg-blanco px-4 py-3 ${r.alerta && Number(r.valor) > 0 ? "border-rojo" : "border-linea"}`}
           >
             <dt className="text-xs text-gris">{r.texto}</dt>
-            <dd className="mt-1 font-mono text-2xl font-semibold">{r.valor}</dd>
+            <dd className={`mt-1 font-semibold first-letter:uppercase ${r.fecha ? "text-base" : "font-mono text-2xl"}`}>{r.valor}</dd>
           </div>
         ))}
       </dl>
 
-      {/* Envío al comprador: fijo por pedido según la zona del distrito (lo cobra crear_pedido) */}
-      <section className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
-        <h2 className={sello}>Envío al comprador</h2>
-        <p className="mt-1 text-sm text-gris">
-          Fijo por pedido, sin importar las cajas. Uno solo aunque el pedido llegue en dos partes. Los pedidos ya hechos no cambian.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {tarifas.zonas.map((z) => (
-            <div key={z.zona} className="flex flex-col gap-2">
-              <FormAccion accion={guardarEnvio} ocultos={{ zona: String(z.zona) }} texto="Guardar" variante="secundario">
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-gris">
-                    Zona {z.zona} · {z.nombre}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-gris">S/</span>
-                    <span className="w-28">
-                      <input
-                        name="monto"
-                        inputMode="decimal"
-                        required
-                        defaultValue={(z.monto_centimos / 100).toFixed(2)}
-                        className={`${campo} h-10 font-mono`}
-                      />
-                    </span>
-                  </span>
-                </label>
-              </FormAccion>
-              <details className="text-xs text-gris">
-                <summary className="cursor-pointer">{distritosDe(z.zona).length} distritos</summary>
-                <p className="mt-1 leading-relaxed">{distritosDe(z.zona).join(", ")}</p>
-              </details>
-            </div>
-          ))}
-        </div>
-      </section>
+      {grupos.length === 0 && <p className="rounded-md border border-linea bg-blanco p-5 text-gris">No hay pedidos por recoger ni entregar.</p>}
 
-      {DIAS.map((d) => {
-        const deRecojo = recojos.filter((r) => r.dia === d.clave);
-        const deEntrega = entregas.filter((e) => e.dia === d.clave);
-        // Recojos del día agrupados por marca: así se visita cada local una sola vez
-        const marcas = new Map<string, { nombre: string; privado: Privado | null; ordenes: typeof deRecojo }>();
+      {grupos.map((g) => {
+        const deRecojo = recojos.filter((r) => r.grupo === g);
+        const deEntrega = entregasAbiertas.filter((e) => e.grupo === g);
+        // Recojos agrupados por marca y día de recojo: un botón "Recogí todo" por marca
+        const marcas = new Map<string, { marcaId: string; dia: string; nombre: string; privado: Privado | null; ordenes: typeof deRecojo }>();
         for (const s of deRecojo) {
-          const grupo = marcas.get(s.marca_id) ?? { nombre: s.marcas?.nombre_comercial ?? "", privado: s.marcas?.marcas_privado ?? null, ordenes: [] };
+          const dia = s.fecha_recojo ?? sumarDias(s.pedidos.fecha_entrega_deseada, -1);
+          const clave = `${s.marca_id}|${dia}`;
+          const grupo = marcas.get(clave) ?? { marcaId: s.marca_id, dia, nombre: s.marcas?.nombre_comercial ?? "", privado: s.marcas?.marcas_privado ?? null, ordenes: [] };
           grupo.ordenes.push(s);
-          marcas.set(s.marca_id, grupo);
+          marcas.set(clave, grupo);
         }
 
         return (
-          <section key={d.clave}>
+          <section key={g}>
             <div className="flex flex-wrap items-baseline gap-x-3 border-b border-linea pb-2">
-              <h2 className="text-xl font-semibold tracking-tight">{d.titulo}</h2>
-              <span className="font-mono text-sm text-gris">
-                {d.clave === "hoy" ? fecha(hoy) : d.clave === "manana" ? fecha(manana) : ""}
-              </span>
-              {d.ayuda && <span className="text-sm text-gris">{d.ayuda}</span>}
+              <h2 className={`text-xl font-semibold tracking-tight first-letter:uppercase ${g === "atrasado" ? "text-rojo" : ""}`}>
+                {g === "atrasado" ? "Atrasados" : fechaLarga(g)}
+              </h2>
+              {g !== "atrasado" && <span className="text-sm text-gris">Recojo el {fechaLarga(sumarDias(g, -1))}</span>}
             </div>
 
             <div className="mt-4 grid gap-6 lg:grid-cols-2">
@@ -160,55 +124,42 @@ async function Logistica() {
                   <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">Nada por recoger.</p>
                 ) : (
                   <div className="mt-3 flex flex-col gap-3">
-                    {[...marcas.entries()].map(([marcaId, g]) => (
-                      <article key={marcaId} className="overflow-hidden rounded-md border border-linea bg-blanco">
-                        <header className="border-b border-linea px-4 py-3">
-                          <h4 className="font-semibold">{g.nombre}</h4>
-                          <p className="text-sm text-gris">
-                            {g.privado?.direccion_recojo ?? "Sin dirección de recojo"}
-                            {g.privado?.contacto_nombre && ` · ${g.privado.contacto_nombre}`}
-                            {g.privado?.contacto_whatsapp && <span className="font-mono"> · {g.privado.contacto_whatsapp}</span>}
-                          </p>
-                        </header>
-                        <ul>
-                          {g.ordenes.map((o) => (
-                            <li key={o.id} className="flex flex-wrap items-end justify-between gap-3 border-b border-linea px-4 py-3 last:border-b-0">
-                              <div className="min-w-36">
-                                <Link href={`/admin/pedidos/${o.pedido_id}`} className="font-mono font-medium enlace text-verde hover:text-tinta">
-                                  {o.codigo}
-                                </Link>
-                                <span className="ml-2 font-mono text-xs text-gris">{o.total_cajas} cajas</span>
-                                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                  <EtiquetaEstado estado={o.estado} />
-                                  {o.atrasado && <Atrasado />}
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap items-end gap-3">
-                                <FormAccion accion={fijarRecojo} ocultos={{ subpedido_id: o.id }} texto="Guardar" variante="secundario">
-                                  <label className="flex flex-col gap-1">
-                                    <span className="text-xs text-gris">Recojo</span>
-                                    <div className="w-40">
-                                      <input
-                                        name="fecha"
-                                        type="date"
-                                        min={hoy}
-                                        max={enUnAnioEnLima()}
-                                        required
-                                        defaultValue={o.fecha_recojo ?? ""}
-                                        className={`${campo} h-10 font-mono`}
-                                      />
-                                    </div>
-                                  </label>
-                                </FormAccion>
-                                {o.estado === "listo_recojo" && (
-                                  <FormAccion accion={marcarRecogido} ocultos={{ subpedido_id: o.id }} texto="Recogido" />
-                                )}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </article>
-                    ))}
+                    {[...marcas.entries()].map(([clave, m]) => {
+                      const sinListo = m.ordenes.filter((o) => o.estado === "pendiente").length;
+                      return (
+                        <article key={clave} className="overflow-hidden rounded-md border border-linea bg-blanco">
+                          <header className="border-b border-linea px-4 py-3">
+                            <h4 className="font-semibold">{m.nombre}</h4>
+                            <p className="text-sm text-gris">
+                              {m.privado?.direccion_recojo ?? "Sin dirección de recojo"}
+                              {m.privado?.contacto_nombre && ` · ${m.privado.contacto_nombre}`}
+                              {m.privado?.contacto_whatsapp && <span className="font-mono"> · {m.privado.contacto_whatsapp}</span>}
+                            </p>
+                          </header>
+                          <ul>
+                            {m.ordenes.map((o) => (
+                              <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-linea px-4 py-2.5 text-sm">
+                                <span>
+                                  <Link href={`/admin/pedidos/${o.pedido_id}`} className="font-mono font-medium enlace text-verde hover:text-tinta">
+                                    {o.codigo}
+                                  </Link>
+                                  <span className="ml-2 font-mono text-xs text-gris">{o.total_cajas} cajas</span>
+                                </span>
+                                <EtiquetaEstado estado={o.estado} />
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                            <span className={`text-xs ${sinListo > 0 ? "text-rojo" : "text-gris"}`}>
+                              {sinListo > 0
+                                ? `${sinListo === 1 ? "1 orden no está marcada" : `${sinListo} órdenes no están marcadas`} como lista: confirma con la marca.`
+                                : `Recojo el ${fechaLarga(m.dia)}.`}
+                            </span>
+                            <FormAccion accion={recogerMarca} ocultos={{ marca_id: m.marcaId, fecha_recojo: m.dia }} texto="Recogí todo de esta marca" />
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -228,7 +179,7 @@ async function Logistica() {
                           </Link>
                           <span className="ml-2">{p.perfiles?.empresa}</span>
                           <p className="text-gris">
-                            {d.clave === "despues" || p.atrasado ? `${fecha(p.fecha_entrega_deseada)} · ` : ""}
+                            {g === "atrasado" && `${fechaLarga(p.fecha_entrega_deseada)} · `}
                             {p.distrito} · {p.direccion_entrega}
                             {p.direccion_detalle && `, ${p.direccion_detalle}`}
                           </p>
@@ -240,19 +191,14 @@ async function Logistica() {
                           )}
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                             <EtiquetaEstado estado={p.estado} />
-                            {p.atrasado && <Atrasado />}
-                            {!p.completo && (
+                            {p.estado !== "en_camino" && (
                               <span className="font-mono text-xs text-gris">
                                 Recogido {p.recogidos} de {p.total}
                               </span>
                             )}
                           </div>
                         </div>
-                        {p.estado === "en_camino" ? (
-                          <FormAccion accion={marcarEntregado} ocultos={{ pedido_id: p.id }} texto="Entregado" />
-                        ) : p.completo ? (
-                          <FormAccion accion={marcarEnCamino} ocultos={{ pedido_id: p.id }} texto="En camino" />
-                        ) : null}
+                        {p.estado === "en_camino" && <FormAccion accion={marcarEntregado} ocultos={{ pedido_id: p.id }} texto="Entregado" />}
                       </li>
                     ))}
                   </ul>
@@ -263,13 +209,66 @@ async function Logistica() {
         );
       })}
       <p className="text-xs text-gris">Al marcar «Entregado» se calcula la comisión de cada marca.</p>
-    </div>
-  );
-}
 
-// Rojo apagado solo en el borde y el texto (docs/marca.md: el rojo nunca va de fondo)
-function Atrasado() {
-  return (
-    <span className="rounded-sm border border-rojo px-1.5 py-0.5 font-mono text-[11px] tracking-[0.08em] text-rojo uppercase">Atrasado</span>
+      {/* Días de entrega y anticipación: cambian la fecha que se asigna a los pedidos nuevos */}
+      <section className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
+        <h2 className={sello}>Días de entrega</h2>
+        <p className="mt-1 text-sm text-gris">
+          Hoy entregamos los {textoDias(entregas)} y se pide con {entregas.corteDias} días de anticipación. El recojo es la víspera. Los
+          pedidos ya hechos no cambian.
+        </p>
+        <FormAccion accion={guardarEntregas} ocultos={{}} texto="Guardar" variante="secundario" className="mt-4">
+          <fieldset className="flex flex-wrap gap-2">
+            <legend className="sr-only">Días de entrega</legend>
+            {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+              <label key={d} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-linea px-2.5 py-2 text-sm has-[:checked]:border-tinta">
+                <input type="checkbox" name="dias" value={d} defaultChecked={entregas.dias.includes(d)} className="accent-verde" />
+                <span className="first-letter:uppercase">{NOMBRE_DIA[d]}</span>
+              </label>
+            ))}
+          </fieldset>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-gris">Días de anticipación</span>
+            <span className="w-24">
+              <input name="corte" type="number" min={1} max={7} required defaultValue={entregas.corteDias} className={`${campo} h-10 font-mono`} />
+            </span>
+          </label>
+        </FormAccion>
+      </section>
+
+      {/* Envío al comprador: fijo por pedido según la zona del distrito (lo cobra crear_pedido) */}
+      <section className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
+        <h2 className={sello}>Envío al comprador</h2>
+        <p className="mt-1 text-sm text-gris">
+          Fijo por pedido, sin importar las cajas. Uno solo aunque el pedido llegue en dos partes. Los pedidos ya hechos no cambian.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {tarifas.zonas.map((z) => {
+            const distritos = Object.keys(tarifas.zonaDe).filter((d) => tarifas.zonaDe[d] === z.zona).sort();
+            return (
+              <div key={z.zona} className="flex flex-col gap-2">
+                <FormAccion accion={guardarEnvio} ocultos={{ zona: String(z.zona) }} texto="Guardar" variante="secundario">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-gris">
+                      Zona {z.zona} · {z.nombre}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-sm text-gris">S/</span>
+                      <span className="w-28">
+                        <input name="monto" inputMode="decimal" required defaultValue={(z.monto_centimos / 100).toFixed(2)} className={`${campo} h-10 font-mono`} />
+                      </span>
+                    </span>
+                  </label>
+                </FormAccion>
+                <details className="text-xs text-gris">
+                  <summary className="cursor-pointer">{distritos.length} distritos</summary>
+                  <p className="mt-1 leading-relaxed">{distritos.join(", ")}</p>
+                </details>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }

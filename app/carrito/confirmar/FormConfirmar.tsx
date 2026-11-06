@@ -1,12 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Advertencia } from "@/components/Advertencia";
 import { AvisoForm } from "@/components/AvisoForm";
 import { CampoCelular } from "@/components/CampoCelular";
 import { Etiqueta } from "@/components/Etiqueta";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { confirmarPedido } from "@/lib/acciones-pedidos";
 import { DISTRITOS_CALLAO, DISTRITOS_LIMA } from "@/lib/distritos";
+import { entregaAsignada, fechaLarga, textoDias, type ConfigEntregas } from "@/lib/entregas";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { METODOS_PAGO } from "@/lib/pagos";
@@ -23,9 +25,13 @@ export function FormConfirmar({
   autocompletado,
   cotizacion,
   envioPorDistrito,
+  config,
+  primerDia,
 }: {
   fechaMinima: string;
   fechaMaxima: string; // hasta 1 año adelante
+  config: ConfigEntregas; // días de entrega y anticipación
+  primerDia: string; // hoy + anticipación (AAAA-MM-DD): desde ahí se busca la entrega
   pagasAhora: number; // céntimos: lo que tiene stock (se paga ahora)
   porEncargo: number; // céntimos: lo que va por encargo (se paga al confirmar)
   iniciales: Iniciales;
@@ -36,9 +42,11 @@ export function FormConfirmar({
   const [estado, accion, enviando] = useActionState<EstadoForm, FormData>(confirmarPedido, {});
   // Si el servidor devolvió un error, se muestran los valores que la persona ya escribió
   const v = estado.valores ?? iniciales;
-  // El evento no puede ser antes de la entrega: su calendario empieza en la fecha de entrega elegida
-  const [fechaEntrega, setFechaEntrega] = useState(v.fecha_entrega ?? "");
-  const minimoEvento = fechaEntrega && fechaEntrega > fechaMinima ? fechaEntrega : fechaMinima;
+  // La entrega se asigna: la última antes del evento, o la más cercana (la misma regla que la base de datos)
+  const [evento, setEvento] = useState(v.evento_fecha ?? "");
+  const [loAntes, setLoAntes] = useState(v.lo_antes === "si");
+  const entrega = entregaAsignada(primerDia, evento || null, loAntes, config);
+  const primera = entregaAsignada(primerDia, null, true, config);
 
   // Envío fijo según el distrito: uno solo por compra (va en lo que pagas ahora; si no hay, en el encargo)
   const [distrito, setDistrito] = useState(v.distrito ?? "");
@@ -135,38 +143,45 @@ export function FormConfirmar({
         </label>
       </fieldset>
 
-      {/* Fecha y nota */}
+      {/* Entrega: el comprador no elige el día; Surtiba le asigna el martes o jueves antes de su evento */}
       <fieldset className="grid grid-cols-1 gap-5 border-t border-linea pt-6 sm:grid-cols-2">
-        <legend className={`${sello} mb-4 pt-6`}>Fecha</legend>
-        <label className="flex flex-col gap-2">
-          <Etiqueta texto="Fecha deseada de entrega" obligatorio />
-          <input
-            name="fecha_entrega"
-            type="date"
-            min={fechaMinima}
-            max={fechaMaxima}
-            required
-            value={fechaEntrega}
-            onChange={(e) => setFechaEntrega(e.target.value)}
-            className={`${campo} font-mono`}
-          />
-          <span className="text-xs text-gris">Desde mañana.</span>
-        </label>
-        {/* Del evento solo importa la fecha (KISS, 5-nov-2026): con ella coordinamos la entrega */}
+        <legend className={`${sello} mb-4 pt-6`}>Entrega</legend>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Fecha de tu evento" nota="opcional" />
           <input
             name="evento_fecha"
             type="date"
-            min={minimoEvento}
+            min={fechaMinima}
             max={fechaMaxima}
-            defaultValue={v.evento_fecha}
+            value={evento}
+            onChange={(e) => setEvento(e.target.value)}
             className={`${campo} font-mono`}
           />
           <span className="text-xs text-gris">
-            {cotizacion ? `La tomamos de tu cotización ${cotizacion}. ` : ""}El mismo día de la entrega o después.
+            {cotizacion ? `La tomamos de tu cotización ${cotizacion}. ` : ""}Con ella te lo llevamos justo antes.
           </span>
         </label>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Te lo llevamos el</span>
+          {entrega ? (
+            <p className="rounded-md border border-verde bg-blanco px-3 py-2.5 font-medium text-verde first-letter:uppercase">
+              {fechaLarga(entrega)}
+            </p>
+          ) : (
+            <Advertencia>
+              No llegamos antes de tu evento: la primera entrega posible es el {fechaLarga(primera ?? "")}. Marca «Lo quiero lo antes
+              posible» si igual te sirve.
+            </Advertencia>
+          )}
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="lo_antes" value="si" checked={loAntes} onChange={(e) => setLoAntes(e.target.checked)} className="accent-verde" />
+            Lo quiero lo antes posible
+          </label>
+          <span className="text-xs text-gris">
+            Entregamos los {textoDias(config)}. Pide con {config.corteDias} días de anticipación.
+            {porEncargo > 0 && " El encargo llega en la primera entrega después de que la marca lo tenga listo."}
+          </span>
+        </div>
         <label className="flex flex-col gap-2 sm:col-span-2">
           <Etiqueta texto="Nota para Surtiba" nota="opcional" />
           <textarea
@@ -222,7 +237,7 @@ export function FormConfirmar({
             ? "Al pagar, Surtiba reserva el stock de cada marca."
             : "Las marcas confirmarán tu encargo y te avisaremos aquí para que lo pagues."}
         </p>
-        <button type="submit" disabled={enviando} className={`${botonPrimario} shrink-0`}>
+        <button type="submit" disabled={enviando || !entrega} className={`${botonPrimario} shrink-0`}>
           {enviando
             ? "Enviando…"
             : pagaAhora

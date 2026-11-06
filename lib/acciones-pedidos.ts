@@ -155,7 +155,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     distrito: leer("distrito"),
     codigo_postal: leer("codigo_postal"),
     referencia: leer("referencia"),
-    fecha_entrega: leer("fecha_entrega"),
+    lo_antes: form.get("lo_antes") === "si" ? "si" : "",
     nota: leer("nota"),
     evento_fecha: leer("evento_fecha"),
     metodo_pago: leer("metodo_pago"),
@@ -170,24 +170,14 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
   if (valores.codigo_postal && !/^\d{5}$/.test(valores.codigo_postal)) {
     return { error: "El código postal tiene 5 dígitos. Si no lo sabes, déjalo vacío.", valores };
   }
-  if (!fechaEnRango(valores.fecha_entrega, mananaEnLima(), enUnAnioEnLima())) {
-    return { error: "Elige una fecha de entrega desde mañana y hasta dentro de un año.", valores };
-  }
-  if (valores.evento_fecha && valores.evento_fecha > enUnAnioEnLima()) {
-    return { error: "La fecha del evento puede ser hasta dentro de un año.", valores };
-  }
-  // Fechas AAAA-MM-DD: se comparan como texto. El evento no puede ser antes de la entrega.
-  if (valores.evento_fecha && !/^\d{4}-\d{2}-\d{2}$/.test(valores.evento_fecha)) {
-    return { error: "Elige la fecha del evento en el calendario.", valores };
-  }
-  if (valores.evento_fecha && valores.evento_fecha < valores.fecha_entrega) {
-    return { error: "La fecha del evento no puede ser antes de la entrega. Si el evento es antes, cambia la fecha de entrega.", valores };
+  // La fecha de entrega ya no se elige: la asigna crear_pedido (martes o jueves, antes del evento)
+  if (valores.evento_fecha && !fechaEnRango(valores.evento_fecha, mananaEnLima(), enUnAnioEnLima())) {
+    return { error: "La fecha del evento debe ser desde mañana y hasta dentro de un año.", valores };
   }
 
   // Toda la lógica (stock, precios, mínimos, subpedidos) corre en la función crear_pedido, en una transacción
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_pedido", {
-    p_fecha_entrega: valores.fecha_entrega,
     p_direccion: valores.direccion,
     p_distrito: valores.distrito,
     p_recibe_nombre: valores.recibe_nombre,
@@ -198,6 +188,7 @@ export async function confirmarPedido(_estado: EstadoForm, form: FormData): Prom
     p_referencia: valores.referencia || undefined,
     p_nota: valores.nota || undefined,
     p_evento_fecha: valores.evento_fecha || undefined,
+    p_lo_antes: valores.lo_antes === "si",
   });
 
   if (error) {

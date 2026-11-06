@@ -20,7 +20,7 @@ const entero = new Intl.NumberFormat("en-US");
 const PASOS = [
   { icono: ShoppingCart, titulo: "Armas tu pedido", texto: "Eliges productos de varias marcas peruanas, por caja, con el precio según la cantidad." },
   { icono: Truck, titulo: "Surtiba recoge", texto: "Cada marca prepara su parte y Surtiba la recoge en su local." },
-  { icono: PackageCheck, titulo: "Recibes todo junto", texto: "Una sola entrega con todo el pedido, en la fecha que pediste." },
+  { icono: PackageCheck, titulo: "Recibes todo junto", texto: "Una sola entrega con todo el pedido, el martes o jueves antes de tu evento." },
 ];
 
 const PASOS_MARCA = [

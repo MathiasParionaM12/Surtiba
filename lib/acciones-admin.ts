@@ -7,7 +7,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { COMISION_PCT, esUuid } from "@/lib/catalogo";
-import { enUnAnioEnLima, fechaEnRango, hoyEnLima } from "@/lib/formato";
+import { enUnAnioEnLima, fechaEnRango } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -83,15 +83,28 @@ export async function guardarMarca(_e: EstadoForm, form: FormData): Promise<Esta
 }
 
 // ── Recojos y entregas ──
-export async function fijarRecojo(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+// "Recogí todo de esta marca": todas sus órdenes de ese día de recojo. El pedido pasa solo a "en camino"
+// cuando ya no falta recoger nada (la base lo hace en admin_recoger_marca).
+export async function recogerMarca(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("admin");
-  const subpedido = id(form, "subpedido_id");
-  const fecha = texto(form, "fecha");
-  if (!subpedido || !fechaEnRango(fecha, hoyEnLima(), enUnAnioEnLima())) {
-    return { error: "Elige la fecha de recojo: desde hoy y hasta dentro de un año." };
-  }
+  const marca = id(form, "marca_id");
+  const dia = texto(form, "fecha_recojo");
+  if (!marca || !fechaEnRango(dia, "2026-01-01", enUnAnioEnLima())) return { error: "No encontramos ese recojo." };
   const supabase = await createClient();
-  return ejecutar(supabase.rpc("admin_fijar_recojo", { p_subpedido: subpedido, p_fecha: fecha }), "Fecha de recojo guardada.");
+  return ejecutar(supabase.rpc("admin_recoger_marca", { p_marca: marca, p_fecha_recojo: dia }), "Recojo guardado.");
+}
+
+// Días de entrega (1 = lunes … 7 = domingo) y con cuántos días de anticipación hay que pedir
+export async function guardarEntregas(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const dias = form.getAll("dias").map(Number).filter((d) => Number.isInteger(d) && d >= 1 && d <= 7);
+  const corte = Number(form.get("corte"));
+  if (dias.length === 0) return { error: "Elige al menos un día de entrega." };
+  if (!Number.isInteger(corte) || corte < 1 || corte > 7) return { error: "La anticipación debe ser de 1 a 7 días." };
+  const supabase = await createClient();
+  const resultado = await ejecutar(supabase.rpc("admin_guardar_entregas", { p_dias: dias, p_corte: corte }), "Días de entrega guardados.");
+  if (!resultado.error) updateTag("entregas");
+  return resultado;
 }
 
 export async function marcarRecogido(_e: EstadoForm, form: FormData): Promise<EstadoForm> {

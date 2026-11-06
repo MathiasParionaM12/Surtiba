@@ -85,7 +85,7 @@ export type Database = {
           direccion_detalle: string | null; distrito: string | null; codigo_postal: string | null; referencia: string | null;
           recibe_nombre: string | null; recibe_telefono: string | null; tipo: string; pagado_centimos: number;
           envio_centimos: number; estado: string; evento_fecha: string | null; evento_nombre: string | null; evento_tipo: string | null;
-          fecha_entrega_deseada: string; id: string; invitados: number | null; nota: string | null; pagado_en: string | null;
+          fecha_entrega_deseada: string; id: string; invitados: number | null; lo_antes: boolean; nota: string | null; pagado_en: string | null;
           pago_estado: string; pago_metodo: string | null; subtotal_centimos: number; total_centimos: number;
         };
         Insert: {
@@ -158,6 +158,12 @@ export type Database = {
         };
         Insert: { id?: boolean };
         Update: { id?: boolean };
+        Relationships: [];
+      };
+      entregas_config: {
+        Row: { corte_dias: number; dias: number[]; id: boolean };
+        Insert: { corte_dias?: number; dias?: number[]; id?: boolean };
+        Update: { corte_dias?: number; dias?: number[] };
         Relationships: [];
       };
       zonas_envio: {
@@ -313,7 +319,6 @@ export type Database = {
         };
         Returns: undefined;
       };
-      admin_fijar_recojo: { Args: { p_subpedido: string; p_fecha: string }; Returns: undefined };
       admin_marcar_recogido: { Args: { p_subpedido: string }; Returns: undefined };
       admin_en_camino: { Args: { p_pedido: string }; Returns: undefined };
       admin_entregar: { Args: { p_pedido: string }; Returns: undefined };
@@ -406,7 +411,6 @@ export type Database = {
       };
       crear_pedido: {
         Args: {
-          p_fecha_entrega: string;
           p_direccion: string;
           p_distrito: string;
           p_recibe_nombre: string;
@@ -416,14 +420,13 @@ export type Database = {
           p_codigo_postal?: string;
           p_referencia?: string;
           p_nota?: string;
-          p_evento_nombre?: string;
-          p_evento_tipo?: string;
           p_evento_fecha?: string;
-          p_invitados?: number;
-          p_modo?: "separado" | "junto";
+          p_lo_antes?: boolean;
         };
         Returns: { pedido_id: string; codigo: string; tipo: string }[];
       };
+      admin_recoger_marca: { Args: { p_marca: string; p_fecha_recojo: string }; Returns: number };
+      admin_guardar_entregas: { Args: { p_dias: number[]; p_corte: number }; Returns: undefined };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

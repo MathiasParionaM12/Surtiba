@@ -9,7 +9,6 @@ import { FormAccion } from "@/components/FormAccion";
 import {
   cancelarPedido,
   cancelarSubpedido,
-  fijarRecojo,
   marcarEnCamino,
   marcarEntregado,
   marcarPagado,
@@ -18,7 +17,7 @@ import {
 import { esUuid } from "@/lib/catalogo";
 import { METODOS_PAGO_ADMIN, nombreMetodo, saldos } from "@/lib/pagos";
 import { campo, sello } from "@/lib/estilos";
-import { enUnAnioEnLima, fecha, hoyEnLima, soles } from "@/lib/formato";
+import { fecha, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -67,7 +66,6 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const vigentes = p.subpedidos.filter((s) => s.estado !== "rechazado" && s.estado !== "cancelado");
   const todoRecogido = vigentes.length > 0 && vigentes.every((s) => s.estado === "recogido");
   const algoRecogido = vigentes.some((s) => s.estado === "recogido");
-  const hoy = hoyEnLima();
 
   return (
     <>
@@ -160,25 +158,13 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
               {(s.estado === "pendiente" || s.estado === "listo_recojo") && (
                 <div className="flex flex-col gap-4 border-t border-linea px-4 py-4 sm:px-5">
                   <div className="flex flex-wrap items-end gap-4">
-                    <FormAccion accion={fijarRecojo} ocultos={{ subpedido_id: s.id }} texto="Guardar fecha" variante="secundario">
-                      <label className="flex flex-col gap-1.5">
-                        <span className="text-xs font-medium text-gris">Fecha de recojo</span>
-                        <input
-                          name="fecha"
-                          type="date"
-                          min={hoy}
-                          max={enUnAnioEnLima()}
-                          defaultValue={s.fecha_recojo ?? ""}
-                          required
-                          className={`${campo} h-10 w-44 font-mono`}
-                        />
-                      </label>
-                    </FormAccion>
-                    {s.estado === "listo_recojo" && (
-                      <FormAccion accion={marcarRecogido} ocultos={{ subpedido_id: s.id }} texto="Marcar recogido" />
-                    )}
+                    {/* El recojo es la víspera de la entrega: lo asigna la base (martes y jueves) */}
+                    <p className="text-sm">
+                      Recojo: <span className="font-mono">{s.fecha_recojo ? fecha(s.fecha_recojo) : "por asignar"}</span>
+                    </p>
+                    <FormAccion accion={marcarRecogido} ocultos={{ subpedido_id: s.id }} texto="Marcar recogido" variante={s.estado === "listo_recojo" ? "primario" : "secundario"} />
                   </div>
-                  {s.estado === "pendiente" && <p className="text-xs text-gris">La marca aún no la marcó como lista.</p>}
+                  {s.estado === "pendiente" && <p className="text-xs text-gris">La marca aún no la marcó como lista. Si ya la tienes, igual puedes marcarla recogida.</p>}
                   <details className="text-sm">
                     <summary className="cursor-pointer text-gris hover:text-tinta">Cancelar esta parte</summary>
                     <FormAccion

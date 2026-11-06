@@ -81,9 +81,9 @@ export default function PaginaCondiciones() {
         <ul>
           <li>Entregamos en Lima Metropolitana y el Callao.</li>
           <li>
-            Eliges la fecha deseada de entrega, desde el día siguiente. Surtiba coordina con cada marca para llegar a esa fecha,
-            pero no la garantiza: si algo cambia, lo ves en «Mis pedidos». Los encargos llegan después de la fecha que confirma
-            cada marca.
+            Entregamos los <strong className="font-medium">martes y jueves</strong>. Pide con 2 días de anticipación. Si nos das la
+            fecha de tu evento, te lo llevamos en la última entrega antes de él; si no, en la más cercana. Ves la fecha antes de pagar y
+            la sigues en «Mis pedidos». Los encargos llegan en la primera entrega después de que la marca los tenga listos.
           </li>
           <li>
             El envío es <strong className="font-medium">fijo por pedido</strong>, sin importar cuántas cajas lleves, y depende de tu

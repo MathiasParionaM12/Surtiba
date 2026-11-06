@@ -12,6 +12,7 @@ import { fecha, soles } from "@/lib/formato";
 import { nombreMetodo, saldos } from "@/lib/pagos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
+import { fechaLarga } from "@/lib/entregas";
 import { createClient } from "@/lib/supabase/server";
 import { AgregarRapido } from "./AgregarRapido";
 import { FormPagar } from "./FormPagar";
@@ -301,8 +302,11 @@ async function DetallePedido({
         {/* Entrega y totales */}
         <aside className="flex h-fit flex-col gap-4">
           <div className="rounded-md border border-linea bg-blanco p-5 text-sm">
-            <h2 className={sello}>Entrega</h2>
-            <p className="mt-3 font-mono">{fecha(p.fecha_entrega_deseada)}</p>
+            <h2 className={sello}>Te lo llevamos el</h2>
+            <p className="mt-3 font-medium first-letter:uppercase">{fechaLarga(p.fecha_entrega_deseada)}</p>
+            {(p.estado === "por_confirmar" || p.estado === "por_pagar") && (
+              <p className="mt-1 text-xs text-gris">Fecha estimada: la confirmamos cuando las marcas lo tengan listo y lo pagues.</p>
+            )}
             <p className="mt-3">
               {p.direccion_entrega}
               {p.direccion_detalle && `, ${p.direccion_detalle}`}
