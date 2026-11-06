@@ -303,7 +303,6 @@ export type Database = {
       };
       pagar_pedido: { Args: { p_pedido: string; p_metodo: string }; Returns: undefined };
       aprobar_solicitud: { Args: { p_solicitud: string; p_comision?: number }; Returns: string };
-      marca_guardar_minimo: { Args: { p_minimo: number }; Returns: undefined };
       rechazar_solicitud: { Args: { p_solicitud: string; p_motivo: string }; Returns: undefined };
       admin_guardar_marca: {
         Args: {

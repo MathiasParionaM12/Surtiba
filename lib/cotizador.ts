@@ -14,6 +14,7 @@
 // Todos los valores salen de parametros_cotizador: SUPUESTOS POR VALIDAR CON CATERINGS.
 
 import type { Tramo } from "@/lib/catalogo";
+import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
 
 export const LIMITES = { invitadosMax: 5000, horasMax: 12, barraMax: 8, cajasMax: 999, propiosMax: 5, ingredientesMax: 8, cantidadMax: 1000 };
 
@@ -125,7 +126,6 @@ export type ProductoCotizable = {
   unidades: number;
   tramos: Tramo[];
   stock: number | null;
-  pedidoMinimo: number;
 };
 
 export type Momento = {
@@ -169,7 +169,6 @@ export type LineaProducto = {
 
 // deSurtiba: es de una categoría que vende Surtiba, pero no hay producto (o falta elegirlo)
 export type Insumo = { nombre: string; cantidad: number; unidad: string; nota?: string; deSurtiba?: boolean };
-export type AvisoMinimo = { marcaId: string; marca: string; minimo: number; cajas: number; falta: number; productoId: string };
 
 export type ResultadoCotizacion = {
   toman: number;
@@ -179,7 +178,8 @@ export type ResultadoCotizacion = {
   tragos: LineaTrago[];
   ingredientes: LineaIngrediente[]; // lo que vende Surtiba
   productos: LineaProducto[];
-  minimos: AvisoMinimo[];
+  faltaMinimo: number; // cajas que faltan para el pedido mínimo de Surtiba (3 en total)
+  productoMayor: string | null; // el producto con más cajas: ahí se suben las que faltan
   insumos: Insumo[];
   total: number;
   porInvitado: number;
@@ -390,20 +390,10 @@ export function calcular(
   }
   productos.sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre));
 
-  // 4. Pedido mínimo de cada marca
-  const porMarca = new Map<string, { marca: string; cajas: number; minimo: number; mayor: LineaProducto }>();
-  for (const l of productos) {
-    const m = porMarca.get(l.marcaId);
-    if (m) {
-      m.cajas += l.cajas;
-      if (l.cajas > m.mayor.cajas) m.mayor = l;
-    } else {
-      porMarca.set(l.marcaId, { marca: l.marca, cajas: l.cajas, minimo: productoPorId.get(l.productoId)!.pedidoMinimo, mayor: l });
-    }
-  }
-  const minimos: AvisoMinimo[] = [...porMarca.entries()]
-    .filter(([, m]) => m.cajas < m.minimo)
-    .map(([marcaId, m]) => ({ marcaId, marca: m.marca, minimo: m.minimo, cajas: m.cajas, falta: m.minimo - m.cajas, productoId: m.mayor.productoId }));
+  // 4. Pedido mínimo: 3 cajas en total, de cualquier marca
+  const cajasTotales = productos.reduce((s, l) => s + l.cajas, 0);
+  const faltaMinimo = productos.length > 0 ? Math.max(0, PEDIDO_MINIMO_CAJAS - cajasTotales) : 0;
+  const productoMayor = productos.reduce<LineaProducto | null>((m, l) => (!m || l.cajas > m.cajas ? l : m), null)?.productoId ?? null;
 
   // 5. Lo que consigues por tu cuenta: hielo, agua y gaseosas, y los ingredientes que Surtiba no vende
   const insumos: Insumo[] = [];
@@ -424,7 +414,8 @@ export function calcular(
     tragos,
     ingredientes,
     productos,
-    minimos,
+    faltaMinimo,
+    productoMayor,
     insumos,
     total,
     porInvitado: e.invitados ? Math.round(total / e.invitados) : 0,

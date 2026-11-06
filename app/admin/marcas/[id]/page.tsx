@@ -5,7 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarMarca } from "@/lib/acciones-admin";
-import { COMISION_PCT, esUuid, ordenarTramos, PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
+import { COMISION_PCT, esUuid, ordenarTramos } from "@/lib/catalogo";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
@@ -58,7 +58,6 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
               <input type="hidden" name="comision" value={String(pv?.comision_pct ?? COMISION_PCT)} />
               <input type="hidden" name="pedido_minimo" value={String(m.pedido_minimo_cajas)} />
               <Dato etiqueta="Comisión" valor={`${pv?.comision_pct ?? COMISION_PCT}% (fija por ahora)`} />
-              {PEDIDO_MINIMO_ACTIVO && <Dato etiqueta="Pedido mínimo" valor={`${m.pedido_minimo_cajas} cajas (lo decide la marca)`} />}
               <Campo nombre="razon_social" etiqueta="Razón social" valor={pv?.razon_social ?? ""} ancho />
               <Campo nombre="ruc" etiqueta="RUC" valor={pv?.ruc ?? ""} mono />
               <Campo nombre="contacto_whatsapp" etiqueta="WhatsApp de contacto" valor={pv?.contacto_whatsapp ?? ""} mono />

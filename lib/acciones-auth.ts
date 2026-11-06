@@ -126,10 +126,9 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
   const ruc = leer(form, "ruc").replace(/\s/g, "");
   const direccion = leer(form, "direccion");
   const distrito = leer(form, "distrito");
-  const pedidoMinimo = leer(form, "pedido_minimo");
   const valores = {
     email, nombre, whatsapp: numero, nombre_comercial: nombreComercial,
-    razon_social: razonSocial, ruc, direccion, distrito, pedido_minimo: pedidoMinimo,
+    razon_social: razonSocial, ruc, direccion, distrito,
   };
 
   if (!nombre) return { error: "Escribe tu nombre.", valores };
@@ -138,9 +137,6 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
   if (!/^\d{11}$/.test(ruc)) return { error: "El RUC de tu marca tiene 11 dígitos.", valores };
   if (!direccion) return { error: "Escribe la dirección donde Surtiba recogerá tus pedidos.", valores };
   if (!DISTRITOS.includes(distrito)) return { error: "Elige el distrito de la dirección de recojo.", valores };
-  if (!/^\d{1,4}$/.test(pedidoMinimo) || Number(pedidoMinimo) < 1) {
-    return { error: "El pedido mínimo debe ser de al menos 1 caja.", valores };
-  }
   if (!email) return { error: "Escribe tu correo.", valores };
   const errorClave = revisarClave(password);
   if (errorClave) return { error: errorClave, valores };
@@ -159,7 +155,6 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
         razon_social: razonSocial,
         ruc,
         direccion_recojo: `${direccion}, ${distrito}`,
-        pedido_minimo: pedidoMinimo,
       },
     },
   });

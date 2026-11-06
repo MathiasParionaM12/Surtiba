@@ -8,6 +8,8 @@ import { EsqueletoTabla } from "@/components/Esqueleto";
 import { cotizacionDelCarrito } from "@/lib/acciones-cotizador";
 import { cambiarCajas, quitarDelCarrito } from "@/lib/acciones-pedidos";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
+import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
+import { Advertencia } from "@/components/Advertencia";
 import { botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { rutaInicio } from "@/lib/roles";
@@ -60,9 +62,9 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
     .in("producto_id", lineas.map((l) => l.producto_id!));
 
   // Agrupar por marca
-  const marcas = new Map<string, { nombre: string; minimo: number; lineas: typeof lineas }>();
+  const marcas = new Map<string, { nombre: string; lineas: typeof lineas }>();
   for (const l of lineas) {
-    const grupo = marcas.get(l.marca_id!) ?? { nombre: l.marca!, minimo: l.pedido_minimo_cajas!, lineas: [] };
+    const grupo = marcas.get(l.marca_id!) ?? { nombre: l.marca!, lineas: [] };
     grupo.lineas.push(l);
     marcas.set(l.marca_id!, grupo);
   }
@@ -78,7 +80,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
     const ahora = Math.min(l.cajas!, Math.max(0, l.stock_cajas!));
     return { ahora, encargo: l.cajas! - ahora };
   };
-  // Todo se calcula antes de dibujar: totales por marca, faltante del mínimo, problemas y siguiente tramo
+  // Todo se calcula antes de dibujar: totales por marca, problemas y siguiente tramo
   const grupos = [...marcas.entries()].map(([marcaId, grupo]) => {
     const cajasMarca = grupo.lineas.reduce((s, l) => s + l.cajas!, 0);
     return {
@@ -86,7 +88,6 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
       ...grupo,
       cajasMarca,
       subtotalMarca: grupo.lineas.reduce((s, l) => s + (l.subtotal_centimos ?? 0), 0),
-      faltan: grupo.minimo - cajasMarca,
       items: grupo.lineas.map((l) => ({
         l,
         problema: problemaDe(l),
@@ -98,9 +99,11 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
       })),
     };
   });
-  const hayProblemas = grupos.some((g) => g.faltan > 0 || g.items.some((i) => i.problema));
   const total = lineas.reduce((suma, l) => suma + (l.subtotal_centimos ?? 0), 0);
   const totalCajas = lineas.reduce((suma, l) => suma + l.cajas!, 0);
+  // Pedido mínimo: 3 cajas en total, sumando todas las marcas
+  const faltanMinimo = Math.max(0, PEDIDO_MINIMO_CAJAS - totalCajas);
+  const hayProblemas = faltanMinimo > 0 || grupos.some((g) => g.items.some((i) => i.problema));
   // Se paga ahora solo la compra directa; el encargo se paga cuando la marca lo confirme
   const pagasAhora = lineas.reduce((s, l) => s + partes(l).ahora * (l.precio_caja_centimos ?? 0), 0);
   const porEncargo = total - pagasAhora;
@@ -126,20 +129,20 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
-          {grupos.map(({ marcaId, cajasMarca, subtotalMarca, faltan, items, ...grupo }) => (
+          {faltanMinimo > 0 && (
+            <Advertencia titulo={`El pedido mínimo es de ${PEDIDO_MINIMO_CAJAS} cajas en total`}>
+              Puedes juntar productos de distintas marcas. Te {faltanMinimo === 1 ? "falta 1 caja" : `faltan ${faltanMinimo} cajas`}.
+            </Advertencia>
+          )}
+          {grupos.map(({ marcaId, cajasMarca, subtotalMarca, items, ...grupo }) => (
             <section key={marcaId} className="overflow-hidden rounded-md border border-linea bg-blanco">
               <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-linea px-4 py-3 sm:px-5">
                 <h2 className="font-semibold">{grupo.nombre}</h2>
                 <p className="font-mono text-xs text-gris">
-                  {cajasMarca} cajas · mínimo {grupo.minimo}
+                  {cajasMarca} {cajasMarca === 1 ? "caja" : "cajas"}
                 </p>
               </header>
 
-              {faltan > 0 && (
-                <p className="border-b border-linea bg-papel px-4 py-2.5 text-sm sm:px-5">
-                  Pedido mínimo: {grupo.minimo} cajas. Te faltan <strong className="font-mono">{faltan}</strong>.
-                </p>
-              )}
 
               <ul>
                 {items.map(({ l, problema, siguiente, desdeActual }) => (
@@ -256,13 +259,14 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
             )}
           </dl>
           <p className="mt-2 text-xs text-gris">
-            Tarifa de envío por definir.
-            {porEncargo > 0 && " Lo que pasa del stock va por encargo: al confirmar eliges si lo recibes aparte o todo junto."}
+            {porEncargo > 0 ? "Lo que pasa del stock va por encargo: al confirmar eliges si lo recibes aparte o todo junto." : null}
           </p>
 
           {hayProblemas ? (
             <>
-              <p className="mt-5 border-l-2 border-rojo pl-3 text-sm">Corrige lo marcado en tu carrito para continuar.</p>
+              <p className="mt-5 border-l-2 border-rojo pl-3 text-sm">
+                {faltanMinimo > 0 ? `Agrega ${faltanMinimo === 1 ? "1 caja más" : `${faltanMinimo} cajas más`} para continuar.` : "Corrige lo marcado en tu carrito para continuar."}
+              </p>
               <button type="button" disabled className={`${botonPrimario} mt-4 w-full`}>
                 Continuar con el pedido
                 <ArrowRight className="size-4" aria-hidden="true" />

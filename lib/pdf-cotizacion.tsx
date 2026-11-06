@@ -13,7 +13,7 @@ export type ItemCotizacion = {
   producto: string;
   marca_id: string;
   marca: string;
-  pedido_minimo_cajas: number;
+  pedido_minimo_cajas?: number; // cotizaciones viejas: ya no se usa
   ml: number;
   unidades: number;
   cajas: number;
@@ -85,9 +85,9 @@ export function PdfCotizacion({
   total: number;
 }) {
   // Agrupado por marca, como el carrito
-  const marcas = new Map<string, { nombre: string; minimo: number; items: ItemCotizacion[] }>();
+  const marcas = new Map<string, { nombre: string; items: ItemCotizacion[] }>();
   for (const i of items) {
-    const m = marcas.get(i.marca_id) ?? { nombre: i.marca, minimo: i.pedido_minimo_cajas, items: [] };
+    const m = marcas.get(i.marca_id) ?? { nombre: i.marca, items: [] };
     m.items.push(i);
     marcas.set(i.marca_id, m);
   }
@@ -163,11 +163,6 @@ export function PdfCotizacion({
                 </Text>
                 <Text style={[s.celdaSubtotal, { fontFamily: "Helvetica-Bold" }]}>{soles(subtotal)}</Text>
               </View>
-              {cajas < m.minimo && (
-                <Text style={{ fontSize: 9, paddingLeft: 6, borderLeftWidth: 2, borderLeftColor: C.tinta }}>
-                  Pedido mínimo de {m.nombre}: {m.minimo} cajas. Esta cotización tiene {cajas}.
-                </Text>
-              )}
             </View>
           );
         })}
@@ -180,7 +175,7 @@ export function PdfCotizacion({
           </View>
           <View style={[s.fila, { justifyContent: "space-between", paddingVertical: 3 }]}>
             <Text style={s.gris}>Envío</Text>
-            <Text>Por definir</Text>
+            <Text>Según el distrito</Text>
           </View>
           <View
             style={[s.fila, { justifyContent: "space-between", marginTop: 4, paddingTop: 6, borderTopWidth: 1, borderTopColor: C.tinta }]}

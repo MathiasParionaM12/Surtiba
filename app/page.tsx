@@ -83,7 +83,6 @@ export default async function Home() {
     unidades: p.unidades_por_caja!,
     tramos: [{ desde_cajas: 1, hasta_cajas: null, precio_caja_centimos: p.precio_caja_centimos! }],
     stock: null,
-    pedidoMinimo: 1,
   }));
   const marcas = [...new Set(filas.map((f) => f.marca!))].sort().slice(0, 3);
 

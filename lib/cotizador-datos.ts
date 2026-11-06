@@ -125,7 +125,7 @@ async function catalogoConSesion(): Promise<ProductoCotizable[]> {
   const { data } = await supabase
     .from("productos")
     .select(
-      "id, nombre, categoria, ml, unidades_por_caja, stock_cajas, marca_id, marcas(nombre_comercial, activa, pedido_minimo_cajas), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "id, nombre, categoria, ml, unidades_por_caja, stock_cajas, marca_id, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("activo", true);
   return (data ?? [])
@@ -140,7 +140,6 @@ async function catalogoConSesion(): Promise<ProductoCotizable[]> {
       unidades: p.unidades_por_caja,
       tramos: ordenarTramos(p.escalas_precio),
       stock: p.stock_cajas,
-      pedidoMinimo: p.marcas!.pedido_minimo_cajas,
     }));
 }
 

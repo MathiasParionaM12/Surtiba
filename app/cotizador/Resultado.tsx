@@ -8,7 +8,8 @@ import { AvisoForm } from "@/components/AvisoForm";
 import { Sello } from "@/components/Sello";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { agregarAlCarrito } from "@/lib/acciones-pedidos";
-import { cantidadLegible, LIMITES, type AvisoMinimo, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
+import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
+import { cantidadLegible, LIMITES, type EntradaCotizador, type ResultadoCotizacion } from "@/lib/cotizador";
 import { areaToque, botonPrimario, botonSecundario, campo, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { LineaTiempo } from "./ui";
@@ -118,13 +119,11 @@ export function Resultado({
     else delete cajasManual[productoId];
     actualizar({ cajasManual });
   };
-  const subirAlMinimo = (a: AvisoMinimo) => {
-    const actual = r.productos.find((p) => p.productoId === a.productoId)?.cajas ?? 0;
-    actualizar({ cajasManual: { ...entrada.cajasManual, [a.productoId]: actual + a.falta } });
-  };
-  const cambiarProductoDe = (a: AvisoMinimo) => {
-    const ingrediente = r.ingredientes.find((i) => i.productoId === a.productoId);
-    if (ingrediente) document.getElementById(`producto-${ingrediente.ingredienteId}`)?.focus();
+  // Suma al producto con más cajas lo que falta para el pedido mínimo (3 cajas en total)
+  const subirAlMinimo = () => {
+    if (!r.productoMayor) return;
+    const actual = r.productos.find((p) => p.productoId === r.productoMayor)?.cajas ?? 0;
+    actualizar({ cajasManual: { ...entrada.cajasManual, [r.productoMayor]: actual + r.faltaMinimo } });
   };
 
   return (
@@ -215,30 +214,16 @@ export function Resultado({
       </section>
 
       {/* Pedido mínimo: se avisa ya, sin esperar al carrito */}
-      {r.minimos.map((a) => (
-        <div key={a.marcaId} className="flex flex-col gap-3 rounded-md border border-tinta bg-blanco p-4 text-sm">
-          <p>
-            <strong className="font-medium">{a.marca}</strong> pide mínimo <span className="font-mono">{a.minimo} cajas</span>. Tu
-            evento necesita <span className="font-mono">{a.cajas}</span>.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => subirAlMinimo(a)}
-              className="h-11 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris sm:h-9"
-            >
-              Subir a {a.minimo} cajas
-            </button>
-            <button
-              type="button"
-              onClick={() => cambiarProductoDe(a)}
-              className="h-11 rounded-md border border-linea bg-blanco px-4 text-sm font-medium hover:border-gris sm:h-9"
-            >
-              Cambiar de producto
-            </button>
-          </div>
-        </div>
-      ))}
+      {r.faltaMinimo > 0 && (
+        <Advertencia titulo={`El pedido mínimo es de ${PEDIDO_MINIMO_CAJAS} cajas en total`}>
+          <span className="block">
+            Tu evento necesita {cajas} {cajas === 1 ? "caja" : "cajas"}. Te {r.faltaMinimo === 1 ? "falta 1" : `faltan ${r.faltaMinimo}`}.
+          </span>
+          <button type="button" onClick={subirAlMinimo} className={`${botonSecundario} mt-2 h-10 text-tinta`}>
+            Subir a {PEDIDO_MINIMO_CAJAS} cajas
+          </button>
+        </Advertencia>
+      )}
 
       {/* Lo que vende Surtiba de todos los tragos, sumado, y qué producto lo cubre */}
       {deSurtiba.length > 0 && (

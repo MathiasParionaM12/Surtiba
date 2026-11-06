@@ -5,7 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
-import { CATEGORIAS, esUuid, ordenarTramos, PEDIDO_MINIMO_ACTIVO, textoTramo, urlFoto } from "@/lib/catalogo";
+import { CATEGORIAS, esUuid, ordenarTramos, PEDIDO_MINIMO_CAJAS, textoTramo, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import { catalogoPublico } from "@/lib/catalogo-publico";
@@ -79,7 +79,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, pedido_minimo_cajas, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -151,12 +151,9 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           />
         )}
 
-        {PEDIDO_MINIMO_ACTIVO && (
-          <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
-            Pedido mínimo de {p.marcas.nombre_comercial}: <strong className="font-mono">{p.marcas.pedido_minimo_cajas} cajas</strong>,
-            sumando cualquiera de sus productos.
-          </p>
-        )}
+        <p className="mt-6 border-l-2 border-verde pl-3 text-sm">
+          Pedido mínimo: <strong className="font-mono">{PEDIDO_MINIMO_CAJAS} cajas</strong> en total. Puedes juntar productos de distintas marcas.
+        </p>
       </Ficha>
     </>
   );

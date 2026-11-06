@@ -103,10 +103,10 @@ Cómo entra una marca (decidido el 14-oct-2026): en **Crear cuenta** elige **"Qu
 - **Saldo:** si se agrega un reemplazo a un pedido ya pagado, el cliente ve "Falta pagar S/ X". Si una marca no atiende algo ya pagado, queda "saldo a favor" que Surtiba devuelve por fuera de la app.
 
 ### Pedido mínimo
-> **Pausado el 19-oct-2026 (Mathias):** con mínimos altos el cotizador pierde sentido (sugiere 5 cajas y la marca pide 10). Todas las marcas quedaron en 1 caja y no se muestra ni se pide en ninguna pantalla (`PEDIDO_MINIMO_ACTIVO = false` en `lib/catalogo.ts`). Las reglas de abajo quedan para cuando se reactive.
-
-- Cada marca tiene un pedido mínimo en cajas (la suma de sus productos en el pedido).
-- Si no se llega, el carrito avisa ("Pedido mínimo: 5 cajas. Te faltan 2.") y no deja enviar hasta corregirlo o quitar esa marca.
+**Desde el 5-nov-2026 (Mathias): 3 cajas en total por pedido, de cualquier marca.** No se puede pedir 1 caja sola; 3 cajas de 3 marcas distintas, sí. Ya no hay mínimo por marca (se quitó del registro "Quiero vender", del panel de la marca y del admin).
+- La constante es `PEDIDO_MINIMO_CAJAS` en `lib/catalogo.ts`, y `crear_pedido` lo vuelve a revisar en la base (`38_minimo_3_cajas.sql`).
+- El carrito y el cotizador lo avisan en rojo ("Te faltan 2 cajas") y no dejan continuar. El detalle de cada producto lo dice.
+- Antes (19-oct) el mínimo por marca estaba pausado en 1 caja. Las columnas `pedido_minimo_cajas` quedan en la base sin uso.
 
 ### Subpedidos
 - Cada pedido se divide en un **subpedido por marca**, y cada uno tiene su propio estado.

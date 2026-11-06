@@ -8,7 +8,7 @@ import { campo, sello } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
-import { COMISION_PCT, PEDIDO_MINIMO_ACTIVO } from "@/lib/catalogo";
+import { COMISION_PCT } from "@/lib/catalogo";
 
 export const metadata: Metadata = { title: "Marcas · Panel Surtiba" };
 
@@ -29,12 +29,12 @@ async function Marcas() {
   const [{ data: solicitudes }, { data: marcas }] = await Promise.all([
     supabase
       .from("solicitudes_marca")
-      .select("id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, pedido_minimo_cajas, creado_en")
+      .select("id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, creado_en")
       .eq("estado", "pendiente")
       .order("creado_en"),
     supabase
       .from("marcas")
-      .select("id, nombre_comercial, pedido_minimo_cajas, activa, marcas_privado(comision_pct), productos(id), subpedidos(estado)")
+      .select("id, nombre_comercial, activa, marcas_privado(comision_pct), productos(id), subpedidos(estado)")
       .order("nombre_comercial"),
   ]);
 
@@ -68,11 +68,6 @@ async function Marcas() {
                 <div className="mt-5 grid gap-5 border-t border-linea pt-5 md:grid-cols-2">
                   <div>
                     <p className="mb-3 text-sm">
-                      {PEDIDO_MINIMO_ACTIVO && (
-                        <>
-                          Pedido mínimo que eligió: <strong className="font-mono">{s.pedido_minimo_cajas} cajas</strong> ·{" "}
-                        </>
-                      )}
                       Comisión:{" "}
                       <strong className="font-mono">{COMISION_PCT}%</strong> <span className="text-gris">(fija por ahora)</span>
                     </p>
@@ -100,7 +95,6 @@ async function Marcas() {
               <tr className="border-b border-linea text-left">
                 <th className={`${sello} px-4 py-3 font-medium`}>Marca</th>
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Comisión</th>
-                {PEDIDO_MINIMO_ACTIVO && <th className={`${sello} px-4 py-3 text-right font-medium`}>Mínimo</th>}
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Productos</th>
                 <th className={`${sello} px-4 py-3 text-right font-medium`}>Entregas</th>
                 <th className={`${sello} px-4 py-3 font-medium`}>Estado</th>
@@ -115,7 +109,6 @@ async function Marcas() {
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-right font-mono">{m.marcas_privado?.comision_pct ?? "—"}%</td>
-                  {PEDIDO_MINIMO_ACTIVO && <td className="px-4 py-3 text-right font-mono">{m.pedido_minimo_cajas}</td>}
                   <td className="px-4 py-3 text-right font-mono">{m.productos.length}</td>
                   <td className="px-4 py-3 text-right font-mono">{m.subpedidos.filter((s) => s.estado === "entregado").length}</td>
                   <td className="px-4 py-3 text-gris">{m.activa ? "Activa" : "Inactiva"}</td>

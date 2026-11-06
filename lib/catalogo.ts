@@ -1,8 +1,8 @@
 // Ayudas para mostrar productos y precios.
 
-// Pedido mínimo por marca: pausado el 19-oct-2026 (Mathias). Todas las marcas quedaron en 1 caja y no
-// se muestra ni se pide en ninguna pantalla. Para volver a usarlo: true, y que cada marca ponga el suyo.
-export const PEDIDO_MINIMO_ACTIVO = false;
+// Pedido mínimo: 3 cajas en total por pedido, de cualquier marca (Mathias, 5-nov-2026). Ya no hay mínimo por marca.
+// La base de datos lo vuelve a revisar en crear_pedido (supabase/sql/38_minimo_3_cajas.sql).
+export const PEDIDO_MINIMO_CAJAS = 3;
 
 // Comisión de Surtiba sobre lo entregado, igual para todas las marcas. Subió de 5 % a 7 % el 22-oct-2026
 // (Mathias): Surtiba cubre el recojo en cada marca. Cada orden guarda el % vigente al crearse.

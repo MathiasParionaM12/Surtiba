@@ -385,11 +385,8 @@ function ResumenDatos({
           </dd>
         </div>
       </dl>
-      {resultado.minimos.length > 0 && (
-        <p className="border-l-2 border-tinta pl-3 text-xs">
-          {resultado.minimos.length === 1 ? "Una marca no llega" : `${resultado.minimos.length} marcas no llegan`} a su pedido mínimo.
-          Lo ves en el resultado.
-        </p>
+      {resultado.faltaMinimo > 0 && (
+        <p className="border-l-2 border-rojo pl-3 text-xs">El pedido mínimo es de 3 cajas en total. Lo ves en el resultado.</p>
       )}
     </>
   );
