@@ -2,7 +2,7 @@
 // Colores de docs/marca.md. Fuentes incluidas en el PDF: Helvetica (texto) y Courier (códigos y sellos).
 
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import type { Insumo, Momento } from "@/lib/cotizador";
+import type { Insumo, Momento, ResultadoReventa } from "@/lib/cotizador";
 import { fecha, soles } from "@/lib/formato";
 import { LOGO_PDF, LOGO_PROPORCION } from "@/lib/marca/logo-pdf";
 
@@ -51,10 +51,12 @@ type EventoV2 = {
     momentos: Momento[];
     insumos: Insumo[];
     cliente_pone?: { nombre: string; botellas: number; ml: number }[];
+    reventa?: ResultadoReventa; // "Tu precio para el cliente" (desde el 7-nov-2026)
   };
 };
 
 export type EventoCotizacion = EventoV1 | EventoV2;
+export type EventoConPrecio = EventoV2;
 
 const s = StyleSheet.create({
   pagina: { padding: 40, paddingBottom: 70, fontFamily: "Helvetica", fontSize: 10, color: C.tinta },
@@ -265,8 +267,81 @@ export function PdfCotizacion({
   );
 }
 
+// PDF para el cliente final del comprador (7-nov-2026): sale con el nombre de su empresa, el evento, los tragos,
+// lo que pone el cliente y el precio por invitado. Sin costos, sin marcas ni productos de Surtiba.
+// Surtiba aparece solo en una línea muy pequeña al pie. Vale 15 días.
+export const VALIDEZ_DIAS = 15;
+export function PdfCliente({ codigo, creadoEn, de, evento }: { codigo: string; creadoEn: string; de: string; evento: EventoConPrecio }) {
+  const e = evento.resumen;
+  const p = e.reventa!;
+  const vence = new Date(new Date(creadoEn).getTime() + VALIDEZ_DIAS * 86400000).toISOString();
+  const incluye = ["bebidas", ...p.lineas.filter((l) => l.subtotal > 0).map((l) => l.concepto.toLowerCase())];
+  const pone = e.cliente_pone ?? [];
+  return (
+    <Document title={`Cotización ${codigo} · ${de}`} author={de} language="es-PE">
+      <Page size="A4" style={s.pagina}>
+        <View style={[s.fila, { justifyContent: "space-between", alignItems: "flex-start" }]}>
+          <View style={{ flex: 1, paddingRight: 16 }}>
+            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 18 }}>{de}</Text>
+            <Text style={[s.gris, { marginTop: 2 }]}>Cotización de bebidas</Text>
+          </View>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={{ fontFamily: "Courier-Bold", fontSize: 12 }}>{codigo}</Text>
+            <Text style={[s.gris, { marginTop: 2 }]}>{fecha(creadoEn)}</Text>
+          </View>
+        </View>
+
+        <EventoPorMomentos e={e} cliente />
+
+        {/* El precio, primero por invitado y luego el total */}
+        <View wrap={false} style={{ marginTop: 16, padding: 12, borderWidth: 1.5, borderColor: C.tinta, borderRadius: 4 }}>
+          <Text style={s.sello}>Precio</Text>
+          <View style={[s.fila, { justifyContent: "space-between", alignItems: "flex-end", marginTop: 4 }]}>
+            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 20 }}>
+              {soles(p.porInvitado)} <Text style={{ fontFamily: "Helvetica", fontSize: 10, color: C.gris }}>por invitado</Text>
+            </Text>
+            <Text style={{ fontSize: 11 }}>
+              {soles(p.precio)} en total ({entero.format(e.invitados)} invitados)
+            </Text>
+          </View>
+          <Text style={[s.gris, { marginTop: 6 }]}>Incluye: {incluye.length > 1 ? `${incluye.slice(0, -1).join(", ")} y ${incluye.at(-1)}` : incluye[0]}.</Text>
+        </View>
+
+        {pone.length > 0 && (
+          <View wrap={false} style={{ marginTop: 16 }}>
+            <Text style={s.sello}>Licores que pones tú</Text>
+            <Text style={[s.gris, { marginTop: 4 }]}>No están en el precio. Botellas de 750 ml.</Text>
+            <View style={[s.fila, { flexWrap: "wrap", marginTop: 6 }]}>
+              {pone.map((l) => (
+                <View key={l.nombre} style={[s.fila, { width: "50%", paddingVertical: 3, paddingRight: 16, justifyContent: "space-between" }]}>
+                  <Text>{l.nombre}</Text>
+                  <Text>{entero.format(l.botellas)} botellas</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View wrap={false} style={{ marginTop: 24, gap: 3 }}>
+          <Text style={s.gris}>Cotización válida hasta el {fecha(vence)} ({VALIDEZ_DIAS} días).</Text>
+          <Text style={s.gris}>Cantidades estimadas según el número de invitados y la duración del evento.</Text>
+        </View>
+
+        <View
+          fixed
+          style={{ position: "absolute", bottom: 28, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.linea, paddingTop: 6 }}
+        >
+          <Text style={[s.gris, { fontSize: 8 }]} render={({ pageNumber, totalPages }) => `${de} · ${codigo} · Página ${pageNumber} de ${totalPages}`} />
+          {/* Surtiba, muy sutil (decisión de Mathias, 7-nov-2026) */}
+          <Text style={{ fontSize: 6.5, color: C.linea }}>Hecho con Surtiba</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
 // Recuadro del evento y sus momentos (cotizador por momentos)
-function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
+function EventoPorMomentos({ e, cliente = false }: { e: EventoV2["resumen"]; cliente?: boolean }) {
   const fin = e.momentos.at(-1)?.hasta ?? e.momentos.at(-1)?.desde ?? e.hora_inicio;
   return (
     <View wrap={false} style={{ marginTop: 14, padding: 10, backgroundColor: C.papel, borderRadius: 4 }}>
@@ -278,7 +353,7 @@ function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
           .join(" · ")}
       </Text>
       <Text style={[s.gris, { marginTop: 2 }]}>
-        {entero.format(e.tragos_totales)} tragos con alcohol · incluye +{e.margen} % de margen
+        {entero.format(e.tragos_totales)} tragos con alcohol{cliente ? "" : ` · incluye +${e.margen} % de margen`}
       </Text>
       <View style={{ marginTop: 8 }}>
         {e.momentos.map((m) => (
@@ -301,15 +376,15 @@ function EventoPorMomentos({ e }: { e: EventoV2["resumen"] }) {
       </View>
       {e.tragos && e.tragos.length > 0 && (
         <View style={{ marginTop: 8 }}>
-          <Text style={s.sello}>Tragos y lo que lleva cada uno</Text>
+          <Text style={s.sello}>{cliente ? "Tragos de la barra" : "Tragos y lo que lleva cada uno"}</Text>
           {e.tragos.map((t) => (
             <View key={t.receta} style={[s.fila, { paddingVertical: 3, borderTopWidth: 1, borderTopColor: C.linea }]}>
               <View style={{ flex: 1 }}>
                 <Text>
                   {t.receta}
-                  {t.propio ? " (tu trago)" : ""}
+                  {t.propio && !cliente ? " (tu trago)" : ""}
                 </Text>
-                <Text style={[s.gris, { fontSize: 8, marginTop: 1 }]}>{t.lleva}</Text>
+                {!cliente && <Text style={[s.gris, { fontSize: 8, marginTop: 1 }]}>{t.lleva}</Text>}
               </View>
               <Text style={{ width: 70, textAlign: "right" }}>{entero.format(t.tragos)} tragos</Text>
             </View>

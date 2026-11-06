@@ -13,7 +13,7 @@ import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Mis cotizaciones · Surtiba" };
 
-type Evento = { version?: number; tipo?: string; invitados?: number; resumen?: { nombre?: string; tipo?: string; invitados?: number; fecha?: string } } | null;
+type Evento = { version?: number; tipo?: string; invitados?: number; resumen?: { nombre?: string; tipo?: string; invitados?: number; fecha?: string; reventa?: unknown } } | null;
 
 export default function PaginaCotizaciones() {
   return (
@@ -81,6 +81,11 @@ async function Lista() {
               <a href={`/cotizaciones/${c.id}/pdf`} download className="text-sm font-medium enlace text-verde hover:text-tinta">
                 PDF
               </a>
+              {r?.reventa ? (
+                <a href={`/cotizaciones/${c.id}/pdf?para=cliente`} download className="text-sm font-medium enlace text-verde hover:text-tinta">
+                  PDF para tu cliente
+                </a>
+              ) : null}
             </div>
           </li>
         );

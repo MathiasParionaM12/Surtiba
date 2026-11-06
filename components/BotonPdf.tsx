@@ -13,11 +13,13 @@ export function BotonPdf({
   className = "",
   texto = "Descargar cotización (PDF)",
   alGuardar,
+  sufijo = "",
 }: {
   preparar: () => Promise<RespuestaPdf>;
   className?: string;
   texto?: string;
-  alGuardar?: (codigo: string) => void; // ej. para estampar "Guardada · COT-0012"
+  alGuardar?: (codigo: string, id: string) => void; // ej. para estampar "Guardada · COT-0012"
+  sufijo?: string; // ej. "?para=cliente"
 }) {
   const [error, setError] = useState<string>();
   const [preparando, iniciar] = useTransition();
@@ -33,10 +35,10 @@ export function BotonPdf({
             setError(r.error);
             // Un enlace de descarga: el navegador baja el archivo y te quedas en esta página
             if (r.id) {
-              if (r.codigo) alGuardar?.(r.codigo);
+              if (r.codigo) alGuardar?.(r.codigo, r.id);
               toast.success("Cotización guardada. Se está descargando el PDF.");
               const enlace = document.createElement("a");
-              enlace.href = `/cotizaciones/${r.id}/pdf`;
+              enlace.href = `/cotizaciones/${r.id}/pdf${sufijo}`;
               enlace.download = "";
               enlace.click();
             }

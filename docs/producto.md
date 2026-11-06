@@ -165,6 +165,8 @@ Cálculo (toman = invitados − menores − adultos que no toman; factor = públ
 
 **Tu precio para el cliente** (al final del resultado, 7-nov-2026): costo = bebidas de Surtiba + otros costos; precio = costo × (1 + ganancia %), y se muestra **por invitado** y en total. Los otros costos vienen sugeridos con **precio supuesto** que el comprador cambia o quita: bartenders (1 por cada 50 que toman, S/ 150 por evento), cristalería en alquiler (2 vasos por persona que toma + copas de vino en la cena y de espumante en el brindis, S/ 0.80 c/u) y hielo (bolsas de 3 kg, S/ 6). Puede agregar hasta 8 costos propios (barra móvil, mozos…). La ganancia empieza vacía (no hay datos de margen en Lima). Los supuestos no tienen fuente: se confirman en las entrevistas.
 
+**PDF para tu cliente** (`/cotizaciones/[id]/pdf?para=cliente`, también en Mis cotizaciones): nombre de la empresa del comprador, evento, momentos, tragos, precio por invitado y total, qué incluye, los licores que pone el cliente y **validez de 15 días**. Sin costos, márgenes, recetas, marcas ni productos de Surtiba; Surtiba sale solo como "Hecho con Surtiba", muy pequeño al pie. Los dos PDF usan la misma cotización guardada.
+
 Todos los valores (`parametros_cotizador`, tipos de evento y tragos) **los edita el admin**. Los iniciales se revisaron con la investigación de `docs/investigacion/` y siguen **por confirmar en entrevistas con caterings** y la pantalla lo dice: "Estimación referencial. Ajusta las cantidades antes de pedir."
 
 Se guarda (COT-0001) con "Descargar PDF"; en **Mis cotizaciones** el comprador la vuelve a abrir en el cotizador o baja el PDF. "Agregar todo al carrito" reemplaza las cajas de esos productos en el carrito.

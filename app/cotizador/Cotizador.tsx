@@ -58,7 +58,10 @@ export function Cotizador({
   const [resultado, setResultado] = useState(resultadoInicial);
   const [error, setError] = useState<string>();
   const [resumenAbierto, setResumenAbierto] = useState(false);
-  const [guardada, setGuardada] = useState<string>(); // código de la cotización recién guardada (COT-0012)
+  const [guardada, setGuardada] = useState<{ codigo: string; id: string }>(); // la cotización recién guardada (COT-0012)
+  // Los dos PDF usan la misma cotización: si ya se guardó y no cambió nada, no se crea otra
+  const prepararPdf = async () => (guardada ? guardada : guardarCotizacion(entrada));
+  const alGuardar = (codigo: string, id: string) => setGuardada({ codigo, id });
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();
   // Agrega todos los productos de la cotización; si sale bien, el servidor te lleva al carrito
@@ -244,7 +247,7 @@ export function Cotizador({
               resultado={resultado}
               tipo={tipo}
               puedeAgregar={rol === "comprador"}
-              guardada={guardada}
+              guardada={guardada?.codigo}
               alAgregarTodo={agregarTodo}
               agregando={pasando || calculando}
             />
@@ -262,17 +265,18 @@ export function Cotizador({
                   type="button"
                   disabled={pasando || calculando}
                   onClick={agregarTodo}
-                  className={`${botonPrimario} w-full`}
+                  className={`${botonPrimario} w-full sm:col-span-2`}
                 >
                   <ShoppingCart className="size-4" aria-hidden="true" />
                   {pasando ? "Agregando al carrito…" : "Agregar todo al carrito"}
                 </button>
-                <BotonPdf preparar={() => guardarCotizacion(entrada)} texto="Descargar PDF" alGuardar={setGuardada} />
+                <BotonPdf preparar={prepararPdf} texto="PDF con tu pedido" alGuardar={alGuardar} />
+                <BotonPdf preparar={prepararPdf} texto="PDF para tu cliente" alGuardar={alGuardar} sufijo="?para=cliente" />
               </div>
             )}
             {paso === RESULTADO && esComprador && (
               <p className="text-xs text-gris">
-                Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. Al descargar el PDF, la cotización se guarda en{" "}
+                Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. El «PDF para tu cliente» sale con el nombre de tu empresa y tu precio por invitado, sin tus costos. Al descargar un PDF, la cotización se guarda en{" "}
                 <Link href="/cotizaciones" className="font-medium enlace text-verde hover:text-tinta">
                   Mis cotizaciones
                 </Link>
