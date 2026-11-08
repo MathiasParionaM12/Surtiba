@@ -1,5 +1,6 @@
 import { BookOpenText } from "lucide-react";
 import Link from "next/link";
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import { Logo } from "@/components/Logo";
 
 // Pie de página de todas las pantallas
@@ -10,6 +11,9 @@ export function Pie() {
         <div>
           <Logo className="h-5" />
           <p className="mt-2 max-w-xs text-sm text-gris">Licores y cócteles de marcas peruanas, por cajas, en un solo pedido. Lima, Perú.</p>
+          <p className="mt-3 text-sm">
+            <EnlaceWhatsapp />
+          </p>
         </div>
         <nav aria-label="Pie de página" className="grid grid-cols-2 gap-x-10 gap-y-2 text-sm">
           <Link href="/catalogo" className="hover:text-verde">

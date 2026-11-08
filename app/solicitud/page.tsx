@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
@@ -31,7 +32,7 @@ async function Solicitud() {
     .maybeSingle();
 
   if (!s) {
-    return <p className="mt-4 text-gris">No encontramos tu solicitud. Escríbenos para revisarlo.</p>;
+    return <p className="mt-4 text-gris">No encontramos tu solicitud. Escríbenos al <EnlaceWhatsapp /> para revisarlo.</p>;
   }
 
   return (
@@ -42,7 +43,7 @@ async function Solicitud() {
         <div className="mt-6 border-l-2 border-rojo pl-4">
           <p className="font-medium">Tu solicitud no fue aprobada.</p>
           <p className="mt-1 text-sm text-gris">Motivo: {s.motivo_rechazo}</p>
-          <p className="mt-1 text-sm text-gris">Si quieres volver a intentarlo, escríbenos y lo revisamos contigo.</p>
+          <p className="mt-1 text-sm text-gris">Si quieres volver a intentarlo, escríbenos al <EnlaceWhatsapp /> y lo revisamos contigo.</p>
         </div>
       ) : (
         <div className="mt-6 rounded-md border border-linea bg-blanco p-5">

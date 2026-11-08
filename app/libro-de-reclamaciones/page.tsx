@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import { BookOpenText } from "lucide-react";
 import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
@@ -36,6 +37,10 @@ export default function PaginaLibro() {
           <dd>{EMPRESA.razonSocial && EMPRESA.ruc ? `${EMPRESA.razonSocial} · RUC ${EMPRESA.ruc}` : SIN_DATO}</dd>
           <dt className="text-gris">Dirección</dt>
           <dd>{EMPRESA.direccion ?? SIN_DATO}</dd>
+          <dt className="text-gris">WhatsApp</dt>
+          <dd>
+            <EnlaceWhatsapp>{EMPRESA.whatsappVisible}</EnlaceWhatsapp>
+          </dd>
         </dl>
       </div>
 

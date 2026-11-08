@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PaginaLegal, Seccion } from "@/components/PaginaLegal";
@@ -31,6 +32,9 @@ export default function PaginaPrivacidad() {
           </li>
           <li>Razón social y RUC: {EMPRESA.razonSocial ?? SIN_DATO}</li>
           <li>Correo para temas de datos: {EMPRESA.correo ?? SIN_DATO}</li>
+          <li>
+            WhatsApp de atención: <EnlaceWhatsapp>{EMPRESA.whatsappVisible}</EnlaceWhatsapp>
+          </li>
         </ul>
         <p>
           Al ser un prototipo, Surtiba todavía no inscribe sus bancos de datos ante la Autoridad Nacional de Protección de Datos
@@ -109,7 +113,7 @@ export default function PaginaPrivacidad() {
             .
           </li>
           <li>
-            Para lo demás, escríbenos{EMPRESA.correo ? ` a ${EMPRESA.correo}` : ""} o usa el{" "}
+            Para lo demás, escríbenos{EMPRESA.correo ? ` a ${EMPRESA.correo}` : ""} al <EnlaceWhatsapp /> o usa el{" "}
             <Link href="/libro-de-reclamaciones" className={enlace}>
               Libro de Reclamaciones
             </Link>{" "}

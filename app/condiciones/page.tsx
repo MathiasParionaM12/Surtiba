@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PaginaLegal, Seccion } from "@/components/PaginaLegal";
@@ -32,6 +33,9 @@ export default function PaginaCondiciones() {
           <li>Razón social: {EMPRESA.razonSocial ?? SIN_DATO}</li>
           <li>RUC: {EMPRESA.ruc ?? SIN_DATO}</li>
           <li>Dirección: {EMPRESA.direccion ?? SIN_DATO}</li>
+          <li>
+            WhatsApp de atención: <EnlaceWhatsapp>{EMPRESA.whatsappVisible}</EnlaceWhatsapp>
+          </li>
         </ul>
       </Seccion>
 

@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
+import { EMPRESA } from "@/lib/empresa";
 import { marcasPublicas } from "@/lib/marcas-publicas";
 import { productosPublicos } from "@/lib/productos-catalogo";
 
 // Mapa del sitio para Google (Search Console, 8-nov-2026): solo lo público.
 // Las fichas de marcas y productos salen de las mismas listas públicas (en caché) que ve un visitante.
-const SITIO = "https://surtiba.vercel.app";
+const SITIO = EMPRESA.sitio;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [marcas, productos] = await Promise.all([marcasPublicas(), productosPublicos()]);

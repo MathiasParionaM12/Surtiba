@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
@@ -82,7 +83,7 @@ async function MiMarca() {
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-xs text-gris">Para cambiar estos datos, escríbele al equipo Surtiba.</p>
+          <p className="mt-3 text-xs text-gris">Para cambiar estos datos, escríbele al equipo Surtiba al <EnlaceWhatsapp />.</p>
         </section>
       </div>
     </>

@@ -1,3 +1,4 @@
+import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import { RotateCcw } from "lucide-react";
 import Link from "next/link";
@@ -202,7 +203,7 @@ async function DetallePedido({
 
       {/* Línea de tiempo */}
       {cancelado ? (
-        <p className="mt-8 border-l-2 border-rojo pl-3">Este pedido fue cancelado. Si tienes dudas, escríbenos.</p>
+        <p className="mt-8 border-l-2 border-rojo pl-3">Este pedido fue cancelado. Si tienes dudas, escríbenos al <EnlaceWhatsapp />.</p>
       ) : (
         <ol
           className={`mt-8 grid gap-2 ${PASOS.length === 6 ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-4"}`}

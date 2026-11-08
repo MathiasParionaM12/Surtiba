@@ -46,6 +46,7 @@ export function HojaReclamo({
         {fila("Nombre", `${EMPRESA.nombre} · ${EMPRESA.estado}`)}
         {fila("Razón social y RUC", EMPRESA.razonSocial && EMPRESA.ruc ? `${EMPRESA.razonSocial} · RUC ${EMPRESA.ruc}` : SIN_DATO)}
         {fila("Dirección", EMPRESA.direccion ?? SIN_DATO)}
+        {fila("WhatsApp", EMPRESA.whatsappVisible)}
       </dl>
 
       <h3 className={`${sello} mt-6`}>1. Quien reclama</h3>
