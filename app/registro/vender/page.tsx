@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarcoAuth } from "@/components/MarcoAuth";
+import { COMISION_PCT } from "@/lib/catalogo";
 import { PestanasRegistro } from "@/components/PestanasRegistro";
 import { FormVender } from "./FormVender";
 
@@ -10,7 +11,7 @@ export default function PaginaVender() {
   return (
     <MarcoAuth
       titulo="Vende en Surtiba"
-      bajada="Cuéntanos de tu marca. El equipo Surtiba revisa cada solicitud y acuerda contigo la comisión y el pedido mínimo antes de que tus productos aparezcan en el catálogo."
+      bajada={`Cuéntanos de tu marca. El equipo Surtiba revisa cada solicitud antes de que tus productos aparezcan en el catálogo. Tus primeros 3 pedidos no pagan comisión; después, ${COMISION_PCT} % solo sobre lo vendido y entregado.`}
       pie={
         <>
           ¿Ya tienes cuenta?{" "}

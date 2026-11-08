@@ -113,7 +113,7 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
             defaultChecked={v ? !!v.activo : inicial.activo}
             className="size-5 accent-verde"
           />
-          <span className="text-sm">Activo (visible en el catálogo)</span>
+          <span className="text-sm">Activo (se ve en el catálogo cuando Surtiba lo aprueba)</span>
         </label>
       </fieldset>
 

@@ -124,7 +124,7 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
             <h2 className={sello}>Recojo</h2>
             <p className="mt-3 font-mono">{o.fecha_recojo ? fecha(o.fecha_recojo) : "Fecha por definir"}</p>
             <p className="mt-1 text-gris">{privado?.direccion_recojo ?? "Dirección de recojo por definir con Surtiba"}</p>
-            <p className="mt-3 text-xs text-gris">Surtiba fija la fecha de recojo y recoge en tu local.</p>
+            <p className="mt-3 text-xs text-gris">Surtiba recoge en tu local el día antes de entregarle al cliente.</p>
           </div>
           <div className="rounded-md border border-linea bg-blanco p-5">
             <h2 className={sello}>Comisión</h2>

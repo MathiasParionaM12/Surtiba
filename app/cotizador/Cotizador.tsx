@@ -210,7 +210,7 @@ export function Cotizador({
       )}
 
       {/* Pasos */}
-      <ol className="grid grid-cols-4 gap-2" aria-label="Pasos del cotizador">
+      <ol className="grid grid-cols-3 gap-2" aria-label="Pasos del cotizador">
         {PASOS.map((p, i) => {
           // Paso actual en tinta, los ya hechos en verde, los que faltan en gris
           const estado = i === paso ? "actual" : i < paso ? "hecho" : "falta";

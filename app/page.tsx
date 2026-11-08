@@ -1,7 +1,6 @@
 import { ArrowRight, PackageCheck, ShoppingCart, Truck } from "lucide-react";
 import Link from "next/link";
 import { Carga } from "@/components/Carga";
-import { Contador } from "@/components/Contador";
 import { CintaCategorias } from "@/components/portada/CintaCategorias";
 import { MiniCotizador } from "@/components/portada/MiniCotizador";
 import { ParaQuien, type Perfil } from "@/components/portada/ParaQuien";
@@ -239,7 +238,7 @@ export default async function Home() {
             <p className="font-mono text-xs font-medium tracking-[0.12em] text-blanco/60 uppercase">Para marcas</p>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">¿Tienes una marca de licores o cócteles?</h2>
             <p className="mt-8 font-mono text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
-              <Contador valor={3} /> pedidos
+              3 pedidos
             </p>
             <p className="mt-2 text-lg text-blanco/85">sin comisión para empezar</p>
             <p className="mt-4 max-w-md text-sm text-blanco/70">Después, {COMISION_PCT} % solo sobre lo vendido y entregado. Nada por publicar.</p>

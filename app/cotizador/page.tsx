@@ -119,7 +119,7 @@ function Presentacion({
   const QUE_HACE = [
     { titulo: "Tu evento, paso a paso", texto: "Invitados, cuántos no toman, horario, lugar y los momentos: bienvenida, cena, brindis y fiesta." },
     { titulo: "Tu barra, a tu manera", texto: "Eliges los tragos y cuáles se piden más. Sin porcentajes ni cálculos." },
-    { titulo: "Productos y precios", texto: "Te recomendamos productos de Surtiba con su precio por volumen y te avisamos si una marca no llega a su mínimo." },
+    { titulo: "Productos y precios", texto: "Te recomendamos productos de Surtiba con su precio por volumen y te avisamos si te falta para el pedido mínimo de 3 cajas." },
     { titulo: "Todo lo demás", texto: "Hielo, agua, gaseosas, limones y jarabe: la lista completa, aunque no lo compres aquí." },
   ];
   return (

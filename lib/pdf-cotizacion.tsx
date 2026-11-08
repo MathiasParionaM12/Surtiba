@@ -353,7 +353,7 @@ function EventoPorMomentos({ e, cliente = false }: { e: EventoV2["resumen"]; cli
           .join(" · ")}
       </Text>
       <Text style={[s.gris, { marginTop: 2 }]}>
-        {entero.format(e.tragos_totales)} tragos con alcohol{cliente ? "" : ` · incluye +${e.margen} % de margen`}
+        {entero.format(e.tragos_totales)} tragos con alcohol{cliente || !e.margen ? "" : ` · incluye +${e.margen} % extra por si acaso`}
       </Text>
       <View style={{ marginTop: 8 }}>
         {e.momentos.map((m) => (

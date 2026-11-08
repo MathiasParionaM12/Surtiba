@@ -174,7 +174,8 @@ export function Resultado({
           <p className={sello}>Cajas</p>
           <p className="mt-2 font-mono text-2xl font-semibold">{cajas}</p>
           <p className="mt-1 text-xs text-gris">
-            de {marcas} {marcas === 1 ? "marca" : "marcas"} · incluye +{entrada.margen} % de margen
+            de {marcas} {marcas === 1 ? "marca" : "marcas"}
+            {entrada.margen > 0 ? ` · incluye +${entrada.margen} % extra por si acaso` : " · lo justo, sin extra"}
           </p>
         </div>
       </div>

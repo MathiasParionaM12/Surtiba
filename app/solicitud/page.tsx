@@ -49,7 +49,7 @@ async function Solicitud() {
           <p className="font-medium">Tu solicitud está en revisión.</p>
           <p className="mt-1 text-sm text-gris">
             El equipo Surtiba la revisará y te escribirá al WhatsApp <span className="font-mono">{s.contacto_whatsapp}</span> para
-            acordar la comisión y el pedido mínimo. Cuando la aprueben, al ingresar verás tu panel de marca.
+            confirmar tus datos. Cuando la aprueben, al ingresar verás tu panel de marca.
           </p>
         </div>
       )}

@@ -154,7 +154,7 @@ async function Resumen() {
             </Tarjeta>
             <Tarjeta titulo="Te pidieron por encargo" nota="Más de lo que tenías en stock, en 30 días">
               {insights.demanda_encargo.length === 0 ? (
-                <p className="text-sm text-gris">Nadie pidió más de tu stock este mes. Bien.</p>
+                <p className="text-sm text-gris">Nadie pidió más de tu stock este mes.</p>
               ) : (
                 <>
                   <p className="text-sm">
