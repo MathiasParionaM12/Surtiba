@@ -47,6 +47,7 @@ type Insights = {
     activos_mes: number;
     nuevos_mes: number;
     recurrentes: number;
+    recompra_60d?: { compradores: number; volvieron: number };
     por_tipo: { tipo: string; pedidos: number; ventas: number }[];
     por_distrito: { distrito: string; pedidos: number }[];
   };
@@ -226,12 +227,34 @@ async function Metricas() {
       {/* Compradores */}
       <section>
         <h2 className={sello}>Compradores</h2>
-        <div className="mt-3 grid gap-4 lg:grid-cols-3">
+        {/* Recompra: la métrica clave de un marketplace B2B (¿el comprador vuelve?) */}
+        {m.compradores.recompra_60d && (
+          <div className="mt-3 flex flex-col gap-1 rounded-md border border-linea bg-blanco p-5 sm:flex-row sm:items-baseline sm:gap-6">
+            <p className="font-mono text-4xl font-semibold tabular-nums">
+              {m.compradores.recompra_60d.compradores > 0 ? (
+                <>
+                  <Contador valor={Math.round((m.compradores.recompra_60d.volvieron / m.compradores.recompra_60d.compradores) * 100)} /> %
+                </>
+              ) : (
+                "—"
+              )}
+            </p>
+            <div>
+              <p className="font-medium">Recompra · últimos 60 días</p>
+              <p className="text-sm text-gris">
+                {m.compradores.recompra_60d.compradores > 0
+                  ? `${m.compradores.recompra_60d.volvieron} de ${m.compradores.recompra_60d.compradores} compradores hicieron 2 o más pedidos.`
+                  : "Aún no hay pedidos en los últimos 60 días."}
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
           <dl className="grid grid-cols-3 gap-3 rounded-md border border-linea bg-blanco p-5 lg:col-span-1 lg:grid-cols-1">
             {[
               ["Activos este mes", m.compradores.activos_mes],
               ["Nuevos este mes", m.compradores.nuevos_mes],
-              ["Volvieron a comprar", m.compradores.recurrentes],
+              ["Con 2 o más pedidos (siempre)", m.compradores.recurrentes],
             ].map(([t, v]) => (
               <div key={t as string}>
                 <dt className="text-xs text-gris">{t}</dt>
