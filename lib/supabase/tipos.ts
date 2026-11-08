@@ -18,6 +18,15 @@ export type Database = {
           { foreignKeyName: "carrito_producto_id_fkey"; columns: ["producto_id"]; isOneToOne: false; referencedRelation: "productos"; referencedColumns: ["id"] },
         ];
       };
+      calificaciones: {
+        Row: { id: string; subpedido_id: string; marca_id: string; comprador_id: string; estrellas: number; comentario: string | null; oculta: boolean; creado_en: string; actualizado_en: string };
+        Insert: { id?: string; subpedido_id: string; marca_id: string; comprador_id: string; estrellas: number; comentario?: string | null; oculta?: boolean };
+        Update: { estrellas?: number; comentario?: string | null; oculta?: boolean };
+        Relationships: [
+          { foreignKeyName: "calificaciones_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
+          { foreignKeyName: "calificaciones_subpedido_id_fkey"; columns: ["subpedido_id"]; isOneToOne: true; referencedRelation: "subpedidos"; referencedColumns: ["id"] },
+        ];
+      };
       cotizaciones: {
         Row: { codigo: string; comprador_id: string; creado_en: string; evento: Json | null; id: string; items: Json; pedido_id: string | null; total_centimos: number };
         Insert: { codigo?: string; comprador_id: string; creado_en?: string; evento?: Json | null; id?: string; items: Json; pedido_id?: string | null; total_centimos: number };
@@ -57,9 +66,9 @@ export type Database = {
         ];
       };
       marcas: {
-        Row: { activa: boolean; creado_en: string; descripcion: string | null; id: string; logo_url: string | null; nombre_comercial: string; pedido_minimo_cajas: number };
+        Row: { activa: boolean; creado_en: string; descripcion: string | null; id: string; logo_url: string | null; nombre_comercial: string; pedido_minimo_cajas: number; verificada: boolean };
         Insert: { activa?: boolean; creado_en?: string; descripcion?: string | null; id?: string; logo_url?: string | null; nombre_comercial: string; pedido_minimo_cajas?: number };
-        Update: { activa?: boolean; creado_en?: string; descripcion?: string | null; id?: string; logo_url?: string | null; nombre_comercial?: string; pedido_minimo_cajas?: number };
+        Update: { activa?: boolean; creado_en?: string; descripcion?: string | null; id?: string; logo_url?: string | null; nombre_comercial?: string; pedido_minimo_cajas?: number; verificada?: boolean };
         Relationships: [];
       };
       marcas_privado: {
@@ -305,6 +314,12 @@ export type Database = {
       };
     };
     Functions: {
+      calificar: { Args: { p_subpedido: string; p_estrellas: number; p_comentario: string | null }; Returns: undefined };
+      admin_ocultar_calificacion: { Args: { p_id: string; p_oculta: boolean }; Returns: undefined };
+      reputacion_marcas: {
+        Args: Record<string, never>;
+        Returns: { marca_id: string; verificada: boolean; responde_rapido: boolean; nueva: boolean; promedio: number | null; calificaciones: number }[];
+      };
       marcar_listo: { Args: { p_subpedido: string }; Returns: undefined };
       marca_responder_encargo: {
         Args: { p_subpedido: string; p_acepta: boolean; p_fecha?: string; p_motivo?: string };

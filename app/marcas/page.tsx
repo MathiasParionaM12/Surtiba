@@ -4,6 +4,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoTarjetas } from "@/components/Esqueleto";
 import { IconoCategoria } from "@/components/IconoCategoria";
 import { LogoMarca } from "@/components/LogoMarca";
+import { Calificacion, SellosMarca } from "@/components/SellosMarca";
 import { CATEGORIAS } from "@/lib/catalogo";
 import { catalogoPublico } from "@/lib/catalogo-publico";
 import { sello } from "@/lib/estilos";
@@ -59,6 +60,10 @@ async function Lista() {
                     {datos.productos} {datos.productos === 1 ? "producto" : "productos"}
                   </p>
                 </div>
+              </div>
+              <div className="mt-3 flex flex-col gap-2 empty:hidden">
+                <Calificacion r={m.reputacion} compacto />
+                <SellosMarca r={m.reputacion} compacto />
               </div>
               <p className="mt-4 line-clamp-3 flex-1 text-sm text-gris">{m.descripcion ?? "Marca peruana de licores y cócteles."}</p>
               <div className="mt-4 flex flex-wrap gap-1.5">

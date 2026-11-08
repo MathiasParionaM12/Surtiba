@@ -56,6 +56,7 @@ export type ProductoTarjeta = {
   inactivo?: boolean; // solo lo ve el admin: el producto o su marca está desactivado
   favorito?: boolean; // solo compradores: muestra el corazón
   foto?: string | null; // dirección pública de la foto (si tiene)
+  marcaVerificada?: boolean; // sello de confianza (8-nov-2026)
 };
 
 type FilaProducto = {

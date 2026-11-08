@@ -82,6 +82,35 @@ export async function guardarMarca(_e: EstadoForm, form: FormData): Promise<Esta
   );
 }
 
+// ── Confianza (8-nov-2026) ──
+// "Marca verificada": el admin la marca después de revisar RUC y registro sanitario (RLS: solo el admin edita marcas)
+export async function verificarMarca(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const marca = id(form, "marca_id");
+  if (!marca) return { error: "No encontramos esa marca." };
+  const verificada = form.get("verificada") === "true";
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.from("marcas").update({ verificada }).eq("id", marca),
+    verificada ? "Marca verificada." : "Se quitó la verificación.",
+    "catalogo",
+  );
+}
+
+// Ocultar (o volver a mostrar) un comentario ofensivo
+export async function ocultarCalificacion(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await exigirRol("admin");
+  const calificacion = id(form, "calificacion_id");
+  if (!calificacion) return { error: "No encontramos esa calificación." };
+  const oculta = form.get("oculta") === "true";
+  const supabase = await createClient();
+  return ejecutar(
+    supabase.rpc("admin_ocultar_calificacion", { p_id: calificacion, p_oculta: oculta }),
+    oculta ? "Calificación oculta." : "Calificación visible otra vez.",
+    "catalogo",
+  );
+}
+
 // ── Recojos y entregas ──
 // "Recogí todo de esta marca": todas sus órdenes de ese día de recojo. El pedido pasa solo a "en camino"
 // cuando ya no falta recoger nada (la base lo hace en admin_recoger_marca).

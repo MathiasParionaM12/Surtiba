@@ -8,13 +8,14 @@ import { EtiquetaEstado } from "@/components/EtiquetaEstado";
 import { repetirPedido } from "@/lib/acciones-pedidos";
 import { esUuid } from "@/lib/catalogo";
 import { botonSecundario, sello } from "@/lib/estilos";
-import { fecha, soles } from "@/lib/formato";
+import { fecha, haceMenosDe, soles } from "@/lib/formato";
 import { nombreMetodo, saldos } from "@/lib/pagos";
 import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { fechaLarga } from "@/lib/entregas";
 import { createClient } from "@/lib/supabase/server";
 import { AgregarRapido } from "./AgregarRapido";
+import { Calificar } from "./Calificar";
 import { FormPagar } from "./FormPagar";
 import { SelloEstado } from "@/components/SelloEstado";
 
@@ -68,11 +69,21 @@ async function DetallePedido({
   const { data: p } = await supabase
     .from("pedidos")
     .select(
-      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, tipo, pagado_centimos, subpedidos(id, estado, marca_id, total_cajas, total_centimos, fecha_disponible, marcas(nombre_comercial), items(producto_id, cajas, cajas_reservadas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
+      "codigo, estado, creado_en, fecha_entrega_deseada, direccion_entrega, direccion_detalle, distrito, codigo_postal, referencia, recibe_nombre, recibe_telefono, nota, evento_nombre, evento_tipo, evento_fecha, invitados, subtotal_centimos, envio_centimos, total_centimos, pago_estado, pago_metodo, tipo, pagado_centimos, subpedidos(id, estado, marca_id, total_cajas, total_centimos, fecha_disponible, entregado_en, marcas(nombre_comercial), items(producto_id, cajas, cajas_reservadas, precio_caja_centimos, subtotal_centimos, productos(nombre, categoria)))",
     )
     .eq("id", id)
     .maybeSingle();
   if (!p) notFound();
+
+  // Sus calificaciones de este pedido (RLS: el comprador ve las suyas, aunque estén ocultas)
+  const { data: misCalificaciones } = await supabase
+    .from("calificaciones")
+    .select("subpedido_id, estrellas, comentario")
+    .in("subpedido_id", p.subpedidos.map((s) => s.id));
+  const calificacionDe = new Map((misCalificaciones ?? []).map((c) => [c.subpedido_id, c]));
+  // Se puede calificar hasta 30 días después de la entrega
+  const puedeCalificar = (s: { estado: string; entregado_en: string | null }) =>
+    s.estado === "entregado" && !!s.entregado_en && haceMenosDe(s.entregado_en, 30);
 
   // Opciones parecidas para lo que una marca no pudo atender: misma categoría, otra marca, con stock.
   // (RLS: el comprador solo recibe productos activos de marcas activas.)
@@ -294,6 +305,15 @@ async function DetallePedido({
                       </div>
                     );
                   })}
+
+                {/* Calificar a la marca: después de la entrega, hasta 30 días */}
+                {puedeCalificar(s) && (
+                  <Calificar
+                    subpedidoId={s.id}
+                    marca={s.marcas?.nombre_comercial ?? "esta marca"}
+                    inicial={calificacionDe.get(s.id) ?? undefined}
+                  />
+                )}
               </section>
             );
           })}

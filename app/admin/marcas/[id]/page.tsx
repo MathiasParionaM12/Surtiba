@@ -4,10 +4,11 @@ import { notFound } from "next/navigation";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
-import { guardarMarca } from "@/lib/acciones-admin";
+import { Estrellas } from "@/components/SellosMarca";
+import { guardarMarca, ocultarCalificacion, verificarMarca } from "@/lib/acciones-admin";
 import { COMISION_PCT, esUuid, ordenarTramos } from "@/lib/catalogo";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
-import { soles } from "@/lib/formato";
+import { fecha, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,12 +37,20 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
   const { data: m } = await supabase
     .from("marcas")
     .select(
-      "id, nombre_comercial, pedido_minimo_cajas, activa, marcas_privado(razon_social, ruc, contacto_nombre, contacto_whatsapp, contacto_correo, direccion_recojo, comision_pct), productos(id, nombre, stock_cajas, activo, escalas_precio(desde_cajas, precio_caja_centimos))",
+      "id, nombre_comercial, pedido_minimo_cajas, activa, verificada, marcas_privado(razon_social, ruc, contacto_nombre, contacto_whatsapp, contacto_correo, direccion_recojo, comision_pct), productos(id, nombre, stock_cajas, activo, escalas_precio(desde_cajas, precio_caja_centimos))",
     )
     .eq("id", id)
     .maybeSingle();
   if (!m) notFound();
   const pv = m.marcas_privado;
+  // El admin ve todas, también las ocultas (RLS)
+  const { data: calificaciones } = await supabase
+    .from("calificaciones")
+    .select("id, estrellas, comentario, oculta, creado_en")
+    .eq("marca_id", m.id)
+    .order("creado_en", { ascending: false });
+  const visibles = (calificaciones ?? []).filter((c) => !c.oculta);
+  const promedio = visibles.length ? visibles.reduce((t, c) => t + c.estrellas, 0) / visibles.length : null;
 
   return (
     <>
@@ -105,6 +114,61 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
           )}
         </section>
       </div>
+
+      {/* Confianza: sello de verificada y calificaciones de los compradores */}
+      <section className="mt-10">
+        <h2 className={sello}>Confianza</h2>
+        <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <div className="flex flex-col gap-3 rounded-md border border-linea bg-blanco p-5">
+            <p className="font-medium">{m.verificada ? "Marca verificada" : "Sin verificar"}</p>
+            <p className="text-sm text-gris">
+              Márcala como verificada cuando hayas revisado su RUC y el registro sanitario de sus productos. Los compradores ven el sello.
+            </p>
+            <FormAccion
+              accion={verificarMarca}
+              ocultos={{ marca_id: m.id, verificada: m.verificada ? "false" : "true" }}
+              texto={m.verificada ? "Quitar verificación" : "Marcar como verificada"}
+              variante={m.verificada ? "secundario" : "primario"}
+            />
+          </div>
+          <div className="rounded-md border border-linea bg-blanco">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linea px-5 py-3">
+              <p className="font-medium">Calificaciones de compradores</p>
+              {promedio !== null && (
+                <span className="flex items-center gap-2 text-sm">
+                  <Estrellas valor={promedio} />
+                  <span className="font-mono">{promedio.toFixed(1)}</span>
+                  <span className="text-gris">({visibles.length} visibles)</span>
+                </span>
+              )}
+            </div>
+            {(calificaciones ?? []).length === 0 ? (
+              <p className="px-5 py-4 text-sm text-gris">Aún no la califica nadie.</p>
+            ) : (
+              <ul>
+                {(calificaciones ?? []).map((c) => (
+                  <li key={c.id} className={`flex flex-wrap items-start justify-between gap-3 border-b border-linea px-5 py-3 last:border-b-0 ${c.oculta ? "bg-papel" : ""}`}>
+                    <div className={`min-w-0 flex-1 ${c.oculta ? "opacity-60" : ""}`}>
+                      <div className="flex items-center gap-2">
+                        <Estrellas valor={c.estrellas} className="size-3.5" />
+                        <span className="font-mono text-xs text-gris">{fecha(c.creado_en)}</span>
+                        {c.oculta && <span className="text-xs font-medium text-rojo">Oculta</span>}
+                      </div>
+                      {c.comentario && <p className="mt-1 text-sm">{c.comentario}</p>}
+                    </div>
+                    <FormAccion
+                      accion={ocultarCalificacion}
+                      ocultos={{ calificacion_id: c.id, oculta: c.oculta ? "false" : "true" }}
+                      texto={c.oculta ? "Mostrar" : "Ocultar"}
+                      variante="secundario"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </section>
     </>
   );
 }

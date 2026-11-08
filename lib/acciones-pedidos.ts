@@ -3,7 +3,7 @@
 // Acciones del comprador: carrito, pedido, repetir pedido y favoritos.
 // El navegador solo manda producto_id y cajas. Los precios los pone la base de datos.
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { EstadoForm } from "@/lib/acciones-auth";
 import { esUuid } from "@/lib/catalogo";
@@ -264,4 +264,21 @@ export async function pagarPedido(_estado: EstadoForm, form: FormData): Promise<
 
   actualizarPantallas();
   return { mensaje: "Pago registrado (simulado). Seguimos con tu pedido." };
+}
+
+// Calificar a una marca de un pedido entregado (8-nov-2026). La base de datos revisa que la parte sea suya,
+// que esté entregada y que no hayan pasado 30 días. La calificación es anónima para todos.
+export async function calificarMarca(_estado: EstadoForm, form: FormData): Promise<EstadoForm> {
+  await comprador();
+  const subpedido = String(form.get("subpedido_id") ?? "");
+  if (!esUuid(subpedido)) return { error: "No encontramos esa parte de tu pedido." };
+  const estrellas = Number(form.get("estrellas"));
+  if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) return { error: "Elige de 1 a 5 estrellas." };
+  const comentario = String(form.get("comentario") ?? "").trim().slice(0, 300);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("calificar", { p_subpedido: subpedido, p_estrellas: estrellas, p_comentario: comentario || null });
+  if (error) return { error: error.code === "P0001" ? error.message : "No pudimos guardar tu calificación. Intenta de nuevo." };
+  updateTag("catalogo"); // el promedio y los comentarios de la marca son públicos y están en caché
+  actualizarPantallas();
+  return { mensaje: "¡Gracias! Tu calificación ayuda a otros compradores." };
 }

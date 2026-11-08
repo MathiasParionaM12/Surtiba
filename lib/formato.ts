@@ -70,3 +70,8 @@ export function hoyEnLima() {
 export function haceDias(n: number) {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
 }
+
+// ¿Pasaron menos de "dias" días desde esta fecha? (ej. el plazo de 30 días para calificar)
+export function haceMenosDe(valor: string, dias: number) {
+  return Date.now() - new Date(valor).getTime() < dias * 86400000;
+}

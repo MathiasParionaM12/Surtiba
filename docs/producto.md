@@ -190,6 +190,11 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
   - Admin: nuevo pedido, pedido pagado, encargo aceptado o rechazado, orden lista para recojo.
 - Correos automáticos solo si sobra tiempo. Nada de WhatsApp API.
 
+### Confianza: sellos y calificaciones (8-nov-2026)
+- **Sellos:** "Marca verificada" (el admin la marca a mano tras revisar RUC y registro sanitario), "Responde rápido" (deja lista su orden en menos de 24 h, mediana con 3 o más órdenes en 90 días) y "Nueva en Surtiba" (30 días). Se ven en `/marcas`, en la página de cada marca y en la ficha del producto; en la tarjeta del catálogo, solo el ícono de verificada.
+- **Calificaciones:** al entregarse, el comprador califica a cada marca de su pedido (1 a 5 + comentario opcional) en el detalle del pedido, hasta 30 días después. Todos ven el promedio (desde 3 calificaciones) y los comentarios como "Comprador verificado". La marca ve las suyas en su Resumen. El admin puede ocultar un comentario ofensivo (Admin → Marcas → la marca).
+- **Recompra** en Admin → Métricas: % de compradores con 2 o más pedidos en los últimos 60 días.
+
 ## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
 - ~~**Aprobación de productos**~~ → construida el 5-nov-2026 (ver "Aprobación de productos" en Reglas de negocio).

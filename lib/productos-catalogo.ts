@@ -3,12 +3,14 @@
 import type { ProductoTarjeta } from "@/components/TarjetaProducto";
 import { aTarjeta, urlFoto } from "@/lib/catalogo";
 import { catalogoPublico } from "@/lib/catalogo-publico";
+import { reputacionPorNombre } from "@/lib/marcas-publicas";
 import { createClient } from "@/lib/supabase/server";
 
 // ── Visitante: solo el precio del primer tramo, sin stock. Igual para todos: viene de la caché ──
 export async function productosPublicos(): Promise<ProductoTarjeta[]> {
-  const data = await catalogoPublico();
+  const [data, reputacion] = await Promise.all([catalogoPublico(), reputacionPorNombre()]);
   return data.map((p) => ({
+    marcaVerificada: reputacion.get(p.marca!)?.verificada,
     id: p.id!,
     nombre: p.nombre!,
     marca: p.marca!,
@@ -26,7 +28,7 @@ export async function productosPublicos(): Promise<ProductoTarjeta[]> {
 // marca = los suyos; admin = todos (también los inactivos, que se marcan).
 export async function productosConSesion(esComprador: boolean): Promise<ProductoTarjeta[]> {
   const supabase = await createClient();
-  const [{ data }, { data: favoritos }] = await Promise.all([
+  const [{ data }, { data: favoritos }, reputacion] = await Promise.all([
     supabase
       .from("productos")
       .select(
@@ -36,9 +38,11 @@ export async function productosConSesion(esComprador: boolean): Promise<Producto
       .order("nombre"),
     // RLS: cada comprador recibe solo sus favoritos (la marca y el admin, ninguno)
     supabase.from("favoritos").select("producto_id"),
+    reputacionPorNombre(),
   ]);
   const misFavoritos = new Set((favoritos ?? []).map((f) => f.producto_id));
   return (data ?? [])
     .map((p) => aTarjeta(p, esComprador ? misFavoritos.has(p.id) : undefined))
-    .filter((p): p is ProductoTarjeta => p !== null);
+    .filter((p): p is ProductoTarjeta => p !== null)
+    .map((p) => ({ ...p, marcaVerificada: reputacion.get(p.marca)?.verificada }));
 }

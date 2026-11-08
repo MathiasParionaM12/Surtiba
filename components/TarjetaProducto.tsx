@@ -1,3 +1,4 @@
+import { BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { AgregarTarjeta } from "@/components/AgregarTarjeta";
 import { BotonFavorito } from "@/components/BotonFavorito";
@@ -47,7 +48,12 @@ export function TarjetaProducto({ p, puedeAgregar = false }: { p: ProductoTarjet
               Inactivo · no lo ven los compradores
             </p>
           )}
-          <p className="truncate text-xs text-gris">{p.marca}</p>
+          <p className="flex min-w-0 items-center gap-1 text-xs text-gris">
+            <span className="truncate">{p.marca}</span>
+            {p.marcaVerificada && (
+              <BadgeCheck className="size-3.5 shrink-0 text-verde" aria-label="Marca verificada" role="img" />
+            )}
+          </p>
           <h3 className="mt-1 line-clamp-2 text-sm font-medium group-hover:text-verde sm:text-base">{p.nombre}</h3>
           <p className="mt-1 font-mono text-[11px] text-gris sm:text-xs">
             {p.ml} ml · {p.unidades} u/caja<span className="hidden sm:inline"> · {p.grado}%</span>

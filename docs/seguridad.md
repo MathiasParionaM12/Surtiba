@@ -22,6 +22,8 @@ Estado al 21-oct-2026, después de la auditoría de seguridad. Veredicto: sin hu
 
 - **Vercel Web Analytics** (`@vercel/analytics` en `app/layout.tsx`): visitas y páginas, sin cookies ni datos personales. Se activa en Vercel → proyecto → Analytics.
 - **Eventos propios** (tabla `eventos`): vio un producto, agregó al carrito, empezó a pedir. Cualquiera registra con `registrar_evento` (sin poder inventar tipos ni hacerse pasar por otro); solo el admin los lee.
+- **Vercel Speed Insights** (`@vercel/speed-insights` 2.0.0, 8-nov-2026): velocidad de carga real, sin cookies. `/sitemap.xml` y `/robots.txt` dejan fuera de Google los paneles, el carrito y los pedidos.
+- **Calificaciones** (8-nov-2026): anónimas. `comprador_id` no tiene permiso de lectura para nadie; probado con comprador, otro comprador, marca, visitante y admin.
 - **Microsoft Clarity, GA4 y píxeles**: no se usan (grabaciones y cookies piden aviso y consentimiento, Ley 29733).
 
 ## Hallazgo del 5-nov-2026: permisos por columna

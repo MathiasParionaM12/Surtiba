@@ -3,11 +3,12 @@ import Link from "next/link";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { sello } from "@/lib/estilos";
-import { inicioMesLima, mesActual, mesAnterior } from "@/lib/formato";
+import { fecha, inicioMesLima, mesActual, mesAnterior } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { Contador } from "@/components/Contador";
 import { MiniGrafico, porSemana } from "@/components/MiniGrafico";
+import { Estrellas } from "@/components/SellosMarca";
 
 export const metadata: Metadata = { title: "Resumen · Panel de marca · Surtiba" };
 
@@ -24,7 +25,7 @@ async function Resumen() {
 
   // RLS: la marca recibe solo sus subpedidos y sus productos
   const supabase = await createClient();
-  const [{ data: marca }, { data: ordenes }, { data: productos }, { data: insightsData }] = await Promise.all([
+  const [{ data: marca }, { data: ordenes }, { data: productos }, { data: insightsData }, { data: calificaciones }] = await Promise.all([
     supabase.from("marcas").select("nombre_comercial").eq("id", usuario.marcaId!).single(),
     supabase
       .from("subpedidos")
@@ -33,7 +34,16 @@ async function Resumen() {
     supabase.from("productos").select("id, nombre, stock_cajas, activo").order("nombre"),
     // KPIs calculados en la base (solo totales de esta marca, nunca datos de compradores)
     supabase.rpc("marca_insights"),
+    // Sus calificaciones visibles: anónimas (la marca nunca ve quién la calificó)
+    supabase
+      .from("calificaciones")
+      .select("id, estrellas, comentario, creado_en")
+      .eq("marca_id", usuario.marcaId!)
+      .order("creado_en", { ascending: false }),
   ]);
+  const totalCalificaciones = (calificaciones ?? []).length;
+  const promedio = totalCalificaciones ? (calificaciones ?? []).reduce((t, c) => t + c.estrellas, 0) / totalCalificaciones : null;
+  const ultimosComentarios = (calificaciones ?? []).filter((c) => c.comentario).slice(0, 3);
   const insights = insightsData as unknown as Insights | null;
 
   // Mis números del mes: solo cuenta lo ENTREGADO este mes (docs/modelo-datos.md, "Métrica principal")
@@ -206,6 +216,40 @@ async function Resumen() {
           </div>
         </section>
       )}
+
+      {/* Lo que dicen los compradores (8-nov-2026): promedio y últimos comentarios, todo anónimo */}
+      <section className="mt-10">
+        <h2 className={sello}>Tus calificaciones</h2>
+        <div className="mt-3 rounded-md border border-linea bg-blanco p-5">
+          {promedio === null ? (
+            <p className="text-sm text-gris">Aún no te califican. Los compradores califican cuando reciben su pedido.</p>
+          ) : (
+            <>
+              <p className="flex flex-wrap items-center gap-2">
+                <Estrellas valor={promedio} />
+                <span className="font-mono text-lg font-semibold">{promedio.toFixed(1)}</span>
+                <span className="text-sm text-gris">
+                  de 5 · {totalCalificaciones} {totalCalificaciones === 1 ? "calificación" : "calificaciones"}
+                  {totalCalificaciones < 3 ? " · los compradores lo ven desde 3" : ""}
+                </span>
+              </p>
+              {ultimosComentarios.length > 0 && (
+                <ul className="mt-4 flex flex-col divide-y divide-linea border-t border-linea">
+                  {ultimosComentarios.map((c) => (
+                    <li key={c.id} className="py-3 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Estrellas valor={c.estrellas} className="size-3.5" />
+                        <span className="font-mono text-xs text-gris">{fecha(c.creado_en)}</span>
+                      </span>
+                      <span className="mt-1 block">{c.comentario}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <section>

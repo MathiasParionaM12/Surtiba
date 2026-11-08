@@ -5,6 +5,8 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
+import { Calificacion, SellosMarca } from "@/components/SellosMarca";
+import { reputacionPorNombre, type Reputacion } from "@/lib/marcas-publicas";
 import { CATEGORIAS, esUuid, ordenarTramos, PEDIDO_MINIMO_CAJAS, textoTramo, urlFoto } from "@/lib/catalogo";
 import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
@@ -48,6 +50,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           ml={p.ml!}
           foto={urlFoto(p.foto_url)}
           marca={p.marca!}
+          reputacion={(await reputacionPorNombre()).get(p.marca!)}
           nombre={p.nombre!}
           datos={[
             ["Contenido", `${p.ml} ml`],
@@ -105,6 +108,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         ml={p.ml}
         foto={urlFoto(p.foto_url)}
         marca={p.marcas.nombre_comercial}
+        reputacion={(await reputacionPorNombre()).get(p.marcas.nombre_comercial)}
         nombre={p.nombre}
         datos={[
           ["Contenido", `${p.ml} ml`],
@@ -168,7 +172,9 @@ function Ficha({
   nombre,
   datos,
   children,
+  reputacion,
 }: {
+  reputacion?: Reputacion;
   categoria: string;
   ml: number;
   foto: string | null;
@@ -185,6 +191,12 @@ function Ficha({
           {marca} · {CATEGORIAS[categoria] ?? categoria}
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">{nombre}</h1>
+        {reputacion && (
+          <div className="mt-3 flex flex-col gap-2 empty:hidden">
+            <Calificacion r={reputacion} compacto />
+            <SellosMarca r={reputacion} compacto />
+          </div>
+        )}
         <dl className="mt-6 grid grid-cols-2 border-t border-linea text-sm">
           {datos.map(([k, v]) => (
             <div key={k} className="border-b border-linea py-3 odd:pr-4">

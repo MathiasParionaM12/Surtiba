@@ -46,6 +46,10 @@ Desde el 21-oct-2026 también `descripcion` (10 a 280 letras) y `logo_url` (ruta
 | pedido_minimo_cajas | integer | ≥ 1 |
 | activa | boolean | si es false, sus productos no se ven |
 | creado_en | timestamptz | |
+| verificada | boolean | sello "Marca verificada": lo pone el admin a mano (8-nov-2026) |
+
+### calificaciones (8-nov-2026, `47_sellos_y_calificaciones.sql`)
+El comprador califica a cada marca de su pedido (1 a 5 + comentario de hasta 300 letras) cuando esa parte se entregó, hasta 30 días después, solo con `calificar()`. Una por subpedido (puede cambiarla). **Anónima para todos:** `comprador_id` no se entrega a nadie (permisos por columna); los visitantes y las marcas ven estrellas y comentarios como "Comprador verificado". El admin oculta comentarios con `admin_ocultar_calificacion()`. La función pública `reputacion_marcas()` da por marca activa: verificada, responde rápido (mediana < 24 h hasta "listo", con 3 o más órdenes directas en 90 días), nueva (30 días), promedio y cantidad. El promedio se muestra desde 3 calificaciones.
 
 ### solicitudes_marca (fase 5)
 Solicitudes de "Quiero vender". Las crea el trigger al registrarse; el admin las aprueba (crea la marca con 5 % de comisión y el pedido mínimo que eligió la marca) o las rechaza con motivo. Las ven la propia persona y el admin.

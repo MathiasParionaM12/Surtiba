@@ -5,8 +5,11 @@ import { Explorador } from "@/app/catalogo/Explorador";
 import { Carga } from "@/components/Carga";
 import { EsqueletoTarjetas } from "@/components/Esqueleto";
 import { LogoMarca } from "@/components/LogoMarca";
+import { Calificacion, Estrellas, SellosMarca } from "@/components/SellosMarca";
 import { esUuid } from "@/lib/catalogo";
-import { marcasPublicas } from "@/lib/marcas-publicas";
+import { comentariosMarca, marcasPublicas } from "@/lib/marcas-publicas";
+import { fecha } from "@/lib/formato";
+import { sello } from "@/lib/estilos";
 import { productosConSesion, productosPublicos } from "@/lib/productos-catalogo";
 import { obtenerUsuario } from "@/lib/sesion";
 
@@ -35,6 +38,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   // Con sesión: precios por volumen y stock (RLS); sin sesión: solo el precio del primer tramo
   const todos = usuario ? await productosConSesion(usuario.rol === "comprador") : await productosPublicos();
   const productos = todos.filter((p) => p.marca === marca.nombre);
+  const comentarios = await comentariosMarca(marca.id);
 
   return (
     <>
@@ -46,9 +50,33 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           <p className="mt-2 font-mono text-xs text-gris">
             {productos.length} {productos.length === 1 ? "producto" : "productos"}
           </p>
+          <div className="mt-3 flex flex-col gap-2">
+            <Calificacion r={marca.reputacion} />
+            <SellosMarca r={marca.reputacion} />
+          </div>
         </div>
       </header>
       <Explorador productos={productos} filtrosIniciales={{}} visitante={!usuario} puedeAgregar={usuario?.rol === "comprador"} />
+
+      {/* Lo que dicen los compradores: anónimo, solo "Comprador verificado" */}
+      {comentarios.length > 0 && (
+        <section className="mt-12">
+          <h2 className={sello}>Lo que dicen los compradores</h2>
+          <ul className="escalonado mt-4 grid gap-3 sm:grid-cols-2">
+            {comentarios.map((c) => (
+              <li key={c.id} className="rounded-md border border-linea bg-blanco p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <Estrellas valor={c.estrellas} />
+                  <span className="font-mono text-xs text-gris">{fecha(c.creado_en)}</span>
+                </div>
+                <p className="mt-2 text-sm">{c.comentario}</p>
+                <p className="mt-2 text-xs text-gris">Comprador verificado</p>
+                <span className="sr-only">{`${c.estrellas} de 5 estrellas`}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
