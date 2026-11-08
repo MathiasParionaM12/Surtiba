@@ -288,10 +288,17 @@ export function Explorador({
 
       {visibles.length === 0 ? (
         <div className="mt-4 rounded-md border border-linea bg-blanco p-6">
-          <p>No hay productos con esos filtros. Prueba subir el precio máximo, otra categoría u otro nombre.</p>
-          <button type="button" onClick={quitarFiltros} className={`${botonSecundario} mt-4`}>
-            Ver todos los productos
-          </button>
+          {productos.length === 0 ? (
+            // Catálogo vacío (todavía no hay marcas activas): no es culpa de los filtros
+            <p>Pronto verás aquí los productos de las marcas de Surtiba.</p>
+          ) : (
+            <>
+              <p>No hay productos con esos filtros. Prueba subir el precio máximo, otra categoría u otro nombre.</p>
+              <button type="button" onClick={quitarFiltros} className={`${botonSecundario} mt-4`}>
+                Ver todos los productos
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">

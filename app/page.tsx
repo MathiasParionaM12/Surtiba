@@ -116,7 +116,10 @@ export default async function Home() {
         escenario: "3 eventos de 80 invitados en una semana, en un solo pedido",
         datos: [
           ["Tragos", entero.format(catering.r.tragosTotales)],
-          ["Cajas", `${catering.cajas} de ${catering.marcas} ${catering.marcas === 1 ? "marca" : "marcas"}`],
+          // Sin productos en el catálogo (p. ej. mientras se suma la primera marca real) no se muestra "0 cajas"
+          catering.cajas > 0
+            ? ["Cajas", `${catering.cajas} de ${catering.marcas} ${catering.marcas === 1 ? "marca" : "marcas"}`]
+            : ["Invitados", "240"],
           ["Entregas", "1"],
         ],
       },

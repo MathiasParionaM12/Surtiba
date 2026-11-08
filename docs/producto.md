@@ -86,6 +86,7 @@ El admin ya no puede saltarse pasos (la base lo bloquea aunque se llame directo)
 
 ### Devoluciones (decidido el 22-oct-2026)
 - Solo si el producto llegó roto o dañado, vencido o distinto a lo pedido. El comprador avisa dentro de las 48 horas siguientes a la entrega. Surtiba revisa con la marca y repone o devuelve lo pagado por esas cajas. No hay devoluciones por cambio de opinión.
+- **Lo que sobra después del evento no se devuelve** (Mathias lo confirmó el 8-nov-2026 después de ver la investigación: la concesión o devolución de cajas cerradas queda descartada por ahora). Lo cerrado se guarda para otro evento.
 
 ### IGV (decidido el 22-oct-2026)
 - **Los precios incluyen IGV.** La marca pone el precio final por caja; es lo que ve y paga el comprador. Se avisa "incluye IGV" en el catálogo, el producto, el carrito, el pedido, el cotizador y el PDF. Los cálculos no cambian.
@@ -191,7 +192,11 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
 - ~~**Aprobación de productos**~~ → construida el 5-nov-2026 (ver "Aprobación de productos" en Reglas de negocio).
 - ~~**Pago al comprar**~~ → ya construido en la fase 7 (ver "Pedidos por encargo y pago").
-- **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo lo decide cada marca (al registrarse y en su panel); la comisión es fija para todas: 5 % desde el 14-oct-2026 y **7 % desde el 22-oct-2026** (Surtiba cubre el recojo; `COMISION_PCT` en `lib/catalogo.ts`).
+- **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo es de **3 cajas en total** para todo Surtiba (5-nov-2026; ya no hay mínimo por marca); la comisión es fija para todas: 5 % desde el 14-oct-2026 y **7 % desde el 22-oct-2026** (Surtiba cubre el recojo; `COMISION_PCT` en `lib/catalogo.ts`).
+- **Niveles básico / estándar / premium en el cotizador:** descartado por ahora (8-nov-2026). Al inicio habrá pocas marcas y pocos productos por licor, así que los tres niveles darían casi lo mismo. Retomarlo cuando haya varios productos por categoría.
+
+## Marcas demo ocultas (8-nov-2026)
+Las 8 marcas de prueba (Marca Demo Pisco, Ron, Cócteles, Valle e Inactiva, qwertyuikl, Raffo Mariaca y squirts divinos) quedaron **inactivas**: visitantes y compradores no ven ninguna marca ni producto. No se borró nada: sus cuentas, pedidos y métricas siguen para el admin. Mathias va a sumar a mano la primera marca real (con permiso de la empresa). Para volver a mostrar una demo: Admin → Marcas → la marca → "Activa".
 
 ## Fuera del MVP (no construir; si parece necesario, preguntar)
 - Pasarela de pago (Culqi, Mercado Pago, Izipay): será el próximo año
