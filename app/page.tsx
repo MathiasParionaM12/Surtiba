@@ -129,7 +129,7 @@ export default async function Home() {
         escenario: "Evento corporativo de 200 invitados, 4 horas",
         datos: [
           ["Tragos", entero.format(corporativo.r.tragosTotales)],
-          ["Hielo", `${entero.format(corporativo.hielo)} kg`],
+          ["Hielo", `${entero.format(Math.ceil(corporativo.hielo / 3))} bolsas`],
           ["Cotización", "PDF para tu cliente"],
         ],
       },
@@ -140,7 +140,7 @@ export default async function Home() {
         datos: [
           ["Momentos", `${boda.r.momentos.length}`],
           ["Tragos", entero.format(boda.r.tragosTotales)],
-          ["Hielo", `${entero.format(boda.hielo)} kg`],
+          ["Hielo", `${entero.format(Math.ceil(boda.hielo / 3))} bolsas`],
         ],
       },
       {

@@ -23,7 +23,8 @@ export function MiniCotizador({ tipo, parametros, recetas }: { tipo: TipoEvento;
 
   const entrada = { ...entradaDesdeTipo(tipo, parametros, invitados), horas };
   const r = calcular(entrada, parametros, recetas, []);
-  const hielo = r.insumos.find((i) => i.nombre === "Hielo")?.cantidad ?? 0;
+  // En Lima el hielo se vende en bolsas de 3 kg (igual que en el cotizador completo)
+  const bolsas = Math.ceil((r.insumos.find((i) => i.nombre === "Hielo")?.cantidad ?? 0) / 3);
   const limitar = (n: number) => Math.min(MAX, Math.max(MIN, n));
   // Parte del valor actual: dos clics rápidos suman dos veces
   const sumar = (delta: number) => setInvitados((n) => limitar(n + delta));
@@ -110,10 +111,10 @@ export function MiniCotizador({ tipo, parametros, recetas }: { tipo: TipoEvento;
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-gris">Hielo</dt>
+            <dt className="text-xs text-gris">Bolsas de hielo</dt>
             <dd className="mt-1 font-mono text-2xl font-semibold tabular-nums">
-              <Cifra>{entero.format(hielo)}</Cifra>
-              <span className="ml-1 text-sm font-normal text-gris">kg</span>
+              <Cifra>{entero.format(bolsas)}</Cifra>
+              <span className="ml-1 text-xs font-normal whitespace-nowrap text-gris">de 3 kg</span>
             </dd>
           </div>
         </dl>
