@@ -71,7 +71,7 @@ export function ListaMisPedidos({ pedidos }: { pedidos: PedidoComprador[] }) {
       </div>
       {actual?.ayuda && <p className="mt-3 text-sm text-gris">{actual.ayuda}</p>}
 
-      <ul className="mt-4 flex flex-col gap-3">
+      <ul key={activa} className="escalonado mt-4 flex flex-col gap-3">
         {visibles.map((p) => (
           <FilaPedido key={p.id} p={p} />
         ))}

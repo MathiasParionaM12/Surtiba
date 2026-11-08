@@ -47,7 +47,7 @@ async function Lista() {
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-4">
+    <div className="escalonado mt-6 flex flex-col gap-4">
       {data.map((p) => {
         const foto = urlFoto(p.foto_url);
         return (

@@ -140,7 +140,7 @@ async function Logistica() {
                               {m.privado?.contacto_whatsapp && <span className="font-mono"> · {m.privado.contacto_whatsapp}</span>}
                             </p>
                           </header>
-                          <ul>
+                          <ul className="escalonado">
                             {m.ordenes.map((o) => (
                               <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-linea px-4 py-2.5 text-sm">
                                 <span>

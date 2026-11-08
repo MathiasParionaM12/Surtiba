@@ -37,7 +37,7 @@ Poco, corto y útil. Nunca para decorar.
 - **Carga:** esqueletos grises con un brillo que los recorre.
 - **Al pasar el mouse:** las tarjetas suben 2 px con una sombra suave; los botones se achican apenas al presionarlos.
 - **Encabezado:** arriba del todo se funde con el papel; al bajar gana fondo blanco, borde y sombra suave. En el menú, una línea verde crece al pasar el mouse y queda debajo de la página actual.
-- **Contador:** los números grandes (Resumen de la marca, Inicio del admin, "3 pedidos" de la portada) suben de 0 a su valor la primera vez que aparecen, en 0.6 s (única excepción a los 300 ms).
+- **Contador:** los números grandes (Resumen de la marca, Inicio del admin, Métricas y la recompra) suben de 0 a su valor la primera vez que aparecen, en 0.6 s (única excepción a los 300 ms). En la portada, "3 pedidos" quedó fijo (8-nov-2026): al contar pasaba por "1 pedidos".
 - **Cinta de categorías** (portada): las categorías con productos se mueven despacio y se detienen con el mouse o el teclado.
 - **Sellos que se estampan** (`components/Sello.tsx`): marcan algo que acaba de pasar, como en un documento. Entran un poco más grandes e inclinados y se asientan en 0.26 s; con "reducir movimiento" solo aparecen. Borde de 2 px en tinta, verde o gris, Geist Mono en mayúsculas. Usos en el cotizador: el ✓ de un paso hecho, "Agregado" al sumar un trago (se va solo a los 2 s), "Tuyo" en los tragos propios, "En el carrito" al agregar un producto y, junto al total, "Cotizado · fecha" que pasa a "Guardada · COT-0012" al descargar el PDF. Nunca en resaltador.
 - **Sello de estado** (`components/SelloEstado.tsx`): en el encabezado del pedido, de la orden de la marca y del pedido en el admin. Se estampa **solo cuando el estado acaba de cambiar** (o al llegar recién pagado), no cada vez que se abre la página. En las tablas se siguen usando las etiquetas de estado.
@@ -48,7 +48,8 @@ Poco, corto y útil. Nunca para decorar.
 - **Barra del reparto** de la barra de tragos: un color fijo por trago (tinta, verde, gris y sus tonos); al cambiar un nivel, cada parte cambia de tamaño suave.
 - **Enlaces de texto verdes** (clase `.enlace`): una línea crece debajo al pasar el mouse, como en el menú.
 - **Flechas (→)** de botones y enlaces: avanzan 2 px al pasar el mouse.
-- **Listas de pedidos, órdenes y logística** (clase `.escalonado`): las filas entran una tras otra al cargar (30 ms entre filas, máximo 12).
+- **Listas** (clase `.escalonado`): las filas entran una tras otra al cargar (30 ms entre filas, máximo 12). Desde el 8-nov-2026 en todos los paneles: pedidos, logística, favoritos, productos, marcas, reclamos, Inicio del admin y "Lo que pides siempre". Al cambiar de pestaña (Mis pedidos, Pedidos del admin) la lista vuelve a entrar.
+- **Calificar:** las estrellas crecen un poco al pasar el mouse y se llenan hasta la elegida; al enviar se estampa "¡Gracias!". Los sellos de confianza son quietos (son información, no adorno).
 - **"En el carrito"**: el mismo sello del cotizador al agregar desde una tarjeta o el detalle de un producto.
 - **Portada:** el título entra frase por frase (sube 8 px y aparece), y después el subtítulo y los botones. Una sola vez.
 - **Estados vacíos** (`components/EstadoVacio.tsx`): ícono grande de trazo fino en verde dentro de un círculo, el mensaje y un botón para empezar.

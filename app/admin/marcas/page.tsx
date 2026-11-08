@@ -48,7 +48,7 @@ async function Marcas() {
             No hay solicitudes nuevas. Aparecen aquí cuando alguien se registra con «Quiero vender».
           </p>
         ) : (
-          <div className="mt-3 flex flex-col gap-4">
+          <div className="escalonado mt-3 flex flex-col gap-4">
             {solicitudes.map((s) => (
               <article key={s.id} className="rounded-md border border-linea bg-blanco p-5">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -100,7 +100,7 @@ async function Marcas() {
                 <th className={`${sello} px-4 py-3 font-medium`}>Estado</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="escalonado">
               {(marcas ?? []).map((m) => (
                 <tr key={m.id} className="border-b border-linea last:border-b-0 hover:bg-papel">
                   <td className="px-4 py-3">

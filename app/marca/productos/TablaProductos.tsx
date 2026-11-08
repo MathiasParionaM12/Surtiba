@@ -27,7 +27,7 @@ export function TablaProductos({ productos }: { productos: FilaProducto[] }) {
   return (
     // key: cuando llegan números nuevos del servidor, la tabla se vuelve a dibujar con ellos
     <form key={productos.map((p) => p.stock).join(",")} action={accion} className="mt-6">
-      <ul className="overflow-hidden rounded-md border border-linea bg-blanco">
+      <ul className="escalonado overflow-hidden rounded-md border border-linea bg-blanco">
         {productos.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-linea px-4 py-3 last:border-b-0">
             <div className="relative size-12 shrink-0 overflow-hidden rounded-md border border-linea bg-papel">

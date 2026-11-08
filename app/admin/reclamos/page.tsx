@@ -54,7 +54,7 @@ async function Lista() {
         {pendientes.length === 0 ? (
           <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">Todas las hojas están respondidas.</p>
         ) : (
-          <div className="mt-3 flex flex-col gap-6">
+          <div className="escalonado mt-3 flex flex-col gap-6">
             {pendientes.map((h) => {
               const vencida = h.fecha_limite < hoy;
               return (
@@ -79,7 +79,7 @@ async function Lista() {
       {respondidas.length > 0 && (
         <section>
           <h2 className={sello}>Respondidas · {respondidas.length}</h2>
-          <div className="mt-3 flex flex-col gap-3">
+          <div className="escalonado mt-3 flex flex-col gap-3">
             {respondidas.map((h) => (
               <details key={h.id} className="rounded-md border border-linea bg-blanco">
                 <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">

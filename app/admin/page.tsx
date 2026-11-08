@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
+import { Contador } from "@/components/Contador";
 import { EstadoVacio } from "@/components/EstadoVacio";
 import { sello } from "@/lib/estilos";
 import { exigirRol } from "@/lib/sesion";
@@ -74,12 +75,15 @@ async function Inicio() {
         {tareas.length === 0 ? (
           <EstadoVacio icono={CircleCheck} texto="Todo al día: no hay nada pendiente." />
         ) : (
-          <ul className="mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
+          <ul className="escalonado mt-3 overflow-hidden rounded-md border border-linea bg-blanco">
             {tareas.map((t) => (
               <li key={t.texto} className="border-b border-linea last:border-b-0">
                 <Link href={t.href} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-papel">
                   <span>
-                    <span className="font-mono font-medium">{t.cantidad}</span> {t.texto}
+                    <span className="font-mono font-medium">
+                      <Contador valor={t.cantidad} />
+                    </span>{" "}
+                    {t.texto}
                   </span>
                   <span className="text-sm font-medium text-verde">Ver →</span>
                 </Link>

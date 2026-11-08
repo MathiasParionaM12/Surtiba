@@ -204,7 +204,7 @@ export function ListaPedidos({
                 <th className={`${sello} px-4 py-3 font-medium`}>Pago</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody key={etapa} className="escalonado">
               {visibles.map((p) => (
                 <tr key={p.id} className="border-b border-linea last:border-b-0 hover:bg-papel">
                   <td className="px-4 py-3 whitespace-nowrap">
