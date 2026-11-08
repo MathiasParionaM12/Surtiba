@@ -9,6 +9,8 @@ import { rutaInicio } from "@/lib/roles";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 import { ListaMisPedidos } from "./ListaMisPedidos";
+import { LoQuePidesSiempre } from "@/components/LoQuePidesSiempre";
+import { productosConSesion } from "@/lib/productos-catalogo";
 
 export const metadata: Metadata = { title: "Mis pedidos · Surtiba" };
 
@@ -41,5 +43,10 @@ async function Pedidos() {
       <EstadoVacio icono={Package} texto="Aún no tienes pedidos. Explora el catálogo para armar el primero." accion={{ href: "/catalogo", texto: "Ir al catálogo" }} />
     );
   }
-  return <ListaMisPedidos pedidos={pedidos} />;
+  return (
+    <>
+      <LoQuePidesSiempre productos={await productosConSesion(true)} />
+      <ListaMisPedidos pedidos={pedidos} />
+    </>
+  );
 }

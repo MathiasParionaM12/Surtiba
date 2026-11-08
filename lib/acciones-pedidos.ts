@@ -12,6 +12,7 @@ import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
 import { celularValido, limpiarCelular, PREFIJO_PERU } from "@/lib/celular";
 import { obtenerUsuario } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
+import { pedidoSugerido } from "@/lib/sugeridos";
 
 const MAX_CAJAS = 999;
 
@@ -233,6 +234,23 @@ export async function repetirPedido(form: FormData) {
 
   actualizarPantallas();
   redirect(`/carrito?repetido=${agregados}&omitidos=${items.length - agregados}`);
+}
+
+// "Lo que pides siempre" al carrito: el servidor vuelve a calcular la lista (no se usa la del navegador).
+// Como en "Repetir pedido", las cajas reemplazan las que ya había de ese producto.
+export async function agregarSugeridos() {
+  const usuario = await comprador();
+  const { items } = await pedidoSugerido();
+  const supabase = await createClient();
+  let agregados = 0;
+  for (const item of items) {
+    const { error } = await supabase
+      .from("carrito")
+      .upsert({ comprador_id: usuario.id, producto_id: item.productoId, cajas: Math.min(item.cajas, MAX_CAJAS), encargo: false });
+    if (!error) agregados++;
+  }
+  actualizarPantallas();
+  redirect(`/carrito?siempre=${agregados}&omitidos=${items.length - agregados}`);
 }
 
 export async function alternarFavorito(form: FormData) {

@@ -20,7 +20,7 @@ import { EstadoVacio } from "@/components/EstadoVacio";
 
 export const metadata: Metadata = { title: "Carrito · Surtiba" };
 
-type Avisos = { repetido?: string; omitidos?: string; cotizador?: string };
+type Avisos = { repetido?: string; omitidos?: string; cotizador?: string; siempre?: string };
 
 export default function PaginaCarrito({ searchParams }: PageProps<"/carrito">) {
   return (
@@ -140,6 +140,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
   const repetido = Number(avisos.repetido ?? NaN);
   const omitidos = Number(avisos.omitidos ?? 0);
   const delCotizador = Number(avisos.cotizador ?? NaN);
+  const deSiempre = Number(avisos.siempre ?? NaN);
 
   return (
     <>
@@ -150,6 +151,12 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
           <Link href="/cotizador" className="font-medium enlace text-verde hover:text-tinta">
             Volver a tu cotización
           </Link>
+        </p>
+      )}
+      {!Number.isNaN(deSiempre) && (
+        <p role="status" className="mt-6 border-l-2 border-verde pl-3 text-sm">
+          Agregamos {deSiempre} {deSiempre === 1 ? "producto" : "productos"} de lo que pides siempre, con tus cajas de siempre.
+          {omitidos > 0 && ` ${omitidos} ya no ${omitidos === 1 ? "está disponible" : "están disponibles"}.`}
         </p>
       )}
       {!Number.isNaN(repetido) && (
