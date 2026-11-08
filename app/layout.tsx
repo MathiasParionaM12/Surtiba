@@ -7,6 +7,7 @@ import { Encabezado } from "@/components/Encabezado";
 import { Pie } from "@/components/Pie";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Avisos />
         {/* Visitas y páginas más vistas (Vercel Web Analytics): sin cookies ni datos personales */}
         <Analytics />
+        {/* Qué tan rápido carga en los equipos reales de los visitantes (Vercel Speed Insights, 8-nov-2026) */}
+        <SpeedInsights />
       </body>
     </html>
   );
