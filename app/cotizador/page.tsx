@@ -99,6 +99,9 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
       resultadoInicial={calcular(entrada, parametros, recetas, catalogo)}
       rol={usuario.rol}
       abierta={abierta}
+      claveBorrador={usuario.id}
+      // Si abres una cotización guardada o vienes de la portada con tus números, eso manda sobre el borrador
+      retomar={!abierta && !inv && !hrs}
       />
     </>
   );

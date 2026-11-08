@@ -179,14 +179,6 @@ export function Resultado({
         </div>
       </div>
 
-      {/* Atajo: no hace falta bajar hasta el final para pasar todo al carrito */}
-      {puedeAgregar && alAgregarTodo && r.productos.length > 0 && (
-        <button type="button" onClick={alAgregarTodo} disabled={agregando} className={`${botonPrimario} w-full sm:w-auto sm:self-start`}>
-          <ShoppingCart className="size-4" aria-hidden="true" />
-          {agregando ? "Agregando al carrito…" : `Agregar las ${cajas} cajas al carrito`}
-        </button>
-      )}
-
       {/* Momentos */}
       <section>
         <h3 className={sello}>Cómo se reparte el evento</h3>
@@ -323,6 +315,16 @@ export function Resultado({
             </div>
           )}
         </div>
+        {/* Debajo de los productos, después de elegirlos (antes estaba arriba y se apretaba sin elegir; Adriano, 6-nov) */}
+        {puedeAgregar && alAgregarTodo && r.productos.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+            <button type="button" onClick={alAgregarTodo} disabled={agregando} className={`${botonPrimario} w-full sm:w-auto`}>
+              <ShoppingCart className="size-4" aria-hidden="true" />
+              {agregando ? "Agregando al carrito…" : `Agregar las ${cajas} cajas al carrito`}
+            </button>
+            <p className="text-xs text-gris">Tu cotización se queda aquí: puedes volver del carrito y seguir.</p>
+          </div>
+        )}
       </section>
 
       {/* Lo que compra el cliente final del comprador: no entra al pedido */}

@@ -146,7 +146,10 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
       {delCotizador > 0 && (
         <p role="status" className="mt-6 border-l-2 border-verde pl-3 text-sm">
           Pasamos {delCotizador} {delCotizador === 1 ? "producto" : "productos"} del cotizador a tu carrito. Revisa las
-          cantidades antes de continuar.
+          cantidades antes de continuar.{" "}
+          <Link href="/cotizador" className="font-medium enlace text-verde hover:text-tinta">
+            Volver a tu cotización
+          </Link>
         </p>
       )}
       {!Number.isNaN(repetido) && (

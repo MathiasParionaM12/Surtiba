@@ -122,7 +122,7 @@ export function PasoEvento({
             )}
           </span>
         </label>
-        {/* Menores (quinceañeros, eventos familiares): no toman ni brindan; sí cuentan para el agua y el hielo */}
+        {/* Menores (eventos familiares): no toman ni brindan; sí cuentan para el agua y el hielo */}
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Menores de edad" nota="opcional" />
           <input
@@ -134,7 +134,7 @@ export function PasoEvento({
             onChange={(e) => cambiarMenores(e.target.value)}
             className={`${campo} font-mono`}
           />
-          <span className="text-xs text-gris">No toman ni brindan. En un quinceañero, cuenta aquí a los amigos de la quinceañera.</span>
+          <span className="text-xs text-gris">Niños y adolescentes: no toman ni brindan, pero sí cuentan para el agua y el hielo.</span>
         </label>
         <label className="flex flex-col gap-2">
           <Etiqueta texto="Hora de inicio" />

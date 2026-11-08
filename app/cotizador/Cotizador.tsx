@@ -18,7 +18,7 @@ import {
   type ResultadoCotizacion,
   type TipoEvento,
 } from "@/lib/cotizador";
-import { botonPrimario, botonSecundario, sello } from "@/lib/estilos";
+import { areaToque, botonPrimario, botonSecundario, sello } from "@/lib/estilos";
 import { soles } from "@/lib/formato";
 import type { Rol } from "@/lib/roles";
 import { PasoBarra } from "./PasoBarra";
@@ -40,6 +40,8 @@ export function Cotizador({
   resultadoInicial,
   rol,
   abierta,
+  claveBorrador,
+  retomar = false,
 }: {
   tipos: TipoEvento[];
   recetas: Receta[];
@@ -49,6 +51,8 @@ export function Cotizador({
   resultadoInicial: ResultadoCotizacion;
   rol: Rol;
   abierta?: string; // código de la cotización que se volvió a abrir
+  claveBorrador?: string; // id del usuario: el borrador se guarda en este navegador, uno por cuenta
+  retomar?: boolean; // abrir el último borrador (no si vienes de una cotización guardada o de la portada)
 }) {
   const [paso, setPaso] = useState(abierta ? RESULTADO : 0);
   // El paso más lejano al que llegó la persona: a los pasos de arriba solo se puede ir hasta ahí
@@ -70,6 +74,41 @@ export function Cotizador({
       const r = await pasarAlCarrito(entrada);
       if (r?.error) setError(r.error);
     });
+  // Borrador en este navegador (8-nov-2026): si vas al carrito, recargas o vuelves otro día, sigues donde estabas.
+  // Es solo una comodidad: si el navegador no deja guardar, el cotizador funciona igual.
+  const clave = claveBorrador ? `surtiba:cotizador:${claveBorrador}` : null;
+  const [retomada, setRetomada] = useState(false);
+  useEffect(() => {
+    if (!clave || !retomar) return;
+    try {
+      const b = JSON.parse(localStorage.getItem(clave) ?? "null");
+      // Solo si sigue siendo válido: el tipo de evento existe todavía (p. ej. Quinceañero ya no) y tiene barra
+      const valido = b?.entrada && tipos.some((t) => t.id === b.entrada.tipoEventoId) && Array.isArray(b.entrada.barra);
+      if (valido && Date.now() - Number(b.t) < 7 * 86400000) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- el borrador solo existe en el navegador: se lee después de montar
+        setEntrada(b.entrada);
+        setPaso(Math.min(Number(b.paso) || 0, RESULTADO));
+        setAlcanzado(Math.min(Number(b.alcanzado) || 0, RESULTADO));
+        setRetomada(true);
+      }
+    } catch {}
+    // Solo al abrir el cotizador
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!clave) return;
+    try {
+      localStorage.setItem(clave, JSON.stringify({ entrada, paso, alcanzado, t: Date.now() }));
+    } catch {}
+  }, [clave, entrada, paso, alcanzado]);
+  const empezarDeNuevo = () => {
+    noTomanTocado.current = false;
+    setEntrada(entradaInicial);
+    setPaso(0);
+    setAlcanzado(0);
+    setRetomada(false);
+  };
+
   const ultimo = useRef(0);
   const primeraVez = useRef(true);
   const noTomanTocado = useRef(false);
@@ -156,6 +195,14 @@ export function Cotizador({
 
   return (
     <div ref={arriba} className="scroll-mt-24">
+      {retomada && (
+        <p role="status" className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-verde pl-3 text-sm">
+          Seguimos con tu última cotización.
+          <button type="button" onClick={empezarDeNuevo} className={`${areaToque} font-medium enlace text-verde hover:text-tinta`}>
+            Empezar de nuevo
+          </button>
+        </p>
+      )}
       {abierta && (
         <p role="status" className="mb-6 border-l-2 border-verde pl-3 text-sm">
           Abriste la cotización <span className="font-mono">{abierta}</span>. Si cambias algo y la guardas, se crea una nueva.
