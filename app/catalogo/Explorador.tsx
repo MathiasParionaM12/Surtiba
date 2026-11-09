@@ -79,6 +79,18 @@ export function Explorador({
   }, [productos]);
   const marcas = useMemo(() => [...new Set(productos.map((p) => p.marca))].sort((a, b) => a.localeCompare(b)), [productos]);
   const presentaciones = useMemo(() => [...new Set(productos.map((p) => p.ml))].sort((a, b) => a - b), [productos]);
+  // Solo los rangos de grado que tienen algún producto
+  const grados = useMemo(() => Object.entries(GRADOS).filter(([, g]) => productos.some((p) => g.cumple(Number(p.grado)))), [productos]);
+  // Un filtro aparece solo si separa algo: 2 o más opciones reales (en la página de una marca, "Marca" sobra)
+  const util = {
+    precio: piso < techo && new Set(precios).size > 1,
+    marca: marcas.length > 1,
+    ml: presentaciones.length > 1,
+    grado: grados.length > 1,
+    stock: conSesion && productos.length > 1,
+    orden: productos.length > 1,
+  };
+  const hayExtras = Object.values(util).some(Boolean);
 
   const visibles = useMemo(() => {
     const q = normalizar(busqueda);
@@ -158,6 +170,7 @@ export function Explorador({
                 className={`${campo} pl-9`}
               />
             </label>
+            {hayExtras && (
             <button
               type="button"
               onClick={() => setAbierto((a) => !a)}
@@ -178,7 +191,9 @@ export function Explorador({
                 </span>
               )}
             </button>
+            )}
           </div>
+          {categorias.length > 1 && (
           <div role="group" aria-label="Categoría" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
             <button type="button" aria-pressed={!categoria} onClick={() => setCategoria("")} className={chip(!categoria)}>
               Todas <span className="font-mono text-xs opacity-70">{productos.length}</span>
@@ -196,12 +211,14 @@ export function Explorador({
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
 
       {/* Más filtros: se abre debajo de la barra */}
-      {abierto && (
+      {abierto && hayExtras && (
         <div id="mas-filtros" className="entrada mt-4 grid gap-4 rounded-md border border-linea bg-blanco p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+          {util.precio && (
           <label className="flex flex-col gap-2 sm:col-span-2 lg:col-span-1">
             <span className="flex items-baseline justify-between gap-2">
               <span className={etiqueta}>Precio máximo por caja</span>
@@ -217,6 +234,8 @@ export function Explorador({
               className="h-11 w-full accent-verde"
             />
           </label>
+          )}
+          {util.marca && (
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Marca</span>
             <select value={marca} onChange={(e) => setMarca(e.target.value)} className={campo}>
@@ -226,6 +245,8 @@ export function Explorador({
               ))}
             </select>
           </label>
+          )}
+          {util.ml && (
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Presentación</span>
             <select value={ml} onChange={(e) => setMl(e.target.value)} className={campo}>
@@ -237,18 +258,21 @@ export function Explorador({
               ))}
             </select>
           </label>
+          )}
+          {util.grado && (
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Grado de alcohol</span>
             <select value={grado} onChange={(e) => setGrado(e.target.value)} className={campo}>
               <option value="">Todos</option>
-              {Object.entries(GRADOS).map(([v, g]) => (
+              {grados.map(([v, g]) => (
                 <option key={v} value={v}>
                   {g.texto}
                 </option>
               ))}
             </select>
           </label>
-          {conSesion && (
+          )}
+          {util.stock && (
             <label className="flex flex-col gap-2">
               <span className={etiqueta}>Disponibilidad</span>
               <select value={stock} onChange={(e) => setStock(e.target.value)} className={campo}>
@@ -258,6 +282,7 @@ export function Explorador({
               </select>
             </label>
           )}
+          {util.orden && (
           <label className="flex flex-col gap-2">
             <span className={etiqueta}>Ordenar</span>
             <select value={orden} onChange={(e) => setOrden(e.target.value)} className={campo}>
@@ -270,6 +295,7 @@ export function Explorador({
                 ))}
             </select>
           </label>
+          )}
         </div>
       )}
 

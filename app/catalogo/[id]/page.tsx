@@ -51,6 +51,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           ml={p.ml!}
           foto={urlFoto(p.foto_url)}
           marca={p.marca!}
+          marcaId={p.marca_id!}
           reputacion={(await reputacionPorNombre()).get(p.marca!)}
           nombre={p.nombre!}
           datos={[
@@ -83,7 +84,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "nombre, marca_id, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -109,6 +110,8 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         ml={p.ml}
         foto={urlFoto(p.foto_url)}
         marca={p.marcas.nombre_comercial}
+        // El directorio solo muestra marcas activas: si está inactiva (lo ve el admin), no hay enlace
+        marcaId={p.marcas.activa ? p.marca_id : undefined}
         reputacion={(await reputacionPorNombre()).get(p.marcas.nombre_comercial)}
         nombre={p.nombre}
         datos={[
@@ -174,8 +177,10 @@ function Ficha({
   datos,
   children,
   reputacion,
+  marcaId,
 }: {
   reputacion?: Reputacion;
+  marcaId?: string; // para ir a la página de la marca y ver sus otros productos
   categoria: string;
   ml: number;
   foto: string | null;
@@ -190,7 +195,14 @@ function Ficha({
       {foto ? <FotoZoom foto={foto} nombre={nombre} categoria={categoria} ml={ml} /> : <FotoProducto categoria={categoria} ml={ml} foto={foto} grande />}
       <div>
         <p className={sello}>
-          {marca} · {CATEGORIAS[categoria] ?? categoria}
+          {marcaId ? (
+            <Link href={`/marcas/${marcaId}`} className="hover:text-verde hover:underline hover:underline-offset-4">
+              {marca}
+            </Link>
+          ) : (
+            marca
+          )}{" "}
+          · {CATEGORIAS[categoria] ?? categoria}
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">{nombre}</h1>
         {reputacion && (
@@ -198,6 +210,11 @@ function Ficha({
             <Calificacion r={reputacion} compacto />
             <SellosMarca r={reputacion} compacto />
           </div>
+        )}
+        {marcaId && (
+          <Link href={`/marcas/${marcaId}`} className="mt-3 inline-block text-sm font-medium enlace text-verde hover:text-tinta">
+            Ver todos los productos de {marca} →
+          </Link>
         )}
         <dl className="mt-6 grid grid-cols-2 border-t border-linea text-sm">
           {datos.map(([k, v]) => (
