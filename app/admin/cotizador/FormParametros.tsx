@@ -44,10 +44,12 @@ const GRUPOS: { titulo: string; campos: Campo[] }[] = [
     titulo: "Precio para el cliente (supuestos que el comprador edita)",
     campos: [
       { nombre: "invitados_por_bartender", texto: "Personas que toman por bartender" },
-      { nombre: "precio_bartender_centimos", texto: "Bartender: S/ por evento", soles: true },
+      { nombre: "precio_bartender_centimos", texto: "Bartender: S/ por hora", soles: true },
+      { nombre: "bartender_horas_minimo", texto: "Bartender: horas mínimas", ayuda: "Se cobra al menos esto aunque el evento dure menos" },
       { nombre: "vasos_por_toma", texto: "Vasos por persona que toma", ayuda: "Más 1 copa de vino (cena) y 1 de espumante (brindis)" },
       { nombre: "precio_vaso_centimos", texto: "Vaso o copa: S/ de alquiler", soles: true },
       { nombre: "precio_bolsa_hielo_centimos", texto: "Bolsa de hielo de 3 kg: S/", soles: true },
+      { nombre: "precio_litro_sin_alcohol_centimos", texto: "Agua y gaseosas para tomar solas: S/ por litro", soles: true },
     ],
   },
 ];

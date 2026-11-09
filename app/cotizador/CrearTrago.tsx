@@ -33,8 +33,9 @@ export function CrearTrago({
   const [lineas, setLineas] = useState<Linea[]>([{ clave: 1, id: "", nombreLibre: "", unidad: "ml", cantidad: "" }]);
   const [error, setError] = useState<string>();
   const porId = new Map(ingredientes.map((i) => [i.id, i]));
-  const deSurtiba = ingredientes.filter((i) => i.categoria);
-  const otros = ingredientes.filter((i) => !i.categoria);
+  // Jarabes y amargos ("otro") van con los demás ingredientes aunque Surtiba pueda tenerlos
+  const deSurtiba = ingredientes.filter((i) => i.categoria && i.categoria !== "otro");
+  const otros = ingredientes.filter((i) => !i.categoria || i.categoria === "otro");
 
   const cambiar = (clave: number, cambio: Partial<Linea>) =>
     setLineas((ls) => ls.map((l) => (l.clave === clave ? { ...l, ...cambio } : l)));
@@ -94,7 +95,7 @@ export function CrearTrago({
                   className={`${campo} text-sm sm:h-10`}
                 >
                   <option value="">Elige un ingrediente</option>
-                  <optgroup label="Los vende Surtiba">
+                  <optgroup label="Licores y vinos">
                     {deSurtiba.map((i) => (
                       <option key={i.id} value={i.id}>
                         {i.nombre}

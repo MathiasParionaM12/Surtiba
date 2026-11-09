@@ -6,7 +6,7 @@ import {
   calcular,
   LIMITES,
   LIMITES_REVENTA,
-  SUGERIDOS,
+  esClaveSugerida,
   type EntradaCotizador,
   type Ingrediente,
   type IngredienteReceta,
@@ -53,13 +53,26 @@ export async function supuestosCotizador() {
       .order("orden"),
     supabase
       .from("recetas")
-      .select("id, nombre, categoria, receta_ingredientes(cantidad, ingredientes(id, nombre, unidad, categoria, orden, activo))")
+      .select("id, nombre, categoria, receta_ingredientes(cantidad, ingredientes(id, nombre, unidad, categoria, orden, activo, presentacion, precio_supuesto_centimos, palabras))")
       .eq("activo", true)
       .order("orden"),
-    supabase.from("ingredientes").select("id, nombre, unidad, categoria, orden").eq("activo", true).order("orden"),
+    supabase
+      .from("ingredientes")
+      .select("id, nombre, unidad, categoria, orden, presentacion, precio_supuesto_centimos, palabras")
+      .eq("activo", true)
+      .order("orden"),
   ]);
   // Lista de ingredientes para "Crear mi trago"
-  const ingredientes: Ingrediente[] = (ingredientesData ?? []).map((i) => ({ ...i, unidad: i.unidad as Ingrediente["unidad"] }));
+  const ingredientes: Ingrediente[] = (ingredientesData ?? []).map((i) => ({
+    id: i.id,
+    nombre: i.nombre,
+    unidad: i.unidad as Ingrediente["unidad"],
+    categoria: i.categoria,
+    orden: i.orden,
+    presentacion: Number(i.presentacion),
+    precio: i.precio_supuesto_centimos,
+    palabras: i.palabras ?? [],
+  }));
 
   // Cada trago con sus ingredientes activos. Un trago sin ingredientes no se puede calcular: no se ofrece.
   const recetas: Receta[] = (recetasData ?? [])
@@ -76,6 +89,9 @@ export async function supuestosCotizador() {
           categoria: x.ingredientes!.categoria,
           orden: x.ingredientes!.orden,
           cantidad: Number(x.cantidad),
+          presentacion: Number(x.ingredientes!.presentacion),
+          precio: x.ingredientes!.precio_supuesto_centimos,
+          palabras: x.ingredientes!.palabras ?? [],
         })),
     }))
     .filter((r) => r.ingredientes.length > 0);
@@ -123,10 +139,12 @@ function aParametros(p: Record<string, unknown>): Parametros {
     sin_alcohol_l_hora_no_toma: n("sin_alcohol_l_hora_no_toma"),
     margen_pct: n("margen_pct"),
     invitados_por_bartender: o("invitados_por_bartender", 50),
-    precio_bartender_centimos: o("precio_bartender_centimos", 15000),
+    precio_bartender_centimos: o("precio_bartender_centimos", 5000),
+    bartender_horas_minimo: o("bartender_horas_minimo", 3),
     vasos_por_toma: o("vasos_por_toma", 2),
     precio_vaso_centimos: o("precio_vaso_centimos", 80),
     precio_bolsa_hielo_centimos: o("precio_bolsa_hielo_centimos", 600),
+    precio_litro_sin_alcohol_centimos: o("precio_litro_sin_alcohol_centimos", 300),
   };
 }
 
@@ -213,11 +231,15 @@ function limpiarReventa(r: Reventa | undefined): Reventa | undefined {
     return n >= 0 && n <= max ? n : undefined;
   };
   const ganancia = r.ganancia === null || r.ganancia === undefined ? null : (enRango(r.ganancia, L.gananciaMax) ?? null);
-  const quitados = SUGERIDOS.filter((k) => Array.isArray(r.quitados) && r.quitados.includes(k));
+  // Claves de costos sugeridos: bartender, cristaleria, hielo o insumo:<ingrediente>. Las demás se ignoran.
+  const quitados = [...new Set(Array.isArray(r.quitados) ? r.quitados : [])]
+    .filter((k): k is string => typeof k === "string" && esClaveSugerida(k))
+    .slice(0, L.sugeridosMax);
   const ajustes: Reventa["ajustes"] = {};
-  for (const k of SUGERIDOS) {
-    const a = r.ajustes?.[k];
-    if (!a) continue;
+  const claves = Object.keys(r.ajustes && typeof r.ajustes === "object" ? r.ajustes : {}).filter(esClaveSugerida).slice(0, L.sugeridosMax);
+  for (const k of claves) {
+    const a = r.ajustes[k];
+    if (!a || typeof a !== "object") continue;
     const cantidad = a.cantidad === undefined ? undefined : enRango(a.cantidad, L.cantidadMax);
     const precio = a.precio === undefined ? undefined : enRango(a.precio, L.precioMax);
     if (cantidad !== undefined || precio !== undefined) ajustes[k] = { ...(cantidad !== undefined && { cantidad }), ...(precio !== undefined && { precio }) };
@@ -273,9 +295,10 @@ export function limpiarEntrada(
   for (const [ingrediente, producto] of Object.entries(e.productos ?? {})) {
     if (idsIngredientes.has(ingrediente) && esUuid(producto)) productos[ingrediente] = producto;
   }
-  // Licores que pone el cliente final: solo los que vende Surtiba (con categoría, en ml) y que están en algún trago
+  // Licores que pone el cliente final: solo los licores que vende Surtiba (con categoría, en ml) y que están en algún trago
   const idsDeSurtiba = new Set(
-    [...recetas, ...propios].flatMap((r) => r.ingredientes.filter((i) => i.categoria && i.unidad === "ml").map((i) => i.id)),
+    // Jarabes y amargos ("otro") no: no son licores
+    [...recetas, ...propios].flatMap((r) => r.ingredientes.filter((i) => i.categoria && i.categoria !== "otro" && i.unidad === "ml").map((i) => i.id)),
   );
   const clientePone = [...new Set(Array.isArray(e.clientePone) ? e.clientePone : [])]
     .filter((id): id is string => typeof id === "string" && idsDeSurtiba.has(id))

@@ -271,11 +271,29 @@ export function PdfCotizacion({
 // lo que pone el cliente y el precio por invitado. Sin costos, sin marcas ni productos de Surtiba.
 // Surtiba aparece solo en una línea muy pequeña al pie. Vale 15 días.
 export const VALIDEZ_DIAS = 15;
-export function PdfCliente({ codigo, creadoEn, de, evento }: { codigo: string; creadoEn: string; de: string; evento: EventoConPrecio }) {
+export function PdfCliente({
+  codigo,
+  creadoEn,
+  de,
+  evento,
+  items,
+}: {
+  codigo: string;
+  creadoEn: string;
+  de: string;
+  evento: EventoConPrecio;
+  items: ItemCotizacion[];
+}) {
   const e = evento.resumen;
   const p = e.reventa!;
   const vence = new Date(new Date(creadoEn).getTime() + VALIDEZ_DIAS * 86400000).toISOString();
-  const incluye = ["bebidas", ...p.lineas.filter((l) => l.subtotal > 0).map((l) => l.concepto.toLowerCase())];
+  // Qué se le cobra, con cantidades y sin el costo de cada cosa (9-nov-2026): las bebidas (de Surtiba y las que el
+  // comprador consigue por su cuenta) y el servicio. Las cotizaciones viejas no tienen "grupo" ni "incluye".
+  const servicio = p.lineas.filter((l) => l.grupo !== "insumo" && l.cantidad > 0);
+  const bebidas = [
+    ...items.map((i) => `${i.producto} · ${entero.format(i.cajas * i.unidades)} botellas`),
+    ...p.lineas.filter((l) => l.grupo === "insumo" && l.cantidad > 0).map((l) => l.incluye ?? l.concepto),
+  ];
   const pone = e.cliente_pone ?? [];
   return (
     <Document title={`Cotización ${codigo} · ${de}`} author={de} language="es-PE">
@@ -304,7 +322,12 @@ export function PdfCliente({ codigo, creadoEn, de, evento }: { codigo: string; c
               {soles(p.precio)} en total ({entero.format(e.invitados)} invitados)
             </Text>
           </View>
-          <Text style={[s.gris, { marginTop: 6 }]}>Incluye: {incluye.length > 1 ? `${incluye.slice(0, -1).join(", ")} y ${incluye.at(-1)}` : incluye[0]}.</Text>
+        </View>
+
+        <View style={{ marginTop: 16 }}>
+          <Text style={s.sello}>Qué incluye</Text>
+          <ListaIncluye titulo="Bebidas e insumos" filas={bebidas} />
+          {servicio.length > 0 && <ListaIncluye titulo="Servicio" filas={servicio.map((l) => l.incluye ?? l.concepto)} />}
         </View>
 
         {pone.length > 0 && (
@@ -340,6 +363,22 @@ export function PdfCliente({ codigo, creadoEn, de, evento }: { codigo: string; c
   );
 }
 
+// Una lista de "Qué incluye" en dos columnas: "Vino Borgoña · 24 botellas"
+function ListaIncluye({ titulo, filas }: { titulo: string; filas: string[] }) {
+  return (
+    <View wrap={false} style={{ marginTop: 6 }}>
+      <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, marginBottom: 2 }}>{titulo}</Text>
+      <View style={[s.fila, { flexWrap: "wrap" }]}>
+        {filas.map((f) => (
+          <Text key={f} style={{ width: "50%", paddingVertical: 2, paddingRight: 12 }}>
+            {f}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 // Recuadro del evento y sus momentos (cotizador por momentos)
 function EventoPorMomentos({ e, cliente = false }: { e: EventoV2["resumen"]; cliente?: boolean }) {
   const fin = e.momentos.at(-1)?.hasta ?? e.momentos.at(-1)?.desde ?? e.hora_inicio;
@@ -364,7 +403,8 @@ function EventoPorMomentos({ e, cliente = false }: { e: EventoV2["resumen"]; cli
             </Text>
             <View style={{ flex: 1 }}>
               <Text>{m.nombre}</Text>
-              {m.detalle.length > 0 && (
+              {/* Para el cliente no se repite: los tragos ya van en "Tragos de la barra" */}
+              {!cliente && m.detalle.length > 0 && (
                 <Text style={[s.gris, { fontSize: 8, marginTop: 1 }]}>
                   {m.detalle.map((d) => `${d.receta} ${entero.format(d.tragos)}`).join(" · ")}
                 </Text>

@@ -29,7 +29,13 @@ export async function GET(pedido: Request, { params }: { params: Promise<{ id: s
       return new Response("Esta cotización no tiene precio para el cliente. Ábrela en el cotizador y guárdala de nuevo.", { status: 404 });
     }
     const pdfCliente = await renderToBuffer(
-      <PdfCliente codigo={c.codigo} creadoEn={c.creado_en} de={perfil?.empresa || perfil?.nombre || "Cotización"} evento={evento} />,
+      <PdfCliente
+        codigo={c.codigo}
+        creadoEn={c.creado_en}
+        de={perfil?.empresa || perfil?.nombre || "Cotización"}
+        evento={evento}
+        items={(c.items as ItemCotizacion[] | null) ?? []}
+      />,
     );
     return new Response(new Uint8Array(pdfCliente), {
       headers: {

@@ -213,7 +213,8 @@ const CAMPOS_PARAMETROS = [
   "no_toman_pct", "factor_tranquilo", "factor_normal", "factor_fuerte", "factor_dia", "bienvenida_tragos_hora",
   "fiesta_primera_hora", "fiesta_tragos_hora", "cena_copas_hora", "brindis_copas", "hielo_kg_persona_hora",
   "factor_calor", "sin_alcohol_l_hora_toma", "sin_alcohol_l_hora_no_toma", "margen_pct",
-  "invitados_por_bartender", "precio_bartender_centimos", "vasos_por_toma", "precio_vaso_centimos", "precio_bolsa_hielo_centimos",
+  "invitados_por_bartender", "precio_bartender_centimos", "bartender_horas_minimo", "vasos_por_toma", "precio_vaso_centimos",
+  "precio_bolsa_hielo_centimos", "precio_litro_sin_alcohol_centimos",
 ];
 
 // Supuestos generales del cotizador. La base de datos revisa que cada valor esté en su rango.
@@ -291,7 +292,8 @@ export async function guardarTrago(_e: EstadoForm, form: FormData): Promise<Esta
   );
 }
 
-// Un ingrediente del recetario: si Surtiba lo vende, con qué categoría de producto
+// Un ingrediente del recetario: si Surtiba lo vende, con qué categoría de producto (los licores y jarabes se
+// reconocen por palabras del nombre del producto), y cómo se compra con su precio supuesto (en soles -> céntimos)
 export async function guardarIngrediente(_e: EstadoForm, form: FormData): Promise<EstadoForm> {
   await exigirRol("admin");
   const supabase = await createClient();
@@ -302,6 +304,9 @@ export async function guardarIngrediente(_e: EstadoForm, form: FormData): Promis
       p_unidad: texto(form, "unidad"),
       p_categoria: texto(form, "categoria") || null,
       p_activo: form.get("activo") === "on",
+      p_presentacion: decimal(form, "presentacion"),
+      p_precio_supuesto_centimos: Math.round(decimal(form, "precio_supuesto") * 100),
+      p_palabras: texto(form, "palabras"),
     }),
     "Ingrediente guardado.",
     "cotizador",

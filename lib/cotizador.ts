@@ -11,6 +11,8 @@
 // La barra reparte sus tragos por nivel: principal 3, secundario 2, ocasional 1.
 // A todo se le suma el margen de seguridad. Luego se suman los ingredientes de todos los tragos (recetario):
 // lo que vende Surtiba (pisco, ron, vino…) busca su producto; lo demás va a "lo consigues por tu cuenta".
+// Los licores y jarabes no tienen categoría propia en el catálogo: se reconocen por el nombre del producto
+// ("Jarabe de goma Valle Real" dice "jarabe de goma"; ver ingredientes.palabras).
 // Lo que el comprador marca como "lo pone tu cliente" no busca producto: va a su propia lista, en botellas de 750 ml.
 // Cajas = ml ÷ (ml de la botella × botellas por caja), hacia arriba.
 // Todos los valores salen de parametros_cotizador. Se revisaron con la investigación de docs/investigacion/ (nov-2026).
@@ -56,10 +58,12 @@ export type Parametros = {
   margen_pct: number;
   // Tu precio para el cliente (supuestos, 7-nov-2026). Dinero en céntimos.
   invitados_por_bartender: number;
-  precio_bartender_centimos: number;
+  precio_bartender_centimos: number; // por hora (desde el 9-nov-2026; antes era por evento)
+  bartender_horas_minimo: number;
   vasos_por_toma: number;
   precio_vaso_centimos: number;
   precio_bolsa_hielo_centimos: number;
+  precio_litro_sin_alcohol_centimos: number; // agua y gaseosas para tomar solas
 };
 
 // Ingrediente de un trago. "categoria" = la categoría de producto de Surtiba que lo cubre (null = no lo vende)
@@ -70,6 +74,11 @@ export type IngredienteReceta = {
   categoria: string | null;
   orden: number;
   cantidad: number; // por trago
+  // Para "lo que compras por tu cuenta" (9-nov-2026): cuánto trae lo que se compra (750 ml, 1 unidad…) y su precio
+  // supuesto en céntimos. Los ingredientes escritos a mano no los tienen.
+  presentacion?: number;
+  precio?: number;
+  palabras?: string[]; // cómo se reconoce su producto por el nombre (licores y jarabes)
 };
 
 export type Receta = {
@@ -132,14 +141,18 @@ export type EntradaCotizador = {
 //   costo  = bebidas de Surtiba + otros costos (bartenders, cristalería, hielo con precio supuesto, y los que agregue)
 //   precio = costo × (1 + ganancia %)
 // Dinero en céntimos (enteros). Lo calcula el servidor igual que todo lo demás.
+//   Los sugeridos son los de servicio (bartender, cristalería, hielo) y uno por cada cosa que el comprador consigue
+//   por su cuenta ("insumo:<ingrediente>", 9-nov-2026): ron, gaseosas, limones… con un precio supuesto de Surtiba.
 export type ClaveSugerida = "bartender" | "cristaleria" | "hielo";
 export const SUGERIDOS: ClaveSugerida[] = ["bartender", "cristaleria", "hielo"];
-export const LIMITES_REVENTA = { otrosMax: 8, cantidadMax: 100000, precioMax: 10000000, gananciaMax: 300, conceptoMax: 40 };
+export const CLAVE_INSUMO = /^insumo:(agua|[0-9a-f-]{36}|libre-[a-z0-9-]{1,30})$/;
+export const esClaveSugerida = (k: string) => (SUGERIDOS as string[]).includes(k) || CLAVE_INSUMO.test(k);
+export const LIMITES_REVENTA = { otrosMax: 8, cantidadMax: 100000, precioMax: 10000000, gananciaMax: 300, conceptoMax: 40, sugeridosMax: 60 };
 export type OtroCosto = { id: string; concepto: string; cantidad: number; precio: number };
 export type Reventa = {
   ganancia: number | null; // % sobre el costo; null = todavía no la pone
-  quitados: ClaveSugerida[]; // costos sugeridos que no quiere
-  ajustes: Partial<Record<ClaveSugerida, { cantidad?: number; precio?: number }>>; // lo que cambió de los sugeridos
+  quitados: string[]; // costos sugeridos que no quiere (bartender, cristaleria, hielo o insumo:…)
+  ajustes: Record<string, { cantidad?: number; precio?: number }>; // lo que cambió de los sugeridos
   otros: OtroCosto[];
 };
 export const REVENTA_VACIA: Reventa = { ganancia: null, quitados: [], ajustes: {}, otros: [] };
@@ -153,10 +166,12 @@ export type LineaCosto = {
   sugerida: boolean; // es uno de los costos sugeridos
   cantidadSugerida?: number;
   precioSupuesto?: number;
+  grupo?: "servicio" | "insumo"; // insumo = lo que compra por su cuenta (las cotizaciones viejas no lo tienen)
+  incluye?: string; // cómo se lee en el PDF para su cliente, sin precios: "2 bartenders durante 5 horas"
 };
 export type ResultadoReventa = {
   lineas: LineaCosto[];
-  quitados: ClaveSugerida[];
+  quitados: { clave: string; concepto: string }[];
   bebidas: number; // lo de Surtiba
   costo: number; // bebidas + otros costos
   ganancia: number | null;
@@ -199,7 +214,8 @@ export type LineaIngrediente = {
   para: string[]; // tragos que lo usan
   productoId: string | null; // el elegido o el recomendado (null si no hay o si hay que elegirlo)
   recomendado: boolean;
-  puedeRecomendar: boolean; // false en los licores: la persona elige cuál
+  puedeRecomendar: boolean;
+  licor: boolean; // false en jarabes y amargos: no se ofrecen en "¿Tu cliente pone algún licor?"
   opciones: { id: string; nombre: string; marca: string }[];
 };
 
@@ -283,6 +299,28 @@ export function cantidadLegible(unidad: IngredienteReceta["unidad"], total: numb
   return total >= 1000 ? { cantidad: arriba(total / 100) / 10, unidad: "litros" } : { cantidad: arriba(total), unidad: "ml" };
 }
 
+// Productos que cubren un ingrediente. Pisco, ron, vino…: los de su categoría. Licores y jarabes ("licor" y "otro"):
+// los de esas categorías cuyo nombre dice alguna de sus palabras ("Licor de menta X" dice "menta").
+const GENERICAS = new Set(["licor", "otro"]);
+function candidatosDe(ing: IngredienteReceta, catalogo: ProductoCotizable[]) {
+  if (!ing.categoria || !GENERICAS.has(ing.categoria)) return catalogo.filter((p) => p.categoria === ing.categoria);
+  const palabras = (ing.palabras?.length ? ing.palabras : [ing.nombre]).map(normalizar).filter(Boolean);
+  return catalogo.filter((p) => GENERICAS.has(p.categoria) && palabras.some((w) => normalizar(p.nombre).includes(w)));
+}
+
+// "1 bartender", "2 bartenders"
+const plural = (n: number, uno: string, varios: string) => `${fmt.format(n)} ${n === 1 ? uno : varios}`;
+
+// Cómo se compra un ingrediente: 750 ml -> botella(s) de 750 ml; 1000 ml -> litro(s); 1 unidad -> unidad(es)
+export function unidadDeCompra(unidad: IngredienteReceta["unidad"], presentacion: number): [string, string] {
+  if (unidad === "unidad") return presentacion === 1 ? ["unidad", "unidades"] : [`paquete de ${presentacion}`, `paquetes de ${presentacion}`];
+  if (unidad === "g") return presentacion === 1000 ? ["kg", "kg"] : [`paquete de ${presentacion} g`, `paquetes de ${presentacion} g`];
+  if (presentacion === 1000) return ["litro", "litros"];
+  if (presentacion > 1000) return [`botella de ${presentacion / 1000} litros`, `botellas de ${presentacion / 1000} litros`];
+  if (presentacion >= 700) return [`botella de ${presentacion} ml`, `botellas de ${presentacion} ml`];
+  return [`envase de ${presentacion} ml`, `envases de ${presentacion} ml`];
+}
+
 // Recomienda el producto que cubre esos ml al menor costo; primero los que tienen stock suficiente
 function recomendar(candidatos: ProductoCotizable[], ml: number) {
   const evaluados = candidatos.map((p) => {
@@ -327,7 +365,7 @@ export function calcular(
       .filter((a) => recetaPorId.has(a.recetaId) && a.parte > 0)
       .map((a) => {
         sumar(a.recetaId, m.tragos * a.parte);
-        return { receta: recetaPorId.get(a.recetaId)!.nombre, tragos: Math.round(m.tragos * a.parte) };
+        return { receta: recetaPorId.get(a.recetaId)!.nombre, tragos: arriba(m.tragos * a.parte) };
       })
       .sort((a, b) => b.tragos - a.tragos);
     momentos.push({ ...m, tragos: Math.round(m.tragos), detalle });
@@ -402,12 +440,27 @@ export function calcular(
   const ingredientes: LineaIngrediente[] = [];
   const porTuCuenta: (Insumo & { orden: number })[] = [];
   const pone = new Set(e.clientePone ?? []);
+  // Lo que compra por su cuenta, para sumarlo a su costo con el precio supuesto
+  const comprasPropias: { id: string; nombre: string; unidad: IngredienteReceta["unidad"]; total: number; presentacion: number; precio: number; para: string[] }[] = [];
+  const comprar = (ing: IngredienteReceta, total: number, para: string[]) =>
+    comprasPropias.push({
+      id: ing.id, nombre: ing.nombre, unidad: ing.unidad, total, para,
+      presentacion: ing.presentacion && ing.presentacion > 0 ? ing.presentacion : ing.unidad === "unidad" ? 1 : 1000,
+      precio: ing.precio ?? 0,
+    });
   const clientePone: LineaCliente[] = [];
   const mlPorProducto = new Map<string, { ml: number; para: string[] }>();
   for (const [id, { ing, total, para }] of porIngrediente) {
-    const candidatos = ing.categoria && ing.unidad === "ml" ? catalogo.filter((p) => p.categoria === ing.categoria) : [];
+    const candidatos = ing.categoria && ing.unidad === "ml" ? candidatosDe(ing, catalogo) : [];
     if (!ing.categoria || ing.unidad !== "ml") {
       porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible(ing.unidad, total), nota: `para ${lista(para)}`, orden: ing.orden });
+      comprar(ing, total, para);
+      continue;
+    }
+    // Un jarabe o amargo que Surtiba no tiene se consigue por tu cuenta, sin alarma
+    if (candidatos.length === 0 && ing.categoria === "otro") {
+      porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible("ml", total), nota: `para ${lista(para)}`, orden: ing.orden });
+      comprar(ing, total, para);
       continue;
     }
     if (pone.has(id)) {
@@ -416,8 +469,8 @@ export function calcular(
     }
     const elegidoId = e.productos[id];
     const elegido = elegidoId ? candidatos.find((p) => p.id === elegidoId) : undefined;
-    // Los licores son muy distintos entre sí (triple sec, campari, vermouth): no se recomienda uno al azar
-    const producto = elegido ?? (ing.categoria === "licor" ? null : recomendar(candidatos, total));
+    // Los licores se buscan por nombre (candidatosDe): el de menta nunca recomienda un vermouth
+    const producto = elegido ?? recomendar(candidatos, total);
     ingredientes.push({
       ingredienteId: id,
       nombre: ing.nombre,
@@ -425,7 +478,8 @@ export function calcular(
       para,
       productoId: producto?.id ?? null,
       recomendado: !elegido && !!producto,
-      puedeRecomendar: ing.categoria !== "licor",
+      puedeRecomendar: true,
+      licor: ing.categoria !== "otro",
       opciones: candidatos.map((p) => ({ id: p.id, nombre: p.nombre, marca: p.marca })),
     });
     if (producto) {
@@ -436,6 +490,7 @@ export function calcular(
     } else {
       const nota = candidatos.length > 0 ? "elige un producto de Surtiba arriba o consíguelo por tu cuenta" : "Surtiba no lo tiene por ahora";
       porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible("ml", total), nota, orden: ing.orden, deSurtiba: true });
+      comprar(ing, total, para);
     }
   }
   ingredientes.sort((a, b) => b.ml - a.ml);
@@ -466,8 +521,8 @@ export function calcular(
   const hielo = arriba(e.invitados * e.horas * par.hielo_kg_persona_hora * (e.aireLibre ? par.factor_calor : 1) * margen);
   // En Lima el hielo se vende en bolsas de 3 kg (algunos mayoristas piden un mínimo de bolsas)
   if (hielo > 0) insumos.push({ nombre: "Hielo", cantidad: hielo, unidad: "kg", nota: `${arriba(hielo / 3)} bolsas de 3 kg` });
-  const agua = arriba((toman * par.sin_alcohol_l_hora_toma + (e.noToman + menores) * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
-  if (agua > 0) insumos.push({ nombre: "Agua y gaseosas para tomar solas", cantidad: agua, unidad: "litros" });
+  const aguaInsumo = arriba((toman * par.sin_alcohol_l_hora_toma + (e.noToman + menores) * par.sin_alcohol_l_hora_no_toma) * e.horas * margen);
+  if (aguaInsumo > 0) insumos.push({ nombre: "Agua y gaseosas para tomar solas", cantidad: aguaInsumo, unidad: "litros" });
   porTuCuenta.sort((a, b) => a.orden - b.orden || a.nombre.localeCompare(b.nombre));
   for (const i of porTuCuenta) insumos.push({ nombre: i.nombre, cantidad: i.cantidad, unidad: i.unidad, nota: i.nota, deSurtiba: i.deSurtiba });
 
@@ -479,11 +534,14 @@ export function calcular(
   const copasVino = e.cena.activo ? toman : 0;
   const copasEspumante = e.brindis.activo ? adultos : 0;
   const vasos = arriba(toman * par.vasos_por_toma);
+  // Bartender: se paga por hora, con un mínimo de horas. Cantidad = horas de bartender (bartenders × horas)
+  const bartenders = toman > 0 ? Math.ceil(toman / par.invitados_por_bartender) : 0;
+  const horasBartender = Math.max(par.bartender_horas_minimo, e.horas);
   const sugeridos: Record<ClaveSugerida, Omit<LineaCosto, "subtotal" | "sugerida" | "clave">> = {
     bartender: {
       concepto: "Bartenders",
-      nota: `1 por cada ${par.invitados_por_bartender} personas que toman · precio por evento`,
-      cantidad: toman > 0 ? Math.ceil(toman / par.invitados_por_bartender) : 0,
+      nota: `${plural(bartenders, "bartender", "bartenders")} × ${horasBartender} horas${e.horas < par.bartender_horas_minimo ? ` (mínimo ${par.bartender_horas_minimo})` : ""} · 1 por cada ${par.invitados_por_bartender} personas que toman · precio por hora`,
+      cantidad: bartenders * horasBartender,
       precio: par.precio_bartender_centimos,
     },
     cristaleria: {
@@ -496,20 +554,63 @@ export function calcular(
     },
     hielo: { concepto: "Hielo", nota: "bolsas de 3 kg", cantidad: hielo > 0 ? arriba(hielo / 3) : 0, precio: par.precio_bolsa_hielo_centimos },
   };
-  const lineas: LineaCosto[] = [
-    ...SUGERIDOS.filter((k) => !rv.quitados.includes(k)).map((k) => {
-      const s = sugeridos[k];
-      const cantidad = rv.ajustes[k]?.cantidad ?? s.cantidad;
-      const precio = rv.ajustes[k]?.precio ?? s.precio;
-      return { ...s, clave: k, cantidad, precio, subtotal: cantidad * precio, sugerida: true, cantidadSugerida: s.cantidad, precioSupuesto: s.precio };
+  // Lo que compra por su cuenta: una línea por cosa, en lo que se compra (botellas, litros, unidades)
+  const agua = aguaInsumo;
+  const insumosSugeridos: (Omit<LineaCosto, "subtotal" | "sugerida"> & { unidadCompra: [string, string] })[] = [
+    ...comprasPropias.map((c) => {
+      const unidadCompra = unidadDeCompra(c.unidad, c.presentacion);
+      const cantidad = arriba(c.total / c.presentacion);
+      return {
+        clave: `insumo:${c.id}`,
+        concepto: c.nombre,
+        nota: `para ${lista(c.para)} · ${unidadCompra[1]}`,
+        cantidad,
+        precio: c.precio,
+        unidadCompra,
+      };
     }),
-    ...rv.otros.map((o) => ({ clave: o.id, concepto: o.concepto, cantidad: o.cantidad, precio: o.precio, subtotal: o.cantidad * o.precio, sugerida: false })),
+    ...(agua > 0
+      ? [{ clave: "insumo:agua", concepto: "Agua y gaseosas para tomar solas", nota: "litros", cantidad: agua, precio: par.precio_litro_sin_alcohol_centimos, unidadCompra: ["litro", "litros"] as [string, string] }]
+      : []),
   ];
+  const servicio = SUGERIDOS.map((k) => ({ ...sugeridos[k], clave: k as string }));
+  const conAjuste = (s: Omit<LineaCosto, "subtotal" | "sugerida">, grupo: "servicio" | "insumo"): LineaCosto => {
+    const cantidad = rv.ajustes[s.clave]?.cantidad ?? s.cantidad;
+    const precio = rv.ajustes[s.clave]?.precio ?? s.precio;
+    return { ...s, cantidad, precio, subtotal: cantidad * precio, sugerida: true, cantidadSugerida: s.cantidad, precioSupuesto: s.precio, grupo };
+  };
+  // Texto para el PDF de su cliente (sin precios)
+  const incluye: Record<string, (cantidad: number, sugerida: number) => string> = {
+    bartender: (n, sug) => (n === sug && bartenders > 0 ? `${plural(bartenders, "bartender", "bartenders")} durante ${e.horas} horas` : `${fmt.format(n)} horas de bartender`),
+    cristaleria: (n) => `${fmt.format(n)} vasos y copas`,
+    hielo: (n) => `${plural(n, "bolsa", "bolsas")} de hielo de 3 kg`,
+  };
+  const lineas: LineaCosto[] = [
+    ...servicio
+      .filter((s) => !rv.quitados.includes(s.clave))
+      .map((s) => {
+        const l = conAjuste(s, "servicio");
+        return { ...l, incluye: incluye[s.clave](l.cantidad, s.cantidad) };
+      }),
+    ...rv.otros.map((o) => ({
+      clave: o.id, concepto: o.concepto, cantidad: o.cantidad, precio: o.precio, subtotal: o.cantidad * o.precio, sugerida: false,
+      grupo: "servicio" as const, incluye: o.cantidad > 1 ? `${o.concepto} · ${fmt.format(o.cantidad)}` : o.concepto,
+    })),
+    ...insumosSugeridos
+      .filter((s) => !rv.quitados.includes(s.clave))
+      .map(({ unidadCompra, ...s }) => {
+        const l = conAjuste(s, "insumo");
+        return { ...l, incluye: `${s.concepto} · ${fmt.format(l.cantidad)} ${l.cantidad === 1 ? unidadCompra[0] : unidadCompra[1]}` };
+      }),
+  ];
+  const quitados = [...servicio, ...insumosSugeridos]
+    .filter((s) => rv.quitados.includes(s.clave))
+    .map((s) => ({ clave: s.clave, concepto: s.concepto }));
   const costo = total + lineas.reduce((s, l) => s + l.subtotal, 0);
   const gananciaMonto = Math.round((costo * (rv.ganancia ?? 0)) / 100);
   const reventa: ResultadoReventa = {
     lineas,
-    quitados: rv.quitados,
+    quitados,
     bebidas: total,
     costo,
     ganancia: rv.ganancia,

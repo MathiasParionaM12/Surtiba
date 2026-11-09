@@ -166,6 +166,7 @@ export type Database = {
           factor_calor: number; sin_alcohol_l_hora_toma: number; sin_alcohol_l_hora_no_toma: number; margen_pct: number;
           invitados_por_bartender: number; precio_bartender_centimos: number; vasos_por_toma: number;
           precio_vaso_centimos: number; precio_bolsa_hielo_centimos: number;
+          bartender_horas_minimo: number; precio_litro_sin_alcohol_centimos: number;
         };
         Insert: { id?: boolean };
         Update: { id?: boolean };
@@ -207,7 +208,10 @@ export type Database = {
         Relationships: [];
       };
       ingredientes: {
-        Row: { activo: boolean; categoria: string | null; id: string; nombre: string; orden: number; unidad: string };
+        Row: {
+          activo: boolean; categoria: string | null; id: string; nombre: string; orden: number; unidad: string;
+          presentacion: number; precio_supuesto_centimos: number; palabras: string[];
+        };
         Insert: { activo?: boolean; categoria?: string | null; id?: string; nombre: string; orden?: number; unidad: string };
         Update: { activo?: boolean; categoria?: string | null; id?: string; nombre?: string; orden?: number; unidad?: string };
         Relationships: [];
@@ -375,7 +379,10 @@ export type Database = {
         Returns: string;
       };
       admin_guardar_ingrediente: {
-        Args: { p_id: string | null; p_nombre: string; p_unidad: string; p_categoria: string | null; p_activo: boolean };
+        Args: {
+          p_id: string | null; p_nombre: string; p_unidad: string; p_categoria: string | null; p_activo: boolean;
+          p_presentacion: number; p_precio_supuesto_centimos: number; p_palabras: string;
+        };
         Returns: string;
       };
       marca_guardar_descripcion: {

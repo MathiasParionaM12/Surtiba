@@ -185,7 +185,7 @@ Los valores iniciales son **supuestos por validar con caterings**; el admin los 
 
 **recetas** (tragos): nombre, `categoria` del licor (la misma lista que `productos.categoria`), `ml_por_trago`, y lo que Surtiba no vende: `mezclador` + `mezclador_ml`, `limones` y `jarabe_ml` por trago. Orden, activo.
 
-**ingredientes** (recetario, 21-oct-2026): nombre, `unidad` (ml / unidad / g), `categoria` de producto de Surtiba que lo cubre (pisco, ron, gin, vodka, vino, espumante, licor, cóctel listo) o vacío si Surtiba no lo vende, orden, activo.
+**ingredientes** (recetario, 21-oct-2026): nombre, `unidad` (ml / unidad / g), `categoria` de producto de Surtiba que lo cubre (pisco, ron, gin, vodka, vino, espumante, licor, cóctel listo, otro) o vacío si Surtiba no lo vende, orden, activo. Desde el 9-nov-2026: `palabras` (licores y jarabes, categorías "licor" y "otro": el producto se reconoce si su nombre dice alguna; "menta" → "Licor de menta X"), `presentacion` (cuánto trae lo que se compra, en la unidad del ingrediente: 750 ml, 1 unidad, 100 g) y `precio_supuesto_centimos` (precio de esa presentación, para "Lo que compras por tu cuenta"). `parametros_cotizador` suma `bartender_horas_minimo` y `precio_litro_sin_alcohol_centimos`; `precio_bartender_centimos` pasa a ser por hora (`supabase/sql/50_insumos_y_tragos_nuevos.sql`).
 
 **receta_ingredientes**: cuánto lleva cada trago: (receta_id, ingrediente_id, `cantidad` por trago en la unidad del ingrediente). Las cantidades iniciales son recetas clásicas y **supuestos por validar**. Las columnas viejas de `recetas` (`ml_por_trago`, `mezclador`, `limones`, `jarabe_ml`) ya no las usa el cotizador; `admin_guardar_trago` las llena solo para cumplir sus reglas.
 
@@ -266,7 +266,7 @@ La marca **no puede leer la tabla `pedidos`** (ahí están la dirección y los d
 
 **KPIs de la marca:** `marca_insights()` (`supabase/sql/29_insights_marca.sql`) calcula para la marca de la sesión lo de «Hoy», el mes vs el anterior, productos estrella, demanda por encargo, cotizaciones y cumplimiento. Es `SECURITY DEFINER` porque usa `pedidos` y `cotizaciones`, que la marca no lee, y devuelve solo totales.
 
-**Editar el recetario (admin):** `admin_guardar_trago` guarda un trago y sus ingredientes en una sola transacción (`supabase/sql/25_editor_recetario.sql`): revisa que cada ingrediente exista, sin repetidos y con cantidad entre 0 y 1000, y calcula solo el licor principal (`recetas.categoria`). `admin_guardar_ingrediente` crea o edita un ingrediente; lo que vende Surtiba se mide en ml.
+**Editar el recetario (admin):** `admin_guardar_trago` guarda un trago y sus ingredientes en una sola transacción (`supabase/sql/25_editor_recetario.sql`): revisa que cada ingrediente exista, sin repetidos y con cantidad entre 0 y 1000, y calcula solo el licor principal (`recetas.categoria`). `admin_guardar_ingrediente` crea o edita un ingrediente (con presentación, precio supuesto y palabras); lo que vende Surtiba se mide en ml.
 
 ## Caché de datos públicos (fase 8, parte D)
 Lo que es igual para todos los visitantes se guarda en caché (`"use cache"`, se renueva cada hora y al instante con `updateTag`). Se lee con `clientePublico()` (sin sesión), así RLS solo entrega lo público. **Nada que dependa de la sesión va en caché.**

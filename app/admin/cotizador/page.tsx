@@ -37,7 +37,17 @@ export default function PaginaCotizadorAdmin() {
   );
 }
 
-type IngredienteAdmin = { id: string; nombre: string; unidad: "ml" | "unidad" | "g"; categoria: string | null; orden: number; activo: boolean };
+type IngredienteAdmin = {
+  id: string;
+  nombre: string;
+  unidad: "ml" | "unidad" | "g";
+  categoria: string | null;
+  orden: number;
+  activo: boolean;
+  presentacion: number;
+  precio_supuesto_centimos: number;
+  palabras: string[];
+};
 
 async function Contenido() {
   await exigirRol("admin");
@@ -54,7 +64,10 @@ async function Contenido() {
         .from("recetas")
         .select("id, nombre, activo, receta_ingredientes(ingrediente_id, cantidad)")
         .order("orden"),
-      supabase.from("ingredientes").select("id, nombre, unidad, categoria, orden, activo").order("orden"),
+      supabase
+        .from("ingredientes")
+        .select("id, nombre, unidad, categoria, orden, activo, presentacion, precio_supuesto_centimos, palabras")
+        .order("orden"),
       supabase
         .from("cotizaciones")
         .select("id, codigo, creado_en, total_centimos, evento, pedido_id, perfiles(empresa, nombre), pedidos(codigo)")
@@ -163,8 +176,9 @@ async function Contenido() {
       <section>
         <h2 className={sello}>Ingredientes</h2>
         <p className="mt-1 text-sm text-gris">
-          Si Surtiba lo vende, elige qué categoría de producto lo cubre (se mide en ml). Un ingrediente inactivo deja de usarse en
-          los tragos.
+          Si Surtiba lo vende, elige qué categoría de producto lo cubre (se mide en ml). Los licores y jarabes se reconocen por
+          palabras del nombre del producto. El precio supuesto es lo que cuesta comprarlo por tu cuenta (lo que trae: 750 ml, 1
+          unidad…); el comprador lo cambia en su cotización. Un ingrediente inactivo deja de usarse en los tragos.
         </p>
         <details className="group mt-3">
           <summary className={`${botonSecundario} h-9 cursor-pointer list-none px-4`}>
@@ -269,14 +283,24 @@ function FilaIngrediente({ ingrediente }: { ingrediente?: IngredienteAdmin }) {
         <span className="text-xs text-gris">¿Lo vende Surtiba?</span>
         <select name="categoria" defaultValue={ingrediente?.categoria ?? ""} className={`${campo} h-10`}>
           <option value="">No lo vende</option>
-          {Object.entries(CATEGORIAS)
-            .filter(([valor]) => valor !== "otro")
-            .map(([valor, nombre]) => (
-              <option key={valor} value={valor}>
-                Sí, como {nombre.toLowerCase()}
-              </option>
-            ))}
+          {Object.entries(CATEGORIAS).map(([valor, nombre]) => (
+            <option key={valor} value={valor}>
+              {valor === "otro" ? "Sí, como otro (jarabes, amargos)" : `Sí, como ${nombre.toLowerCase()}`}
+            </option>
+          ))}
         </select>
+      </label>
+      <label className="flex w-40 flex-col gap-1">
+        <span className="text-xs text-gris">Palabras del producto</span>
+        <input name="palabras" maxLength={160} defaultValue={ingrediente?.palabras.join(", ")} placeholder="Ej.: menta" className={`${campo} h-10`} />
+      </label>
+      <label className="flex w-28 flex-col gap-1">
+        <span className="text-xs text-gris">Se compra de</span>
+        <input name="presentacion" required inputMode="decimal" defaultValue={ingrediente?.presentacion ?? 750} className={`${campo} h-10 text-right font-mono`} />
+      </label>
+      <label className="flex w-28 flex-col gap-1">
+        <span className="text-xs text-gris">Precio supuesto S/</span>
+        <input name="precio_supuesto" required inputMode="decimal" defaultValue={((ingrediente?.precio_supuesto_centimos ?? 0) / 100).toFixed(2)} className={`${campo} h-10 text-right font-mono`} />
       </label>
       <label className="flex h-10 items-center gap-2 text-sm">
         <input name="activo" type="checkbox" defaultChecked={ingrediente?.activo ?? true} className="accent-verde" />

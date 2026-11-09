@@ -77,7 +77,7 @@ export function PasoBarra({
   // Licores que vende Surtiba en esta barra. Los que ya pone el cliente siguen en la lista para poder desmarcarlos.
   const pone = entrada.clientePone ?? [];
   const licores = [
-    ...resultado.ingredientes.map((i) => ({ id: i.ingredienteId, nombre: i.nombre })),
+    ...resultado.ingredientes.filter((i) => i.licor !== false).map((i) => ({ id: i.ingredienteId, nombre: i.nombre })),
     ...(resultado.clientePone ?? []).map((l) => ({ id: l.ingredienteId, nombre: l.nombre })),
   ].sort((a, b) => a.nombre.localeCompare(b.nombre));
   const alternarCliente = (id: string) =>
