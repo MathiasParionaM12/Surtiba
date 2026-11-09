@@ -414,6 +414,7 @@ export type Database = {
         Args: { p_tipo: string; p_producto?: string | null };
         Returns: undefined;
       };
+      admin_actividad: { Args: Record<string, never>; Returns: Json };
       admin_insights: {
         Args: Record<string, never>;
         Returns: Json;

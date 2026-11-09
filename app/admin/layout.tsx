@@ -9,6 +9,7 @@ const PESTANAS = [
   { href: "/admin/marcas", texto: "Marcas" },
   { href: "/admin/cotizador", texto: "Cotizador" },
   { href: "/admin/metricas", texto: "Métricas" },
+  { href: "/admin/actividad", texto: "Actividad" },
   { href: "/admin/reclamos", texto: "Reclamos" },
 ];
 
