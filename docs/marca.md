@@ -55,6 +55,7 @@ Poco, corto y útil. Nunca para decorar.
 - **Estados vacíos** (`components/EstadoVacio.tsx`): ícono grande de trazo fino en verde dentro de un círculo, el mensaje y un botón para empezar.
 - **Producto sin foto:** el ícono de su categoría y un sello quieto "PISCO · 750 ML", como una etiqueta.
 - **Íconos de categoría** (`components/IconoCategoria.tsx`) en los chips del catálogo y la cinta: pisco = botija, ron = palmera, gin = hoja, vodka = copo, vino = copa, espumante = destellos, licor = matraz, cóctel = martini.
+- **Foto del producto con zoom** (`components/FotoZoom.tsx`, 9-nov-2026): en la ficha, con mouse la foto se agranda 2.5× y sigue al cursor (lupa); al tocarla se abre en grande, y ahí un toque acerca en ese punto y mover el dedo recorre la foto. Se cierra con ✕, Esc o tocando fuera.
 - **Escala al pasar el mouse** (catálogo con sesión): sube un panel con los precios por cantidad sobre la foto. En celular no se usa.
 - **Mini gráfico** (`components/MiniGrafico.tsx`): una línea verde con las últimas 4 semanas de lo entregado, bajo los números del Resumen de la marca y del Inicio del admin. Se dibuja una vez al aparecer.
 - **Logo:** no se anima ni se mueve el cuadrado (regla de arriba). Si algún día se quiere, primero hay que tener el logo en SVG.

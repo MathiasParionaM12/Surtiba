@@ -5,6 +5,7 @@ import { Carga } from "@/components/Carga";
 import { EsqueletoDetalle } from "@/components/Esqueleto";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { FotoProducto } from "@/components/FotoProducto";
+import { FotoZoom } from "@/components/FotoZoom";
 import { Calificacion, SellosMarca } from "@/components/SellosMarca";
 import { reputacionPorNombre, type Reputacion } from "@/lib/marcas-publicas";
 import { CATEGORIAS, esUuid, ordenarTramos, PEDIDO_MINIMO_CAJAS, textoTramo, urlFoto } from "@/lib/catalogo";
@@ -185,7 +186,8 @@ function Ficha({
 }) {
   return (
     <div className="mt-6 grid gap-8 md:grid-cols-2 md:gap-12">
-      <FotoProducto categoria={categoria} ml={ml} foto={foto} grande />
+      {/* Con foto: zoom para ver la etiqueta (lupa con el mouse y vista en grande al tocar) */}
+      {foto ? <FotoZoom foto={foto} nombre={nombre} categoria={categoria} ml={ml} /> : <FotoProducto categoria={categoria} ml={ml} foto={foto} grande />}
       <div>
         <p className={sello}>
           {marca} · {CATEGORIAS[categoria] ?? categoria}

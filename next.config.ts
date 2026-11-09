@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   images: {
+    // Que "abrir imagen en otra pestaña" muestre la foto en vez de descargarla (Next.js las manda como descarga
+    // por defecto). Es seguro: solo se aceptan fotos de nuestro Supabase y nunca SVG (dangerouslyAllowSVG está apagado).
+    contentDispositionType: "inline",
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [],
