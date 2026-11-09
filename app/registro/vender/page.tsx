@@ -11,7 +11,7 @@ export default function PaginaVender() {
   return (
     <MarcoAuth
       titulo="Vende en Surtiba"
-      bajada={`Cuéntanos de tu marca. El equipo Surtiba revisa cada solicitud antes de que tus productos aparezcan en el catálogo. Tus primeros 3 pedidos no pagan comisión; después, ${COMISION_PCT} % solo sobre lo vendido y entregado.`}
+      bajada={`Cuéntanos de tu marca. El equipo Surtiba revisa cada solicitud antes de que tus productos aparezcan en el catálogo. Tu primer pedido no paga comisión; después, ${COMISION_PCT} % solo sobre lo vendido y entregado.`}
       pie={
         <>
           ¿Ya tienes cuenta?{" "}

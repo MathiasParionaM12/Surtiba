@@ -138,7 +138,7 @@ async function Resumen() {
           <p className="mt-1 text-sm text-gris">Órdenes pendientes</p>
         </div>
       </div>
-      <p className="mt-2 text-xs text-gris">Tus primeros 3 pedidos entregados no pagan comisión.</p>
+      <p className="mt-2 text-xs text-gris">Tu primer pedido entregado no paga comisión.</p>
 
       {/* Para vender más: lo que dicen tus datos (calculado en la base, solo tus totales) */}
       {insights && (

@@ -75,7 +75,7 @@ async function MiMarca() {
               ["Dirección de recojo", pv?.direccion_recojo],
               ["Contacto", [pv?.contacto_nombre, pv?.contacto_whatsapp].filter(Boolean).join(" · ")],
               ["Correo", pv?.contacto_correo],
-              ["Comisión de Surtiba", `${pv?.comision_pct ?? COMISION_PCT}% sobre lo entregado (tus primeros 3 pedidos entregados no pagan)`],
+              ["Comisión de Surtiba", `${pv?.comision_pct ?? COMISION_PCT}% sobre lo entregado (tu primer pedido entregado no paga)`],
             ].map(([k, valor]) => (
               <div key={k} className="border-b border-linea py-2.5 last:border-b-0">
                 <dt className="text-xs text-gris">{k}</dt>

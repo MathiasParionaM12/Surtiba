@@ -157,7 +157,7 @@ PK compuesta (comprador_id, producto_id). La vista `carrito_detalle` le agrega e
 | total_centimos | integer | |
 | total_cajas | integer | |
 | comision_pct_aplicada | numeric(5,2) | copia del % al crear |
-| exento_comision | boolean | true si es uno de los primeros 3 entregados de la marca |
+| exento_comision | boolean | true si es el primero entregado de la marca (eran 3 hasta el 9-nov-2026, `48_un_pedido_sin_comision.sql`) |
 | comision_centimos | integer | se calcula al entregar; 0 si está exento |
 | motivo_rechazo | text | obligatorio si se rechaza |
 | listo_en / recogido_en / entregado_en | timestamptz | |

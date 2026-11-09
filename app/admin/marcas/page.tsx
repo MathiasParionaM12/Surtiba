@@ -117,7 +117,7 @@ async function Marcas() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-gris">Los primeros 3 pedidos entregados de cada marca no pagan comisión.</p>
+        <p className="mt-2 text-xs text-gris">El primer pedido entregado de cada marca no paga comisión.</p>
       </section>
     </div>
   );

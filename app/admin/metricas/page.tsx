@@ -103,7 +103,7 @@ async function Metricas() {
           <Cuadro titulo="Pedidos del mes" nota={`Ticket promedio ${soles(m.pedidos_mes.ticket)} · ${m.pedidos_mes.cancelados} cancelados`}>
             <Contador valor={m.pedidos_mes.creados} />
           </Cuadro>
-          <Cuadro titulo="Comisión generada" nota={`${soles(m.mes.exonerada)} exonerada (primeras 3 entregas)`}>
+          <Cuadro titulo="Comisión generada" nota={`${soles(m.mes.exonerada)} exonerada (pedidos de bienvenida)`}>
             <Contador valor={m.mes.comision} tipo="soles" />
           </Cuadro>
         </div>

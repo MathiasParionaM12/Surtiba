@@ -135,7 +135,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
                 <span>
                   {s.estado === "entregado"
                     ? s.exento_comision
-                      ? "Comisión: S/ 0.00 (primeras 3 entregas)"
+                      ? "Comisión: S/ 0.00 (pedido de bienvenida)"
                       : `Comisión: ${soles(s.comision_centimos)} (${s.comision_pct_aplicada}%)`
                     : `Comisión ${s.comision_pct_aplicada}% al entregar`}
                 </span>

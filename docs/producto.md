@@ -142,7 +142,7 @@ El admin ya no puede saltarse pasos (la base lo bloquea aunque se llame directo)
 - Cada marca tiene su % de comisión, que configura el admin.
 - Al crear el subpedido se **copia** el % vigente.
 - Se calcula **cuando el subpedido se entrega**: total del subpedido × %.
-- **Primeros 3 pedidos sin comisión:** los primeros 3 subpedidos *entregados* de cada marca llevan comisión 0. Se cuenta por marca.
+- **Primer pedido sin comisión:** el primer subpedido *entregado* de cada marca lleva comisión 0. Se cuenta por marca. Eran 3 hasta el 9-nov-2026 (Mathias lo bajó a 1 "por ahora"); lo ya entregado no cambia.
 - La app solo calcula y muestra la comisión. Cobrarla y pagarle a la marca se hace por fuera.
 
 ### Cotizador de evento (versión completa, decidida el 14-oct-2026)

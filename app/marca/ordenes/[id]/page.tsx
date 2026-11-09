@@ -130,7 +130,7 @@ async function DetalleOrden({ params }: { params: Promise<{ id: string }> }) {
             <h2 className={sello}>Comisión</h2>
             <p className="mt-3">
               {o.exento_comision
-                ? "Sin comisión (uno de tus primeros 3 pedidos)."
+                ? "Sin comisión (pedido de bienvenida)."
                 : o.estado === "entregado"
                   ? `${soles(o.comision_centimos)} (${o.comision_pct_aplicada}%)`
                   : `${o.comision_pct_aplicada}% al entregarse.`}

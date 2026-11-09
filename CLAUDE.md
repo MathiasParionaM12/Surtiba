@@ -13,7 +13,7 @@ Marketplace B2B **gestionado** que conecta **marcas peruanas de licores y cócte
 - **Surtiba gestiona todo:** el comprador le compra a Surtiba. **La marca y el comprador no se comunican.**
 - La marca solo mantiene su catálogo y su stock, y deja lista su orden para que Surtiba la recoja.
 - **Surtiba recoge en cada marca y entrega el pedido completo al comprador.**
-- El comprador no paga comisión. La marca paga un % de comisión solo sobre lo vendido y entregado. Sus primeros 3 pedidos entregados no pagan comisión.
+- El comprador no paga comisión. La marca paga un % de comisión solo sobre lo vendido y entregado. Su primer pedido entregado no paga comisión (eran 3 hasta el 9-nov-2026).
 - Hoy: licores y cócteles en Lima. Visión: todo el abastecimiento HORECA.
 
 ## Usuarios

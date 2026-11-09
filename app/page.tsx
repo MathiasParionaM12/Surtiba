@@ -238,9 +238,9 @@ export default async function Home() {
             <p className="font-mono text-xs font-medium tracking-[0.12em] text-blanco/60 uppercase">Para marcas</p>
             <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">¿Tienes una marca de licores o cócteles?</h2>
             <p className="mt-8 font-mono text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
-              3 pedidos
+              0 %
             </p>
-            <p className="mt-2 text-lg text-blanco/85">sin comisión para empezar</p>
+            <p className="mt-2 text-lg text-blanco/85">de comisión en tu primer pedido</p>
             <p className="mt-4 max-w-md text-sm text-blanco/70">Después, {COMISION_PCT} % solo sobre lo vendido y entregado. Nada por publicar.</p>
           </div>
           <div className="aparecer">
