@@ -17,6 +17,7 @@ import { fechaLarga } from "@/lib/entregas";
 import { createClient } from "@/lib/supabase/server";
 import { AgregarRapido } from "./AgregarRapido";
 import { Calificar } from "./Calificar";
+import { Retroalimentacion } from "@/components/Retroalimentacion";
 import { FormPagar } from "./FormPagar";
 import { SelloEstado } from "@/components/SelloEstado";
 
@@ -158,6 +159,13 @@ async function DetallePedido({
               </p>
             </>
           )}
+        </div>
+      )}
+
+      {/* Pedido recién hecho: su opinión (experimento, 10-nov-2026) */}
+      {nuevo && usuario?.rol === "comprador" && (
+        <div className="mb-8">
+          <Retroalimentacion pedidoId={id} />
         </div>
       )}
 

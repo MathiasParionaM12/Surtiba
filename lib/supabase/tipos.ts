@@ -28,7 +28,7 @@ export type Database = {
         ];
       };
       cotizaciones: {
-        Row: { codigo: string; comprador_id: string; creado_en: string; evento: Json | null; id: string; items: Json; pedido_id: string | null; total_centimos: number };
+        Row: { codigo: string; comprador_id: string; creado_en: string; evento: Json | null; id: string; items: Json; pedido_id: string | null; total_centimos: number; segundos: number | null };
         Insert: { codigo?: string; comprador_id: string; creado_en?: string; evento?: Json | null; id?: string; items: Json; pedido_id?: string | null; total_centimos: number };
         Update: { codigo?: string; comprador_id?: string; creado_en?: string; evento?: Json | null; id?: string; items?: Json; pedido_id?: string | null; total_centimos?: number };
         Relationships: [
@@ -199,9 +199,9 @@ export type Database = {
       retroalimentacion: {
         Row: {
           id: number; perfil_id: string; contexto: string; cotizacion_id: string | null; puntaje: number | null; mejorar: string | null;
-          fallos: string | null; creado_en: string;
+          fallos: string | null; creado_en: string; pedido_id: string | null;
         };
-        Insert: { contexto: string; cotizacion_id?: string | null; puntaje?: number | null; mejorar?: string | null; fallos?: string | null };
+        Insert: { contexto: string; pedido_id?: string | null; cotizacion_id?: string | null; puntaje?: number | null; mejorar?: string | null; fallos?: string | null };
         Update: Record<string, never>;
         Relationships: [
           { foreignKeyName: "retroalimentacion_perfil_id_fkey"; columns: ["perfil_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
@@ -447,6 +447,10 @@ export type Database = {
       marca_insights: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      cotizacion_tiempo: {
+        Args: { p_id: string; p_segundos: number };
+        Returns: undefined;
       };
       crear_cotizacion: {
         Args: { p_items?: Json; p_evento?: Json };

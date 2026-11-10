@@ -8,7 +8,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
 import { BotonPdf } from "@/components/BotonPdf";
 import { createClient } from "@/lib/supabase/client";
-import { Retroalimentacion } from "./Retroalimentacion";
+import { Retroalimentacion } from "@/components/Retroalimentacion";
+import { marcarInicio, segundosDesdeInicio } from "@/lib/medicion";
 import { Cifra } from "@/components/Cifra";
 import { cotizar, guardarCotizacion, pasarAlCarrito } from "@/lib/acciones-cotizador";
 import {
@@ -68,13 +69,13 @@ export function Cotizador({
   const [resumenAbierto, setResumenAbierto] = useState(false);
   const [guardada, setGuardada] = useState<{ codigo: string; id: string }>(); // la cotización recién guardada (COT-0012)
   // Los dos PDF usan la misma cotización: si ya se guardó y no cambió nada, no se crea otra
-  // Medición del experimento (10-nov-2026): cuánto tarda en armar su cotización (desde que abre el cotizador
-  // hasta que guarda el PDF) y si la empezó (evento "inicio_cotizacion", para contar las abandonadas)
-  const abiertoEn = useRef<number | null>(null);
+  // Medición del experimento (10-nov-2026): cuánto tarda en armar su cotización (lib/medicion.ts: desde que abre el
+  // cotizador o agrega lo primero al carrito, hasta que baja el PDF aquí o en el carrito) y si la empezó
+  // (evento "inicio_cotizacion", para contar las abandonadas)
   const inicioRegistrado = useRef(false);
   useEffect(() => {
-    abiertoEn.current = Date.now();
-  }, []);
+    if (rol === "comprador") marcarInicio();
+  }, [rol]);
   useEffect(() => {
     if (rol !== "comprador" || abierta || alcanzado < 1 || inicioRegistrado.current) return;
     inicioRegistrado.current = true;
@@ -86,7 +87,7 @@ export function Cotizador({
       );
   }, [alcanzado, rol, abierta]);
   const prepararPdf = async () =>
-    guardada ? guardada : guardarCotizacion(entrada, abiertoEn.current ? Math.round((Date.now() - abiertoEn.current) / 1000) : undefined);
+    guardada ? guardada : guardarCotizacion(entrada, segundosDesdeInicio());
   const alGuardar = (codigo: string, id: string) => setGuardada({ codigo, id });
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();

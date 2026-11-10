@@ -1,6 +1,7 @@
 "use client";
 
-// Al terminar la cotización (ya guardada): ¿qué mejorarías?, ¿qué falló? (10-nov-2026, experimento del curso).
+// Al terminar: después de bajar la cotización (cotizador o carrito) o de hacer el pedido. ¿Qué mejorarías?, ¿qué
+// falló? (10-nov-2026, experimento del curso).
 // Incentivo: la opinión ayuda a postular a los primeros 2 pedidos con envío gratis.
 import { Gift, Star } from "lucide-react";
 import { useState, useTransition } from "react";
@@ -8,7 +9,7 @@ import { AvisoForm } from "@/components/AvisoForm";
 import { enviarRetroalimentacion } from "@/lib/acciones-cotizador";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 
-export function Retroalimentacion({ cotizacionId }: { cotizacionId: string }) {
+export function Retroalimentacion({ cotizacionId, pedidoId }: { cotizacionId?: string; pedidoId?: string }) {
   const [puntaje, setPuntaje] = useState<number | null>(null);
   const [mejorar, setMejorar] = useState("");
   const [fallos, setFallos] = useState("");
@@ -36,7 +37,7 @@ export function Retroalimentacion({ cotizacionId }: { cotizacionId: string }) {
       </div>
 
       <fieldset>
-        <legend className="text-sm font-medium">¿Qué tan fácil fue armar tu cotización?</legend>
+        <legend className="text-sm font-medium">¿Qué tan fácil fue armar tu {pedidoId ? "pedido" : "cotización"}?</legend>
         <div className="mt-2 flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
@@ -81,7 +82,7 @@ export function Retroalimentacion({ cotizacionId }: { cotizacionId: string }) {
       <button
         type="button"
         disabled={enviando}
-        onClick={() => enviar(async () => setEstado(await enviarRetroalimentacion({ cotizacionId, puntaje, mejorar, fallos })))}
+        onClick={() => enviar(async () => setEstado(await enviarRetroalimentacion({ cotizacionId, pedidoId, puntaje, mejorar, fallos })))}
         className={`${botonPrimario} self-start`}
       >
         {enviando ? "Enviando…" : "Enviar mi opinión"}

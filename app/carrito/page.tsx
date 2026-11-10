@@ -3,9 +3,8 @@ import { ArrowRight, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Carga } from "@/components/Carga";
-import { BotonPdf } from "@/components/BotonPdf";
+import { PdfCarrito } from "./PdfCarrito";
 import { EsqueletoTabla } from "@/components/Esqueleto";
-import { cotizacionDelCarrito } from "@/lib/acciones-cotizador";
 import { cambiarCajas, quitarDelCarrito } from "@/lib/acciones-pedidos";
 import { rangoEnvio, tarifasEnvio } from "@/lib/envio";
 import { PEDIDO_MINIMO_CAJAS } from "@/lib/catalogo";
@@ -317,7 +316,7 @@ async function Carrito({ searchParams }: { searchParams: Promise<Avisos> }) {
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           )}
-          <BotonPdf preparar={cotizacionDelCarrito} className="mt-3" />
+          <PdfCarrito />
           <Link href="/catalogo" className="mt-3 block text-center text-sm font-medium enlace text-verde hover:text-tinta">
             Seguir comprando
           </Link>

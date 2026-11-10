@@ -6,11 +6,13 @@
 import { FlaskConical } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { botonPrimario } from "@/lib/estilos";
+import { marcarInicio } from "@/lib/medicion";
 
 const EVENTO = "surtiba:aviso-experimento";
 const CLAVE = "surtiba:aviso-experimento-visto";
 
 export function avisarExperimento() {
+  marcarInicio(); // lo primero que agrega al carrito también empieza a medir su cotización
   if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENTO));
 }
 

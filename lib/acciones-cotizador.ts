@@ -53,8 +53,6 @@ export async function guardarCotizacion(entrada: EntradaCotizador, segundos?: nu
 
   const evento = {
     version: 2,
-    // Tiempo para armar la cotización (métrica del experimento): lo mide el navegador; se acepta de 0 a 24 horas
-    segundos: Number.isInteger(segundos) && segundos! >= 0 && segundos! <= 86400 ? segundos : null,
     entrada: limpia,
     resumen: {
       nombre: limpia.nombre,
@@ -79,20 +77,26 @@ export async function guardarCotizacion(entrada: EntradaCotizador, segundos?: nu
   return guardar(
     resultado.productos.map((p) => ({ producto_id: p.productoId, cajas: p.cajas })),
     evento as unknown as Json,
+    segundos,
   );
 }
 
 // Guarda la cotización de lo que hay en el carrito
-export async function cotizacionDelCarrito(): Promise<RespuestaPdf> {
+export async function cotizacionDelCarrito(segundos?: number): Promise<RespuestaPdf> {
   if (!(await comprador())) return { error: "Solo los compradores pueden descargar la cotización." };
-  return guardar();
+  return guardar(undefined, undefined, segundos);
 }
 
-async function guardar(items?: Json, evento?: Json): Promise<RespuestaPdf> {
+// segundos: tiempo para armar la cotización (métrica del experimento). Lo mide el navegador (lib/medicion.ts);
+// la base lo acepta de 0 a 24 horas y solo en una cotización propia.
+async function guardar(items?: Json, evento?: Json, segundos?: number): Promise<RespuestaPdf> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_cotizacion", { p_items: items, p_evento: evento });
   if (error || !data?.[0]) {
     return { error: error?.code === "P0001" ? error.message : "No pudimos guardar la cotización. Intenta de nuevo." };
+  }
+  if (Number.isInteger(segundos) && segundos! >= 0 && segundos! <= 86400) {
+    await supabase.rpc("cotizacion_tiempo", { p_id: data[0].cotizacion_id, p_segundos: segundos! });
   }
   revalidatePath("/cotizaciones");
   return { id: data[0].cotizacion_id, codigo: data[0].codigo };
@@ -100,7 +104,8 @@ async function guardar(items?: Json, evento?: Json): Promise<RespuestaPdf> {
 
 // Retroalimentación del comprador al terminar su cotización (10-nov-2026). RLS: solo a su nombre y sobre su cotización.
 export async function enviarRetroalimentacion(datos: {
-  cotizacionId: string;
+  cotizacionId?: string;
+  pedidoId?: string;
   puntaje: number | null;
   mejorar: string;
   fallos: string;
@@ -112,8 +117,9 @@ export async function enviarRetroalimentacion(datos: {
   if (!puntaje && !mejorar && !fallos) return { error: "Elige una nota o escribe un comentario." };
   const supabase = await createClient();
   const { error } = await supabase.from("retroalimentacion").insert({
-    contexto: "cotizacion",
-    cotizacion_id: /^[0-9a-f-]{36}$/.test(datos.cotizacionId) ? datos.cotizacionId : null,
+    contexto: datos.pedidoId ? "pedido" : "cotizacion",
+    cotizacion_id: /^[0-9a-f-]{36}$/.test(datos.cotizacionId ?? "") ? datos.cotizacionId : null,
+    pedido_id: /^[0-9a-f-]{36}$/.test(datos.pedidoId ?? "") ? datos.pedidoId : null,
     puntaje,
     mejorar,
     fallos,

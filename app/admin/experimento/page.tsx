@@ -52,7 +52,7 @@ async function Contenido() {
       )
       .eq("activa", true)
       .order("nombre_comercial"),
-    supabase.from("cotizaciones").select("id, codigo, creado_en, comprador_id, pedido_id, items, evento, total_centimos").order("creado_en", { ascending: false }),
+    supabase.from("cotizaciones").select("id, codigo, creado_en, comprador_id, pedido_id, items, evento, total_centimos, segundos").order("creado_en", { ascending: false }),
     supabase.from("perfiles").select("id, nombre, empresa, rol, tipo_negocio"),
     supabase.from("eventos").select("perfil_id, creado_en").eq("tipo", "inicio_cotizacion"),
     supabase.from("retroalimentacion").select("id, perfil_id, contexto, puntaje, mejorar, fallos, creado_en").order("creado_en", { ascending: false }),
@@ -91,11 +91,11 @@ async function Contenido() {
   // ── 2. Cotizaciones ──
   const cots = (cotizaciones ?? []).map((c) => {
     const items = (Array.isArray(c.items) ? c.items : []) as Item[];
-    const ev = (c.evento ?? {}) as { segundos?: number | null; resumen?: { invitados?: number; tipo?: string } };
+    const ev = (c.evento ?? {}) as { resumen?: { invitados?: number; tipo?: string } };
     return {
       ...c,
       marcas: [...new Set(items.map((i) => i.marca))],
-      segundos: typeof ev.segundos === "number" ? ev.segundos : null,
+      segundos: c.segundos,
       evento: ev.resumen ? `${ev.resumen.tipo ?? "Evento"} · ${ev.resumen.invitados ?? "?"} invitados` : "Desde el carrito",
     };
   });
@@ -116,10 +116,10 @@ async function Contenido() {
     ["Marcas reales publicadas", String(filasMarcas.length), "Con productos aprobados en el catálogo"],
     ["Productos publicados", String(filasMarcas.reduce((s, m) => s + m.publicados.length, 0)), `${filasMarcas.reduce((s, m) => s + m.enCotizador, 0)} se usan en el cotizador`],
     ["Cotizaciones guardadas", String(cots.length), `${compradores.size} ${compradores.size === 1 ? "comprador" : "compradores"} · ${multimarca} multimarca`],
-    ["Tiempo para cotizar", mediana(tiempos) !== null ? duracion(mediana(tiempos)!) : "Sin medir", tiempos.length ? `Mediana de ${tiempos.length} · desde que abre el cotizador hasta el PDF` : "Se mide desde el 10-nov-2026"],
+    ["Tiempo para cotizar", mediana(tiempos) !== null ? duracion(mediana(tiempos)!) : "Sin medir", tiempos.length ? `Mediana de ${tiempos.length} · desde que abre el cotizador o agrega lo primero al carrito, hasta el PDF` : "Se mide desde el 10-nov-2026"],
     ["Cotizaciones abandonadas", String(abandonadas), `${empezadas.length} empezadas · ${pct(abandonadas, empezadas.length)} sin terminar`],
     ["Guardadas en pedidos", String(conPedido), `Conversión a pedido: ${pct(conPedido, cots.length)}`],
-    ["Opiniones recibidas", String((opiniones ?? []).length), promedioNota ? `Facilidad promedio: ${promedioNota} de 5` : "Al terminar una cotización"],
+    ["Opiniones recibidas", String((opiniones ?? []).length), promedioNota ? `Facilidad promedio: ${promedioNota} de 5` : "Al bajar una cotización o hacer un pedido"],
   ];
 
   return (
@@ -250,7 +250,7 @@ async function Contenido() {
         <h2 className={sello}>3 · Lo que opinan los compradores</h2>
         {(opiniones ?? []).length === 0 ? (
           <p className="mt-3 rounded-md border border-linea bg-blanco p-4 text-sm text-gris">
-            Todavía no hay opiniones. Se piden al terminar una cotización (con el incentivo de los 2 primeros pedidos con envío gratis).
+            Todavía no hay opiniones. Se piden al bajar una cotización (en el cotizador o el carrito) y al hacer un pedido, con el incentivo de los 2 primeros pedidos con envío gratis.
           </p>
         ) : (
           <ul className="mt-3 flex flex-col gap-3">
@@ -258,7 +258,7 @@ async function Contenido() {
               <li key={o.id} className="rounded-md border border-linea bg-blanco p-4 text-sm">
                 <p className="flex flex-wrap justify-between gap-2 text-xs text-gris">
                   <span>
-                    {quien(o.perfil_id)} · {o.contexto === "marca" ? "Marca" : "Al cotizar"}
+                    {quien(o.perfil_id)} · {o.contexto === "marca" ? "Marca" : o.contexto === "pedido" ? "Al hacer su pedido" : "Al cotizar"}
                     {o.puntaje ? ` · facilidad ${o.puntaje} de 5` : ""}
                   </span>
                   <span>{cuando.format(new Date(o.creado_en))}</span>
