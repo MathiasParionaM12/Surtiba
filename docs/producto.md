@@ -22,7 +22,7 @@ Cualquiera puede registrarse y pedir. No requiere aprobación.
 |---|---|
 | Registro / login | Correo y contraseña. Datos: nombre, empresa, tipo de negocio (catering, organizador de eventos, wedding planner, bar/restaurante u otro), WhatsApp (solo Perú: el +51 va fijo desde el 5-nov-2026) y RUC (opcional) |
 | Catálogo | Filtros por categoría y buscador; en «Más filtros» (21-oct-2026): precio máximo por caja, marca, presentación (ml), grado de alcohol, disponibilidad (con stock o por encargo, solo con sesión) y orden. Quedan en la dirección para compartirla. Antes: filtros por categoría y marca. Precio "desde", corazón de favorito y stock disponible ("Agotado" si es 0) |
-| Detalle de producto | Escala de precios completa, stock disponible y registro sanitario. **Calcula tu margen** (21-oct-2026): pone a cuánto lo vendería, por trago (bares, caterings, eventos) o por botella (por ejemplo, una licorería), y cuántas cajas compraría; ve su costo, su ganancia por unidad y por caja y su margen. Es una estimación en el navegador: no cambia precios ni pedidos |
+| Detalle de producto | Escala de precios completa, stock disponible y la **descripción del producto** (la escribe la marca, 10-nov-2026; el registro sanitario ya no va en la ficha). **Calcula tu margen** (21-oct-2026): pone a cuánto lo vendería, por trago (bares, caterings, eventos) o por botella (por ejemplo, una licorería), y cuántas cajas compraría; ve su costo, su ganancia por unidad y por caja y su margen. Es una estimación en el navegador: no cambia precios ni pedidos |
 | **Cotizador de evento** | Ver la sección "Cotizador" más abajo |
 | Favoritos | Sus productos guardados |
 | Carrito | Agrupado por marca, con subtotal por marca. Avisa si no llega al pedido mínimo (3 cajas en total). Si un producto no alcanza el stock, pide decidir **antes de pagar** (5-nov-2026): **pedir lo que falta por encargo**, **cambiarlo por otro con stock** (hasta 3 de la misma categoría) o **llevar solo lo que hay**. Botón **"Descargar cotización (PDF)"** |
@@ -198,7 +198,7 @@ Para el brindis existe la categoría **Espumante** (decidida el 14-oct-2026).
 - **Recompra** en Admin → Métricas: % de compradores con 2 o más pedidos en los últimos 60 días.
 
 ## Para después (pedido por Mathias el 14-oct-2026, todavía no construir)
-- **Validación de marcas con documentos:** al pedir "Quiero vender", subir su catálogo y certificados (DIGESA, registro sanitario, etc.).
+- ~~**Validación de marcas con documentos**~~ Hecho el 10-nov-2026: la marca sube sus registros sanitarios y documentos en "Sube tus registros sanitarios o documentos importantes" (en su solicitud y en Mi marca); el admin los ve en la solicitud y en la ficha de la marca.
 - ~~**Aprobación de productos**~~ → construida el 5-nov-2026 (ver "Aprobación de productos" en Reglas de negocio).
 - ~~**Pago al comprar**~~ → ya construido en la fase 7 (ver "Pedidos por encargo y pago").
 - **Pedido mínimo y comisión (ya aplicado):** el pedido mínimo es de **3 cajas en total** para todo Surtiba (5-nov-2026; ya no hay mínimo por marca); la comisión es fija para todas: 5 % desde el 14-oct-2026 y **7 % desde el 22-oct-2026** (Surtiba cubre el recojo; `COMISION_PCT` en `lib/catalogo.ts`).
@@ -221,3 +221,11 @@ Las 8 marcas de prueba (Marca Demo Pisco, Ron, Cócteles, Valle e Inactiva, qwer
 - ¿Quién emite la factura al comprador, Surtiba o la marca? (tema SUNAT: se define después, no afecta el prototipo)
 - Horarios de entrega (los días ya están: martes y jueves)
 - Valores iniciales del cotizador
+
+
+## Experimento del curso (10-nov-2026)
+
+- **Aviso de fase de prueba:** al agregar algo al carrito (una vez por visita) sale un aviso: todavía no hay ventas ni pagos reales, y las marcas y productos sí son reales (las marcas activas del catálogo).
+- **Medición del cotizador:** tiempo para armar la cotización (desde que abre el cotizador hasta que guarda el PDF, en `cotizaciones.evento.segundos`), cotizaciones empezadas (evento `inicio_cotizacion`) y abandonadas (empezó y ese día no guardó ninguna), y conversión a pedido.
+- **Retroalimentación:** al guardar su cotización, el comprador puede poner qué tan fácil fue (1 a 5), qué mejorar y qué falló. Incentivo: postula a sus primeros 2 pedidos con envío gratis (decisión de Mathias; cómo se otorga queda por definir).
+- **Admin → Experimento:** marcas reales y sus productos (foto, descripción, precio por volumen, stock, si entran al cotizador), cotizaciones (comprador, marcas, tiempo, pedido), métricas y opiniones.

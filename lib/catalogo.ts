@@ -17,6 +17,8 @@ export const CATEGORIAS: Record<string, string> = {
   espumante: "Espumante",
   licor: "Licor",
   coctel_listo: "Cóctel listo",
+  crema_pisco: "Crema de pisco",
+  jarabe: "Jarabe",
   otro: "Otro",
 };
 

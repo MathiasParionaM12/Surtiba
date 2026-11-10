@@ -33,6 +33,11 @@ Supabase da `INSERT/UPDATE/DELETE` sobre la **tabla entera** a `authenticated` (
 - Revisado el resto: `perfiles` y `avisos` ya estaban bien; carrito, favoritos y escalas_precio no tienen columnas delicadas; las demás solo las escribe el admin.
 - **Regla:** al agregar una columna que el usuario no debe tocar en una tabla con regla de escritura, revisar `table_privileges` (no solo `column_privileges`) y probar con el rol.
 
+## Documentos de las marcas y retroalimentación (10-nov-2026)
+
+- **Bucket privado `documentos`** (registros sanitarios y otros, PDF o imagen, 10 MB): cada cuenta sube, ve y borra solo su carpeta (`<su id>/...`); el admin ve todas. Se abren con enlaces firmados que vencen en 1 hora. Los compradores nunca los ven.
+- **Tabla `retroalimentacion`**: RLS activado. Cada cuenta inserta solo a su nombre (`perfil_id` lo pone la base) y, si menciona una cotización, tiene que ser suya. Lee solo el autor y el admin. Probado: el comprador inserta la suya, no puede firmar como otro, otro comprador y la marca ven 0, el admin ve todas y el visitante queda bloqueado.
+
 ## Riesgos aceptados (decididos)
 
 - **Supuestos del cotizador visibles** (`parametros_cotizador` lo lee cualquiera). El mini-cotizador de la portada y el ejemplo de `/cotizador` calculan en el navegador. Son supuestos de negocio, no datos de clientes, y para cerrarlos habría que mover esos cálculos al servidor. Se revisa si Surtiba deja de ser prototipo.

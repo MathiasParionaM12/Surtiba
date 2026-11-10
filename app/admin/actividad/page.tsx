@@ -69,22 +69,25 @@ async function Contenido() {
       {/* Productos vistos por día: barras simples, sin librería */}
       <section className="mt-10">
         <h2 className={sello}>Productos vistos por día · 14 días</h2>
-        <div className="mt-3 rounded-md border border-linea bg-blanco p-4">
-          <ol className="flex h-28 items-end gap-1" aria-label="Productos vistos por día">
-            {a.vistas_dia.map((d) => (
-              <li key={d.dia} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${d.dia}: ${d.vistas}`}>
-                <span className="font-mono text-[10px] text-gris">{d.vistas || ""}</span>
-                <span className="crecer block w-full max-w-8 rounded-t-[4px] bg-verde/70" style={{ height: `${(d.vistas / maxVistas) * 100}%` }} />
+        {/* Cada día es una columna con su barra y su fecha debajo (así siempre quedan alineadas). En celular se ve
+            la fecha de un día sí y otro no; el número de cada barra va encima y el detalle al pasar el mouse. */}
+        <div className="mt-3 overflow-hidden rounded-md border border-linea bg-blanco px-3 pt-4 pb-3 sm:px-5">
+          <ol className="grid grid-cols-14 gap-1 sm:gap-2" aria-label="Productos vistos por día">
+            {a.vistas_dia.map((d, i) => (
+              <li key={d.dia} className="flex min-w-0 flex-col items-center" title={`${d.dia}: ${d.vistas} ${d.vistas === 1 ? "vista" : "vistas"}`}>
+                <div className="flex h-32 w-full flex-col items-center justify-end gap-1 border-b border-linea">
+                  <span className="font-mono text-[10px] leading-none text-gris tabular-nums">{d.vistas > 0 ? d.vistas : ""}</span>
+                  <span
+                    className="crecer block w-full max-w-7 rounded-t-[4px] bg-verde/70"
+                    style={{ height: d.vistas > 0 ? `${Math.max(4, (d.vistas / maxVistas) * 100)}px` : "0px" }}
+                  />
+                </div>
+                <span className={`mt-1.5 font-mono text-[10px] leading-none whitespace-nowrap text-gris ${i % 2 === 1 ? "max-sm:invisible" : ""}`}>
+                  {d.dia}
+                </span>
               </li>
             ))}
           </ol>
-          <div className="mt-1 flex gap-1 font-mono text-[10px] text-gris">
-            {a.vistas_dia.map((d, i) => (
-              <span key={d.dia} className="flex-1 text-center">
-                {i % 2 === 0 ? d.dia : ""}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 

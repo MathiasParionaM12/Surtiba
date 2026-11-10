@@ -54,6 +54,7 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
           marcaId={p.marca_id!}
           reputacion={(await reputacionPorNombre()).get(p.marca!)}
           nombre={p.nombre!}
+          descripcion={p.descripcion}
           datos={[
             ["Contenido", `${p.ml} ml`],
             ["Grado", `${p.grado}%`],
@@ -79,12 +80,12 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
     );
   }
 
-  // Con sesión: escala completa, stock, pedido mínimo y registro sanitario.
+  // Con sesión: escala completa, stock y pedido mínimo.
   // RLS decide si puede verlo (comprador: activos; marca: los suyos; admin: todos).
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "nombre, marca_id, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "nombre, marca_id, categoria, ml, grado, unidades_por_caja, descripcion, stock_cajas, foto_url, activo, marcas(nombre_comercial, activa), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -114,11 +115,11 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
         marcaId={p.marcas.activa ? p.marca_id : undefined}
         reputacion={(await reputacionPorNombre()).get(p.marcas.nombre_comercial)}
         nombre={p.nombre}
+        descripcion={p.descripcion}
         datos={[
           ["Contenido", `${p.ml} ml`],
           ["Grado", `${p.grado}%`],
           ["Unidades por caja", `${p.unidades_por_caja}`],
-          ["Registro sanitario", p.registro_sanitario ?? "—"],
           ["Stock disponible", p.stock_cajas === 0 ? "Agotado (por encargo)" : `${p.stock_cajas} cajas`],
         ]}
       >
@@ -178,7 +179,9 @@ function Ficha({
   children,
   reputacion,
   marcaId,
+  descripcion,
 }: {
+  descripcion?: string | null; // la escribe la marca (opcional)
   reputacion?: Reputacion;
   marcaId?: string; // para ir a la página de la marca y ver sus otros productos
   categoria: string;
@@ -216,6 +219,7 @@ function Ficha({
             Ver todos los productos de {marca} →
           </Link>
         )}
+        {descripcion && <p className="mt-4 max-w-prose text-sm leading-relaxed whitespace-pre-line">{descripcion}</p>}
         <dl className="mt-6 grid grid-cols-2 border-t border-linea text-sm">
           {datos.map(([k, v]) => (
             <div key={k} className="border-b border-linea py-3 odd:pr-4">

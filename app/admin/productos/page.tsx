@@ -21,7 +21,7 @@ export default function PaginaProductosPorAprobar() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Productos por aprobar</h1>
       <p className="mt-2 max-w-2xl text-gris">
-        Lo nuevo que suben las marcas. Revisa los datos, el registro sanitario y los precios. Si lo rechazas, la marca recibe el motivo y
+        Lo nuevo que suben las marcas. Revisa los datos, la descripción y los precios (los registros sanitarios están en los documentos de la marca). Si lo rechazas, la marca recibe el motivo y
         puede corregirlo.
       </p>
       <Carga fallback={<EsqueletoTabla filas={3} />}>
@@ -37,7 +37,7 @@ async function Lista() {
   const { data } = await supabase
     .from("productos")
     .select(
-      "id, nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, foto_url, creado_en, marcas(nombre_comercial), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
+      "id, nombre, categoria, ml, grado, unidades_por_caja, descripcion, stock_cajas, foto_url, creado_en, marcas(nombre_comercial), escalas_precio(desde_cajas, hasta_cajas, precio_caja_centimos)",
     )
     .eq("revision", "pendiente")
     .order("creado_en");
@@ -63,7 +63,7 @@ async function Lista() {
                   {CATEGORIAS[p.categoria]} · {p.ml} ml · {p.grado} % · {p.unidades_por_caja} u/caja · {p.stock_cajas} cajas en stock
                 </p>
                 <p className="mt-1 text-sm">
-                  Registro sanitario: {p.registro_sanitario ? <span className="font-mono">{p.registro_sanitario}</span> : <span className="text-rojo">no puso</span>}
+                  {p.descripcion ? p.descripcion : <span className="text-gris">Sin descripción</span>}
                 </p>
                 <p className="mt-1 text-xs text-gris">
                   Subido el {fecha(p.creado_en)} ·{" "}
@@ -92,7 +92,7 @@ async function Lista() {
               >
                 <label className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="text-xs text-gris">Motivo si lo rechazas</span>
-                  <input name="motivo" maxLength={300} placeholder="Ej.: falta el registro sanitario" className={`${campo} h-10`} />
+                  <input name="motivo" maxLength={300} placeholder="Ej.: falta la foto o el precio no cuadra" className={`${campo} h-10`} />
                 </label>
               </FormAccion>
             </div>

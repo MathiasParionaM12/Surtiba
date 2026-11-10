@@ -7,6 +7,8 @@ import { aprobarSolicitud, rechazarSolicitud } from "@/lib/acciones-admin";
 import { campo, sello } from "@/lib/estilos";
 import { fecha } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
+import { ListaDocumentos } from "@/components/ListaDocumentos";
+import { documentosDe } from "@/lib/documentos";
 import { createClient } from "@/lib/supabase/server";
 import { COMISION_PCT } from "@/lib/catalogo";
 
@@ -29,7 +31,7 @@ async function Marcas() {
   const [{ data: solicitudes }, { data: marcas }] = await Promise.all([
     supabase
       .from("solicitudes_marca")
-      .select("id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, creado_en")
+      .select("id, perfil_id, nombre_comercial, razon_social, ruc, direccion_recojo, contacto_nombre, contacto_whatsapp, creado_en")
       .eq("estado", "pendiente")
       .order("creado_en"),
     supabase
@@ -37,6 +39,10 @@ async function Marcas() {
       .select("id, nombre_comercial, activa, marcas_privado(comision_pct), productos(id), subpedidos(estado)")
       .order("nombre_comercial"),
   ]);
+  // Documentos que subió cada solicitante (registros sanitarios y otros)
+  const docs = new Map(
+    await Promise.all((solicitudes ?? []).map(async (s) => [s.id, await documentosDe(supabase, [s.perfil_id])] as const)),
+  );
 
   return (
     <div className="mt-6 flex flex-col gap-10">
@@ -64,6 +70,10 @@ async function Marcas() {
                 <p className="text-sm">
                   Contacto: {s.contacto_nombre} · <span className="font-mono">{s.contacto_whatsapp}</span>
                 </p>
+                <div className="mt-3">
+                  <p className="mb-1 text-xs font-medium text-gris">Registros sanitarios y documentos</p>
+                  <ListaDocumentos documentos={docs.get(s.id) ?? []} />
+                </div>
 
                 <div className="mt-5 grid gap-5 border-t border-linea pt-5 md:grid-cols-2">
                   <div>

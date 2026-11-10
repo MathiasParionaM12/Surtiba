@@ -15,7 +15,7 @@ export type DatosProducto = {
   ml: string;
   grado: string;
   unidades: string;
-  registro: string;
+  descripcion: string;
   stock: string;
   activo: boolean;
   tramos: { desde: string; precio: string }[]; // precio en soles, ej. "420.00"
@@ -103,8 +103,15 @@ export function FormProducto({ inicial, marcaId }: { inicial: DatosProducto; mar
           </div>
         )}
         <label className="col-span-2 flex flex-col gap-2">
-          <Etiqueta texto="Registro sanitario" nota="opcional" />
-          <input name="registro" defaultValue={v?.registro ?? inicial.registro} className={`${campo} font-mono`} />
+          <Etiqueta texto="Descripción del producto" nota="opcional" />
+          <textarea
+            name="descripcion"
+            rows={3}
+            maxLength={600}
+            defaultValue={v?.descripcion ?? inicial.descripcion}
+            placeholder="Ej.: sabor, cómo se sirve y para qué eventos va bien"
+            className={`${campo} h-auto py-2`}
+          />
         </label>
         <label className="col-span-2 flex items-center gap-3 self-end pb-3">
           <input

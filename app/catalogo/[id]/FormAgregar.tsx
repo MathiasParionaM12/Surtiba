@@ -1,5 +1,7 @@
 "use client";
 
+import { avisarExperimento } from "@/components/AvisoExperimento";
+
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
@@ -17,7 +19,7 @@ export function FormAgregar({ productoId, stock, enCarrito }: { productoId: stri
   }, {});
 
   return (
-    <form action={accion} className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
+    <form action={accion} onSubmit={avisarExperimento} className="rounded-md border border-linea bg-blanco p-4 sm:p-5">
       <input type="hidden" name="producto_id" value={productoId} />
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1.5">

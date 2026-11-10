@@ -10,6 +10,8 @@ import { COMISION_PCT, esUuid, ordenarTramos } from "@/lib/catalogo";
 import { botonPrimario, campo, sello } from "@/lib/estilos";
 import { fecha, soles } from "@/lib/formato";
 import { exigirRol } from "@/lib/sesion";
+import { ListaDocumentos } from "@/components/ListaDocumentos";
+import { documentosDe } from "@/lib/documentos";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Marca · Panel Surtiba" };
@@ -49,6 +51,9 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
     .select("id, estrellas, comentario, oculta, creado_en")
     .eq("marca_id", m.id)
     .order("creado_en", { ascending: false });
+  // Registros sanitarios y documentos que subieron las cuentas de la marca
+  const { data: cuentas } = await supabase.from("perfiles").select("id").eq("marca_id", m.id);
+  const documentos = await documentosDe(supabase, (cuentas ?? []).map((c) => c.id));
   const visibles = (calificaciones ?? []).filter((c) => !c.oculta);
   const promedio = visibles.length ? visibles.reduce((t, c) => t + c.estrellas, 0) / visibles.length : null;
 
@@ -114,6 +119,13 @@ async function Marca({ params }: { params: Promise<{ id: string }> }) {
           )}
         </section>
       </div>
+
+      <section className="mt-10">
+        <h2 className={sello}>Registros sanitarios y documentos</h2>
+        <div className="mt-3 rounded-md border border-linea bg-blanco p-5">
+          <ListaDocumentos documentos={documentos} />
+        </div>
+      </section>
 
       {/* Confianza: sello de verificada y calificaciones de los compradores */}
       <section className="mt-10">

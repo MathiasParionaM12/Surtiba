@@ -34,8 +34,8 @@ export function CrearTrago({
   const [error, setError] = useState<string>();
   const porId = new Map(ingredientes.map((i) => [i.id, i]));
   // Jarabes y amargos ("otro") van con los demás ingredientes aunque Surtiba pueda tenerlos
-  const deSurtiba = ingredientes.filter((i) => i.categoria && i.categoria !== "otro");
-  const otros = ingredientes.filter((i) => !i.categoria || i.categoria === "otro");
+  const deSurtiba = ingredientes.filter((i) => i.categoria && i.categoria !== "otro" && i.categoria !== "jarabe");
+  const otros = ingredientes.filter((i) => !i.categoria || i.categoria === "otro" || i.categoria === "jarabe");
 
   const cambiar = (clave: number, cambio: Partial<Linea>) =>
     setLineas((ls) => ls.map((l) => (l.clave === clave ? { ...l, ...cambio } : l)));

@@ -45,7 +45,7 @@ export async function pasarAlCarrito(entrada: EntradaCotizador): Promise<Respues
 
 // Guarda la cotización del evento (COT-0001) y devuelve su id para descargar el PDF.
 // Se guarda la entrada completa para poder volver a abrirla en el cotizador.
-export async function guardarCotizacion(entrada: EntradaCotizador): Promise<RespuestaPdf> {
+export async function guardarCotizacion(entrada: EntradaCotizador, segundos?: number): Promise<RespuestaPdf> {
   if (!(await comprador())) return { error: "Solo los compradores pueden guardar cotizaciones." };
   const [{ resultado, entrada: limpia, error }, { tipos }] = await Promise.all([cotizarEvento(entrada), datosCotizador({ conProductos: false })]);
   if (!resultado || !limpia) return { error };
@@ -53,6 +53,8 @@ export async function guardarCotizacion(entrada: EntradaCotizador): Promise<Resp
 
   const evento = {
     version: 2,
+    // Tiempo para armar la cotización (métrica del experimento): lo mide el navegador; se acepta de 0 a 24 horas
+    segundos: Number.isInteger(segundos) && segundos! >= 0 && segundos! <= 86400 ? segundos : null,
     entrada: limpia,
     resumen: {
       nombre: limpia.nombre,
@@ -94,4 +96,28 @@ async function guardar(items?: Json, evento?: Json): Promise<RespuestaPdf> {
   }
   revalidatePath("/cotizaciones");
   return { id: data[0].cotizacion_id, codigo: data[0].codigo };
+}
+
+// Retroalimentación del comprador al terminar su cotización (10-nov-2026). RLS: solo a su nombre y sobre su cotización.
+export async function enviarRetroalimentacion(datos: {
+  cotizacionId: string;
+  puntaje: number | null;
+  mejorar: string;
+  fallos: string;
+}): Promise<{ error?: string; mensaje?: string }> {
+  if (!(await comprador())) return { error: "Solo los compradores pueden dejar su opinión aquí." };
+  const puntaje = Number.isInteger(datos.puntaje) && datos.puntaje! >= 1 && datos.puntaje! <= 5 ? datos.puntaje : null;
+  const mejorar = String(datos.mejorar ?? "").trim().slice(0, 1000) || null;
+  const fallos = String(datos.fallos ?? "").trim().slice(0, 1000) || null;
+  if (!puntaje && !mejorar && !fallos) return { error: "Elige una nota o escribe un comentario." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("retroalimentacion").insert({
+    contexto: "cotizacion",
+    cotizacion_id: /^[0-9a-f-]{36}$/.test(datos.cotizacionId) ? datos.cotizacionId : null,
+    puntaje,
+    mejorar,
+    fallos,
+  });
+  if (error) return { error: "No pudimos guardar tu comentario. Intenta de nuevo." };
+  return { mensaje: "¡Gracias! Tu opinión ya cuenta para postular a tus primeros 2 pedidos con envío gratis." };
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { avisarExperimento } from "@/components/AvisoExperimento";
+
 import Link from "next/link";
 import { useActionState } from "react";
 import type { EstadoForm } from "@/lib/acciones-auth";
@@ -21,7 +23,7 @@ export function AgregarRapido({ productoId, cajas }: { productoId: string; cajas
   }
 
   return (
-    <form action={accion} className="flex flex-col items-end gap-1">
+    <form action={accion} onSubmit={avisarExperimento} className="flex flex-col items-end gap-1">
       <input type="hidden" name="producto_id" value={productoId} />
       <input type="hidden" name="cajas" value={cajas} />
       <button type="submit" disabled={enviando} className={`${botonSecundario} h-9 px-3 text-xs`}>

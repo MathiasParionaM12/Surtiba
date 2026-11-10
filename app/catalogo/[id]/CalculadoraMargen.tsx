@@ -11,7 +11,7 @@ import { campo, sello } from "@/lib/estilos";
 type Tramo = { desde_cajas: number; hasta_cajas: number | null; precio_caja_centimos: number };
 
 // ml de un trago típico por categoría (supuesto editable por el comprador)
-const ML_TRAGO: Record<string, number> = { pisco: 60, ron: 50, gin: 50, vodka: 50, licor: 30, vino: 150, espumante: 125, coctel_listo: 0 };
+const ML_TRAGO: Record<string, number> = { pisco: 60, ron: 50, gin: 50, vodka: 50, licor: 30, crema_pisco: 60, vino: 150, espumante: 125, coctel_listo: 0 };
 
 export function CalculadoraMargen({
   tramos,

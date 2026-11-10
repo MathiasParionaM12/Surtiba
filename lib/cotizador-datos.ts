@@ -298,7 +298,7 @@ export function limpiarEntrada(
   // Licores que pone el cliente final: solo los licores que vende Surtiba (con categoría, en ml) y que están en algún trago
   const idsDeSurtiba = new Set(
     // Jarabes y amargos ("otro") no: no son licores
-    [...recetas, ...propios].flatMap((r) => r.ingredientes.filter((i) => i.categoria && i.categoria !== "otro" && i.unidad === "ml").map((i) => i.id)),
+    [...recetas, ...propios].flatMap((r) => r.ingredientes.filter((i) => i.categoria && i.categoria !== "otro" && i.categoria !== "jarabe" && i.unidad === "ml").map((i) => i.id)),
   );
   const clientePone = [...new Set(Array.isArray(e.clientePone) ? e.clientePone : [])]
     .filter((id): id is string => typeof id === "string" && idsDeSurtiba.has(id))

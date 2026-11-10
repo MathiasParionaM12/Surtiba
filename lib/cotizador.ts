@@ -299,13 +299,14 @@ export function cantidadLegible(unidad: IngredienteReceta["unidad"], total: numb
   return total >= 1000 ? { cantidad: arriba(total / 100) / 10, unidad: "litros" } : { cantidad: arriba(total), unidad: "ml" };
 }
 
-// Productos que cubren un ingrediente. Pisco, ron, vino…: los de su categoría. Licores y jarabes ("licor" y "otro"):
+// Productos que cubren un ingrediente. Pisco, ron, vino…: los de su categoría. Licores, jarabes y cremas de pisco:
 // los de esas categorías cuyo nombre dice alguna de sus palabras ("Licor de menta X" dice "menta").
-const GENERICAS = new Set(["licor", "otro"]);
-function candidatosDe(ing: IngredienteReceta, catalogo: ProductoCotizable[]) {
+const GENERICAS = new Set(["licor", "otro", "jarabe", "crema_pisco"]);
+export function candidatosDe(ing: IngredienteReceta, catalogo: ProductoCotizable[]) {
   if (!ing.categoria || !GENERICAS.has(ing.categoria)) return catalogo.filter((p) => p.categoria === ing.categoria);
   const palabras = (ing.palabras?.length ? ing.palabras : [ing.nombre]).map(normalizar).filter(Boolean);
-  return catalogo.filter((p) => GENERICAS.has(p.categoria) && palabras.some((w) => normalizar(p.nombre).includes(w)));
+  // Solo en su misma categoría (o en "otro"): la crema de pisco de algarrobina no cubre la algarrobina del cóctel
+  return catalogo.filter((p) => (p.categoria === ing.categoria || p.categoria === "otro") && palabras.some((w) => normalizar(p.nombre).includes(w)));
 }
 
 // "1 bartender", "2 bartenders"
@@ -458,7 +459,7 @@ export function calcular(
       continue;
     }
     // Un jarabe o amargo que Surtiba no tiene se consigue por tu cuenta, sin alarma
-    if (candidatos.length === 0 && ing.categoria === "otro") {
+    if (candidatos.length === 0 && (ing.categoria === "otro" || ing.categoria === "jarabe")) {
       porTuCuenta.push({ nombre: ing.nombre, ...cantidadLegible("ml", total), nota: `para ${lista(para)}`, orden: ing.orden });
       comprar(ing, total, para);
       continue;
@@ -479,7 +480,7 @@ export function calcular(
       productoId: producto?.id ?? null,
       recomendado: !elegido && !!producto,
       puedeRecomendar: true,
-      licor: ing.categoria !== "otro",
+      licor: ing.categoria !== "otro" && ing.categoria !== "jarabe",
       opciones: candidatos.map((p) => ({ id: p.id, nombre: p.nombre, marca: p.marca })),
     });
     if (producto) {

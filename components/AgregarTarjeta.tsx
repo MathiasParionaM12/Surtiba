@@ -1,5 +1,7 @@
 "use client";
 
+import { avisarExperimento } from "@/components/AvisoExperimento";
+
 // Agregar al carrito desde la tarjeta del catálogo: − cajas + y "Agregar".
 // Solo manda producto_id y cajas; el precio lo pone la base de datos (regla de seguridad).
 // Al agregar sale el aviso flotante y el contador del carrito se actualiza.
@@ -23,7 +25,7 @@ export function AgregarTarjeta({ productoId, nombre }: { productoId: string; nom
   const sumar = (delta: number) => setCajas((n) => Math.min(MAX, Math.max(1, n + delta)));
 
   return (
-    <form action={accion} className="flex flex-col gap-2">
+    <form action={accion} onSubmit={avisarExperimento} className="flex flex-col gap-2">
       <input type="hidden" name="producto_id" value={productoId} />
       <input type="hidden" name="cajas" value={cajas} />
       <div className="flex items-center justify-between gap-1 rounded-md border border-linea">

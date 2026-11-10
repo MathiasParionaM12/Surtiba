@@ -1,10 +1,14 @@
 "use client";
 
+import { avisarExperimento } from "@/components/AvisoExperimento";
+
 import { ArrowRight, Check, ChevronDown, ChevronUp, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AvisoForm } from "@/components/AvisoForm";
 import { BotonPdf } from "@/components/BotonPdf";
+import { createClient } from "@/lib/supabase/client";
+import { Retroalimentacion } from "./Retroalimentacion";
 import { Cifra } from "@/components/Cifra";
 import { cotizar, guardarCotizacion, pasarAlCarrito } from "@/lib/acciones-cotizador";
 import {
@@ -64,16 +68,36 @@ export function Cotizador({
   const [resumenAbierto, setResumenAbierto] = useState(false);
   const [guardada, setGuardada] = useState<{ codigo: string; id: string }>(); // la cotización recién guardada (COT-0012)
   // Los dos PDF usan la misma cotización: si ya se guardó y no cambió nada, no se crea otra
-  const prepararPdf = async () => (guardada ? guardada : guardarCotizacion(entrada));
+  // Medición del experimento (10-nov-2026): cuánto tarda en armar su cotización (desde que abre el cotizador
+  // hasta que guarda el PDF) y si la empezó (evento "inicio_cotizacion", para contar las abandonadas)
+  const abiertoEn = useRef<number | null>(null);
+  const inicioRegistrado = useRef(false);
+  useEffect(() => {
+    abiertoEn.current = Date.now();
+  }, []);
+  useEffect(() => {
+    if (rol !== "comprador" || abierta || alcanzado < 1 || inicioRegistrado.current) return;
+    inicioRegistrado.current = true;
+    createClient()
+      .rpc("registrar_evento", { p_tipo: "inicio_cotizacion" })
+      .then(
+        () => undefined,
+        () => undefined,
+      );
+  }, [alcanzado, rol, abierta]);
+  const prepararPdf = async () =>
+    guardada ? guardada : guardarCotizacion(entrada, abiertoEn.current ? Math.round((Date.now() - abiertoEn.current) / 1000) : undefined);
   const alGuardar = (codigo: string, id: string) => setGuardada({ codigo, id });
   const [calculando, iniciar] = useTransition();
   const [pasando, pasar] = useTransition();
   // Agrega todos los productos de la cotización; si sale bien, el servidor te lleva al carrito
-  const agregarTodo = () =>
+  const agregarTodo = () => {
+    avisarExperimento();
     pasar(async () => {
       const r = await pasarAlCarrito(entrada);
       if (r?.error) setError(r.error);
     });
+  };
   // Borrador en este navegador (8-nov-2026): si vas al carrito, recargas o vuelves otro día, sigues donde estabas.
   // Es solo una comodidad: si el navegador no deja guardar, el cotizador funciona igual.
   const clave = claveBorrador ? `surtiba:cotizador:${claveBorrador}` : null;
@@ -321,6 +345,8 @@ export function Cotizador({
                 <BotonPdf preparar={prepararPdf} texto="PDF para tu cliente" alGuardar={alGuardar} sufijo="?para=cliente" />
               </div>
             )}
+            {/* Al terminar (ya guardó su cotización): qué mejorar y qué falló */}
+            {paso === RESULTADO && esComprador && guardada && <Retroalimentacion cotizacionId={guardada.id} />}
             {paso === RESULTADO && esComprador && (
               <p className="text-xs text-gris">
                 Al agregarlo al carrito, las cajas de estos productos reemplazan las que ya tenías. El «PDF para tu cliente» sale con el nombre de tu empresa y tu precio por invitado, sin tus costos. Al descargar un PDF, la cotización se guarda en{" "}

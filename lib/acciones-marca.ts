@@ -117,7 +117,7 @@ export async function guardarProducto(_estado: EstadoForm, form: FormData): Prom
     ml: leer("ml"),
     grado: leer("grado"),
     unidades: leer("unidades"),
-    registro: leer("registro"),
+    descripcion: leer("descripcion").slice(0, 600),
     stock: leer("stock"),
     activo: form.get("activo") ? "si" : "",
   };
@@ -143,7 +143,7 @@ export async function guardarProducto(_estado: EstadoForm, form: FormData): Prom
     p_ml: Number(valores.ml),
     p_grado: Number(valores.grado),
     p_unidades: Number(valores.unidades),
-    p_registro: valores.registro || null,
+    p_descripcion: valores.descripcion || null,
     p_stock: Number(valores.stock || 0),
     p_activo: !!valores.activo,
     p_tramos: tramos,

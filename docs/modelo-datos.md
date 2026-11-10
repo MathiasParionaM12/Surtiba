@@ -85,7 +85,8 @@ Desde el 5-nov-2026 también `revision` (`pendiente` · `aprobado` · `rechazado
 | ml | integer | por botella |
 | grado | numeric(4,1) | % de alcohol |
 | unidades_por_caja | integer | |
-| registro_sanitario | text | |
+| registro_sanitario | text | ya no se usa en pantalla (10-nov-2026): el registro sanitario se sube como documento de la marca |
+| descripcion | text | la escribe la marca, hasta 600 letras (10-nov-2026). Categorías nuevas: `crema_pisco` y `jarabe` |
 | foto_url | text | ruta en Supabase Storage |
 | stock_cajas | integer | ≥ 0. Lo actualiza la marca; baja al enviar un pedido |
 | activo | boolean | |

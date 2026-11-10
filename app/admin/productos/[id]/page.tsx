@@ -33,7 +33,7 @@ async function Editar({
   const { data: p } = await supabase
     .from("productos")
     .select(
-      "id, marca_id, nombre, categoria, ml, grado, unidades_por_caja, registro_sanitario, stock_cajas, activo, foto_url, marcas(nombre_comercial), escalas_precio(desde_cajas, precio_caja_centimos)",
+      "id, marca_id, nombre, categoria, ml, grado, unidades_por_caja, descripcion, stock_cajas, activo, foto_url, marcas(nombre_comercial), escalas_precio(desde_cajas, precio_caja_centimos)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -61,7 +61,7 @@ async function Editar({
               ml: String(p.ml),
               grado: String(p.grado),
               unidades: String(p.unidades_por_caja),
-              registro: p.registro_sanitario ?? "",
+              descripcion: p.descripcion ?? "",
               stock: String(p.stock_cajas),
               activo: p.activo,
               tramos: ordenarTramos(p.escalas_precio).map((t) => ({

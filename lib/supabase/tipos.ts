@@ -144,7 +144,7 @@ export type Database = {
         Row: {
           activo: boolean; categoria: string; creado_en: string; foto_url: string | null; grado: number; id: string; marca_id: string;
           ml: number; nombre: string; registro_sanitario: string | null; stock_cajas: number; unidades_por_caja: number;
-          revision: string; motivo_revision: string | null;
+          revision: string; descripcion: string | null; motivo_revision: string | null;
         };
         Insert: {
           activo?: boolean; categoria: string; creado_en?: string; foto_url?: string | null; grado: number; id?: string; marca_id: string;
@@ -189,6 +189,23 @@ export type Database = {
         Insert: { distrito: string; zona: number };
         Update: { zona?: number };
         Relationships: [];
+      };
+      eventos: {
+        Row: { id: number; tipo: string; producto_id: string | null; perfil_id: string | null; creado_en: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      retroalimentacion: {
+        Row: {
+          id: number; perfil_id: string; contexto: string; cotizacion_id: string | null; puntaje: number | null; mejorar: string | null;
+          fallos: string | null; creado_en: string;
+        };
+        Insert: { contexto: string; cotizacion_id?: string | null; puntaje?: number | null; mejorar?: string | null; fallos?: string | null };
+        Update: Record<string, never>;
+        Relationships: [
+          { foreignKeyName: "retroalimentacion_perfil_id_fkey"; columns: ["perfil_id"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+        ];
       };
       reclamos: {
         Row: {
@@ -311,6 +328,7 @@ export type Database = {
         Row: {
           categoria: string | null; foto_url: string | null; grado: number | null; id: string | null; marca: string | null;
           marca_id: string | null; ml: number | null; nombre: string | null; precio_caja_centimos: number | null; unidades_por_caja: number | null;
+          descripcion: string | null;
         };
         Relationships: [
           { foreignKeyName: "productos_marca_id_fkey"; columns: ["marca_id"]; isOneToOne: false; referencedRelation: "marcas"; referencedColumns: ["id"] },
@@ -355,7 +373,7 @@ export type Database = {
           p_ml: number;
           p_grado: number;
           p_unidades: number;
-          p_registro: string | null;
+          p_descripcion: string | null;
           p_stock: number;
           p_activo: boolean;
           p_tramos: Json;

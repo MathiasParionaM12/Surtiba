@@ -41,7 +41,7 @@ async function Nuevo({ searchParams }: { searchParams: Promise<{ marca?: string 
             ml: "750",
             grado: "",
             unidades: "12",
-            registro: "",
+            descripcion: "",
             stock: "0",
             activo: true,
             tramos: [{ desde: "1", precio: "" }],

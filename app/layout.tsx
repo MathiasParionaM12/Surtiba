@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import { Avisos } from "@/components/Avisos";
+import { AvisoExperimento } from "@/components/AvisoExperimento";
+import { marcasPublicas } from "@/lib/marcas-publicas";
 import { BarraCarga } from "@/components/BarraCarga";
 import { Encabezado } from "@/components/Encabezado";
 import { Pie } from "@/components/Pie";
@@ -43,6 +45,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Pie />
         <Avisos />
+        {/* Aviso de fase de prueba al agregar al carrito (10-nov-2026) */}
+        <Suspense fallback={null}>
+          <AvisoPrueba />
+        </Suspense>
         {/* Visitas y páginas más vistas (Vercel Web Analytics): sin cookies ni datos personales */}
         <Analytics />
         {/* Qué tan rápido carga en los equipos reales de los visitantes (Vercel Speed Insights, 8-nov-2026) */}
@@ -50,4 +56,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </body>
     </html>
   );
+}
+
+// Las marcas reales que hoy están en el catálogo (para el aviso de fase de prueba)
+async function AvisoPrueba() {
+  const marcas = await marcasPublicas();
+  return <AvisoExperimento marcas={marcas.map((m) => m.nombre)} />;
 }

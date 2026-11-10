@@ -1,5 +1,7 @@
 "use client";
 
+import { avisarExperimento } from "@/components/AvisoExperimento";
+
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
@@ -53,7 +55,7 @@ function AgregarProducto({ productoId, cajas, nombre }: { productoId: string; ca
     return { ...r, vez: r.mensaje ? (antes.vez ?? 0) + 1 : antes.vez };
   }, {});
   return (
-    <form action={accion} className="flex flex-col items-end gap-1">
+    <form action={accion} onSubmit={avisarExperimento} className="flex flex-col items-end gap-1">
       <input type="hidden" name="producto_id" value={productoId} />
       <input type="hidden" name="cajas" value={cajas} />
       <button type="submit" disabled={enviando} aria-label={`Agregar ${cajas} cajas de ${nombre} al carrito`} className={`${botonSecundario} h-11 px-3 sm:h-9`}>

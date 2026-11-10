@@ -1,4 +1,6 @@
+import { DocumentosMarca } from "@/components/DocumentosMarca";
 import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
+import { documentosDe } from "@/lib/documentos";
 import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
 import { EsqueletoPagina } from "@/components/Esqueleto";
@@ -22,8 +24,9 @@ export default function PaginaSolicitud() {
 
 async function Solicitud() {
   // Si el admin ya la aprobó, el rol es "marca" y exigirRol lleva al panel de marca
-  await exigirRol("solicitante");
+  const usuario = await exigirRol("solicitante");
   const supabase = await createClient();
+  const documentos = await documentosDe(supabase, [usuario.id]);
   const { data: s } = await supabase
     .from("solicitudes_marca")
     .select("nombre_comercial, razon_social, ruc, direccion_recojo, contacto_whatsapp, estado, motivo_rechazo, creado_en")
@@ -68,6 +71,11 @@ async function Solicitud() {
           </div>
         ))}
       </dl>
+
+      {/* Registros sanitarios y otros documentos (10-nov-2026): ayudan a aprobar la marca */}
+      <div className="mt-8">
+        <DocumentosMarca perfilId={usuario.id} documentos={documentos} />
+      </div>
     </>
   );
 }

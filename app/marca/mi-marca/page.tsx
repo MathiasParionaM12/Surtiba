@@ -1,6 +1,8 @@
 import { EnlaceWhatsapp } from "@/components/EnlaceWhatsapp";
 import type { Metadata } from "next";
 import { Carga } from "@/components/Carga";
+import { DocumentosMarca } from "@/components/DocumentosMarca";
+import { documentosDe } from "@/lib/documentos";
 import { EsqueletoPagina } from "@/components/Esqueleto";
 import { FormAccion } from "@/components/FormAccion";
 import { guardarDescripcion } from "@/lib/acciones-marca";
@@ -32,6 +34,7 @@ async function MiMarca() {
       .eq("marca_id", usuario.marcaId!)
       .maybeSingle(),
   ]);
+  const documentos = await documentosDe(supabase, [usuario.id]);
 
   return (
     <>
@@ -85,6 +88,10 @@ async function MiMarca() {
           </dl>
           <p className="mt-3 text-xs text-gris">Para cambiar estos datos, escríbele al equipo Surtiba al <EnlaceWhatsapp />.</p>
         </section>
+      </div>
+
+      <div className="mt-6">
+        <DocumentosMarca perfilId={usuario.id} documentos={documentos} />
       </div>
     </>
   );

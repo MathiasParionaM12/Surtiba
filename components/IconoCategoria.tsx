@@ -1,5 +1,5 @@
 // Un ícono de trazo fino por categoría (chips del catálogo, cinta de la portada, producto sin foto).
-import { Amphora, FlaskConical, Grape, Leaf, Martini, Package, Snowflake, Sparkles, TreePalm, Wine, type LucideIcon } from "lucide-react";
+import { Amphora, CupSoda, Droplet, FlaskConical, Grape, Leaf, Martini, Package, Snowflake, Sparkles, TreePalm, Wine, type LucideIcon } from "lucide-react";
 import { createElement } from "react";
 
 const ICONOS: Record<string, LucideIcon> = {
@@ -11,6 +11,8 @@ const ICONOS: Record<string, LucideIcon> = {
   espumante: Sparkles,
   licor: FlaskConical,
   coctel_listo: Martini,
+  crema_pisco: CupSoda,
+  jarabe: Droplet,
   otro: Package,
 };
 
