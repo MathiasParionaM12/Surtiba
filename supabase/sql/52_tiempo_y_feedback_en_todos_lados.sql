@@ -27,3 +27,13 @@ create policy "retroalimentacion: cada uno deja la suya" on public.retroalimenta
     perfil_id = (select auth.uid())
     and (cotizacion_id is null or exists (select 1 from public.cotizaciones c where c.id = cotizacion_id and c.comprador_id = (select auth.uid())))
     and (pedido_id is null or exists (select 1 from public.pedidos p where p.id = pedido_id and p.comprador_id = (select auth.uid()))));
+
+-- Las 3 cotizaciones del 10-nov-2026 que se bajaron desde el carrito antes de este arreglo (COT-0019, 0020 y 0021):
+-- su tiempo se calculó con los registros que sí había: desde que abrieron el cotizador (evento inicio_cotizacion)
+-- hasta que guardaron la cotización. Resultado: 485, 540 y 296 segundos.
+update public.cotizaciones c
+set segundos = round(extract(epoch from c.creado_en - (
+  select min(e.creado_en) from public.eventos e
+  where e.perfil_id = c.comprador_id and e.tipo = 'inicio_cotizacion'
+    and e.creado_en < c.creado_en and e.creado_en > c.creado_en - interval '6 hours')))::int
+where c.codigo in ('COT-0019', 'COT-0020', 'COT-0021') and c.segundos is null;
