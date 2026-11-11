@@ -54,7 +54,7 @@ export function Cotizador({
   parametros: Parametros;
   entradaInicial: EntradaCotizador;
   resultadoInicial: ResultadoCotizacion;
-  rol: Rol;
+  rol: Rol | "visitante"; // visitante = sin cuenta (COTIZADOR_SIN_CUENTA): calcula, pero no guarda ni pide
   abierta?: string; // código de la cotización que se volvió a abrir
   claveBorrador?: string; // id del usuario: el borrador se guarda en este navegador, uno por cuenta
   retomar?: boolean; // abrir el último borrador (no si vienes de una cotización guardada o de la portada)
@@ -356,6 +356,22 @@ export function Cotizador({
                 </Link>
                 .
               </p>
+            )}
+            {/* Sin cuenta: precios de 1 caja; para lo demás, crear cuenta */}
+            {paso === RESULTADO && rol === "visitante" && (
+              <div className="flex flex-col gap-3 rounded-md border border-tinta bg-blanco p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm">
+                  Los precios son por 1 caja. <strong>Crea tu cuenta gratis</strong> para ver los precios por volumen, guardar tu cotización en PDF y pedir.
+                </p>
+                <div className="flex shrink-0 gap-2">
+                  <Link href="/ingresar" className={botonSecundario}>
+                    Ingresar
+                  </Link>
+                  <Link href="/registro" className={botonPrimario}>
+                    Crear cuenta
+                  </Link>
+                </div>
+              </div>
             )}
             {paso === RESULTADO && rol === "admin" && (
               <p className="text-xs text-gris">Solo los compradores pueden agregarlo al carrito y guardar la cotización.</p>

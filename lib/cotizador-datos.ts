@@ -22,15 +22,37 @@ import {
 } from "@/lib/cotizador";
 import { cacheLife, cacheTag } from "next/cache";
 import { enUnAnioEnLima, fechaEnRango, mananaEnLima } from "@/lib/formato";
+import { catalogoPublico } from "@/lib/catalogo-publico";
 import { obtenerUsuario } from "@/lib/sesion";
 import { clientePublico } from "@/lib/supabase/publico";
 import { createClient } from "@/lib/supabase/server";
 
+// Cotizador sin cuenta (10-nov-2026, pedido de Mathias "por el momento"): el visitante puede usarlo, con el precio
+// de 1 caja (el mismo que ve en el catálogo, nunca la escala ni el stock). Guardar el PDF, el carrito y pedir siguen
+// siendo solo con cuenta. Para volver a pedir cuenta: poner false.
+export const COTIZADOR_SIN_CUENTA = true;
+
 export async function datosCotizador({ conProductos = true } = {}) {
   const [usuario, supuestos] = await Promise.all([obtenerUsuario(), supuestosCotizador()]);
-  const puedeUsar = usuario?.rol === "comprador" || usuario?.rol === "admin";
-  const catalogo = puedeUsar && conProductos ? await catalogoConSesion() : [];
-  return { usuario, puedeUsar, ...supuestos, catalogo };
+  const visitante = !usuario && COTIZADOR_SIN_CUENTA;
+  const puedeUsar = usuario?.rol === "comprador" || usuario?.rol === "admin" || visitante;
+  const catalogo = !conProductos || !puedeUsar ? [] : visitante ? await catalogoVisitante() : await catalogoConSesion();
+  return { usuario, puedeUsar, visitante, ...supuestos, catalogo };
+}
+
+// Para el visitante: el catálogo público (solo el precio del primer tramo, sin stock)
+async function catalogoVisitante(): Promise<ProductoCotizable[]> {
+  return (await catalogoPublico()).map((p) => ({
+    id: p.id!,
+    nombre: p.nombre!,
+    marca: p.marca!,
+    marcaId: p.marca_id!,
+    categoria: p.categoria!,
+    ml: p.ml!,
+    unidades: p.unidades_por_caja!,
+    tramos: [{ desde_cajas: 1, hasta_cajas: null, precio_caja_centimos: p.precio_caja_centimos! }],
+    stock: null,
+  }));
 }
 
 // Supuestos, tipos de evento y tragos activos: son públicos e iguales para todos, así que se

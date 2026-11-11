@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { MARCAS_SIN_APROBACION } from "@/lib/catalogo";
 import { AvisoForm } from "@/components/AvisoForm";
 import { CampoCelular } from "@/components/CampoCelular";
 import { Etiqueta } from "@/components/Etiqueta";
@@ -78,9 +79,11 @@ export function FormVender() {
       <AvisoForm estado={estado} fijo />
 
       <div className="flex flex-col gap-3 border-t border-linea pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-gris">El equipo Surtiba revisará tu solicitud antes de que puedas vender.</p>
+        <p className="text-sm text-gris">
+          {MARCAS_SIN_APROBACION ? "Tu cuenta de marca queda lista al instante." : "El equipo Surtiba revisará tu solicitud antes de que puedas vender."}
+        </p>
         <button type="submit" disabled={enviando} className={`${botonPrimario} shrink-0`}>
-          {enviando ? "Enviando…" : "Enviar solicitud"}
+          {enviando ? "Enviando…" : MARCAS_SIN_APROBACION ? "Crear mi cuenta de marca" : "Enviar solicitud"}
         </button>
       </div>
     </form>

@@ -38,7 +38,7 @@ type Busqueda = { desde?: string; invitados?: string; horas?: string };
 
 async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) {
   const [{ desde, invitados: inv, horas: hrs }, datos] = await Promise.all([searchParams, datosCotizador()]);
-  const { usuario, puedeUsar, parametros, tipos, recetas, ingredientes, catalogo } = datos;
+  const { usuario, puedeUsar, visitante, parametros, tipos, recetas, ingredientes, catalogo } = datos;
   if (usuario?.rol === "solicitante") redirect("/solicitud");
   if (!parametros || tipos.length === 0) {
     return <p className="rounded-md border border-linea bg-blanco p-5 text-gris">El cotizador no está disponible por ahora.</p>;
@@ -54,6 +54,23 @@ async function Contenido({ searchParams }: { searchParams: Promise<Busqueda> }) 
     return e;
   };
 
+  // Sin cuenta y con el cotizador abierto (COTIZADOR_SIN_CUENTA): lo usa con el precio de 1 caja
+  if (visitante) {
+    const entrada = inicial();
+    return (
+      <Cotizador
+        tipos={tipos}
+        recetas={recetas}
+        ingredientes={ingredientes}
+        parametros={parametros}
+        entradaInicial={entrada}
+        resultadoInicial={calcular(entrada, parametros, recetas, catalogo)}
+        rol="visitante"
+        claveBorrador="visitante"
+        retomar={!inv && !hrs}
+      />
+    );
+  }
   // Sin cuenta: qué hace, con un ejemplo calculado con los mismos supuestos
   if (!usuario) {
     const ejemplo = inicial();

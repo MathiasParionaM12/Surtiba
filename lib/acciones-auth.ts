@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { revisarClave, TIPOS_NEGOCIO } from "@/lib/cuenta";
+import { MARCAS_SIN_APROBACION } from "@/lib/catalogo";
 import { DISTRITOS } from "@/lib/distritos";
 import { celularValido, ERROR_CELULAR, limpiarCelular, PREFIJO_PERU } from "@/lib/celular";
 import { rutaInicio, type Rol } from "@/lib/roles";
@@ -164,5 +165,6 @@ export async function registrarVendedor(_estado: EstadoForm, form: FormData): Pr
   }
 
   revalidatePath("/", "layout");
-  redirect(rutaInicio("solicitante"));
+  // Sin aprobación, la base ya la dejó como marca: va a su panel (si no, el panel la manda a su solicitud)
+  redirect(rutaInicio(MARCAS_SIN_APROBACION ? "marca" : "solicitante"));
 }

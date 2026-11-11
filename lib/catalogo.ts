@@ -7,6 +7,10 @@ export const PEDIDO_MINIMO_CAJAS = 3;
 // Comisión de Surtiba sobre lo entregado, igual para todas las marcas. Subió de 5 % a 7 % el 22-oct-2026
 // (Mathias): Surtiba cubre el recojo en cada marca. Cada orden guarda el % vigente al crearse.
 export const COMISION_PCT = 7;
+// Marcas sin aprobación (10-nov-2026, pedido de Mathias "por el momento"): al registrarse con "Quiero vender" la cuenta
+// queda aprobada al instante (trigger de supabase/sql/53_marcas_sin_aprobacion.sql). Sus productos nuevos siguen pasando
+// por revisión. Para volver: false aquí y borrar el trigger (el archivo dice cómo).
+export const MARCAS_SIN_APROBACION = true;
 
 export const CATEGORIAS: Record<string, string> = {
   pisco: "Pisco",
